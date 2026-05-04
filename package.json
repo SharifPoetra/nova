@@ -1,0 +1,29 @@
+{
+  "name": "nova",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nova Discord Bot & Activity RPG",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "bot:dev": "npm run dev -w apps/bot",
+    "activity:dev": "npm run dev -w apps/activity",
+    "build": "npm run build --workspaces",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "SharifPoetra",
+  "license": "MIT",
+  "type": "nodenext",
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "discord.js": "^14.26.4",
+    "dotenv": "^17.4.2"
+  }
+}
