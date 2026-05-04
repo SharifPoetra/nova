@@ -10,6 +10,9 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@sapphire/decorators": "^6.2.0",
+    "@sapphire/framework": "^5.5.0",
+    "@sapphire/pieces": "^4.4.1",
     "discord.js": "^14.26.4",
     "dotenv": "^17.4.2"
   },
