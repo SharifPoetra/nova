@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url';
 import { GatewayIntentBits } from 'discord.js';
 import { SapphireClient, container } from '@sapphire/framework';
 import { createDatabase, User } from '@nova/db';
-// import './lib/setup';
 
 // load .env dari root project, bukan dari apps/bot
 const __filename = fileURLToPath(import.meta.url);
@@ -19,7 +18,7 @@ const client = new SapphireClient({
   ],
   baseUserDirectory: path.dirname(fileURLToPath(import.meta.url)),
   loadMessageCommandListeners: true,
-  defaultGuildIds: ['641142881238646785'],
+  // defaultGuildIds: ['641142881238646785'],
 });
 
 async function main() {
