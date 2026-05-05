@@ -2,6 +2,9 @@
   "name": "nova",
   "version": "1.0.0",
   "private": true,
+  "author": "SharifPoetra",
+  "license": "MIT",
+  "type": "module",
   "description": "Nova Discord Bot & Activity RPG",
   "workspaces": [
     "apps/*",
@@ -11,13 +14,19 @@
     "bot:dev": "npm run dev -w apps/bot",
     "activity:dev": "npm run dev -w apps/activity",
     "build": "npm run build --workspaces",
+    "format": "prettier --write \"{apps,packages}/**/*.ts\"",
+    "lint": "eslint \"{apps,packages}/**/*.ts\" --fix",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/dist packages/*/dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "SharifPoetra",
-  "license": "MIT",
-  "type": "nodenext",
   "devDependencies": {
-    "typescript": "^6.0.3"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.2"
   }
 }
