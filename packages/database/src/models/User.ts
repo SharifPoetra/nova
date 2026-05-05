@@ -14,10 +14,15 @@ export interface IUser extends Document {
 const UserSchema = new Schema<IUser>(
   {
     id: { type: String, required: true, unique: true },
-    balance: { type: Number, default: 1000 },
+    balance: { type: Number, default: 0 },
     exp: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
     lastDaily: { type: Date, default: null },
+    rpgClass: { type: String, default: null }, // Warrior, Mage, Rogue
+    hp: { type: Number, default: 100 },
+    maxHp: { type: Number, default: 100 },
+    level: { type: Number, default: 1 },
+    attack: { type: Number, default: 10 },
   },
   { timestamps: true },
 );
