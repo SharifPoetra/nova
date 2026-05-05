@@ -1,8 +1,11 @@
 {
   "name": "@nova/bot",
   "version": "1.0.0",
+  "description": "The main Discord bot core for Nova Activity RPG",
+  "author": "SharifPoetra",
+  "license": "MIT",
   "private": true,
-  "lisence": "MIT",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -10,6 +13,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@nova/db": "*",
     "@sapphire/decorators": "^6.2.0",
     "@sapphire/framework": "^5.5.0",
     "@sapphire/pieces": "^4.4.1",

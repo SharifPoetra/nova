@@ -1,15 +1,21 @@
 {
   "name": "@nova/db",
   "version": "1.0.0",
-  "description": "",
-  "main": "src/index.ts",
+  "description": "Database models and core connection logic for Nova Bot using Mongoose",
+  "author": "SharifPoetra",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
-  "type": "commonjs",
+  "keywords": [
+    "nova",
+    "mongodb",
+    "mongoose",
+    "discord-bot"
+  ],
   "dependencies": {
     "mongoose": "^9.6.1",
     "ws": "^8.20.0"

@@ -2,10 +2,10 @@
   "name": "nova",
   "version": "1.0.0",
   "private": true,
+  "description": "A high-performance Discord Bot & Activity RPG Monorepo built with Sapphire and Mongoose",
   "author": "SharifPoetra",
   "license": "MIT",
   "type": "module",
-  "description": "Nova Discord Bot & Activity RPG",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -19,7 +19,14 @@
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/dist packages/*/dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "discord-bot",
+    "sapphire-framework",
+    "monorepo",
+    "activity-rpg",
+    "typescript",
+    "mongoose"
+  ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.3.0",

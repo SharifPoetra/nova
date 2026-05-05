@@ -2,6 +2,7 @@ import './lib/setup';
 import path from 'path';
 import { GatewayIntentBits } from 'discord.js';
 import { SapphireClient } from '@sapphire/framework';
+import { fileURLToPath } from 'node:url';
 
 const client = new SapphireClient({
   intents: [
@@ -9,7 +10,7 @@ const client = new SapphireClient({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
   ],
-  baseUserDirectory: path.join(__dirname),
+  baseUserDirectory: path.dirname(fileURLToPath(import.meta.url)),
   loadMessageCommandListeners: true,
   defaultGuildIds: ['641142881238646785'],
 });
