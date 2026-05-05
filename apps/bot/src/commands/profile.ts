@@ -1,18 +1,15 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { ApplicationCommandType } from 'discord.js';
 
 @ApplyOptions<Command.Options>({
 	description: 'Melihat profil ekonomi kamu di Nova'
 })
-export class ProfilCommand extends Command {
-	// Ini untuk registrasi ke API Discord (Slash Command)
+export class ProfileCommand extends Command {
 	public override registerApplicationCommands(registry: Command.Registry) {
 		registry.registerChatInputCommand((builder) =>
 			builder
 				.setName(this.name)
 				.setDescription(this.description)
-				// Contoh tambah opsi: /profil user:@member
 				.addUserOption((option) =>
 					option
 						.setName('user')
@@ -22,16 +19,34 @@ export class ProfilCommand extends Command {
 		);
 	}
 
-	// Ini fungsi yang dijalankan saat user mengetik /profil
 	public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+		// Tentukan target: user yang di-mention atau orang yang ngetik command
 		const target = interaction.options.getUser('user') ?? interaction.user;
 
-		await interaction.reply({
-			content: `📊 **Profil Nova: ${target.username}**\n\n` +
-                     `💰 Saldo: 0 (Belum ada database)\n` +
-                     `🌟 Level: 1\n` +
-                     `🆔 ID: \`${target.id}\``,
-			ephemeral: false // Set true jika hanya user tersebut yang boleh lihat
-		});
+		// Supaya bot nggak timeout kalau database agak lambat (koneksi internet lemot)
+		await interaction.deferReply();
+
+		try {
+			// Menggunakan upsert: Cari user, kalau nggak ada langsung buat baru
+			const userData = await this.container.db.user.upsert({
+				where: { id: target.id },
+				update: {}, // Tidak ada yang diupdate kalau data ketemu
+				create: { 
+					id: target.id,
+					balance: 1000 // Saldo awal buat user baru
+				}
+			});
+
+			return interaction.editReply({
+				content: `📊 **Profil Nova: ${target.username}**\n\n` +
+						 `💰 **Saldo:** ${userData.balance.toLocaleString('id-ID')} koin\n` +
+						 `🌟 **Level:** ${userData.level}\n` +
+						 `📈 **EXP:** ${userData.exp}\n` +
+						 `📅 **Bergabung:** ${userData.createdAt.toLocaleDateString('id-ID')}`
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+			return interaction.editReply('❌ Terjadi kesalahan saat mengambil data dari database.');
+		}
 	}
 }

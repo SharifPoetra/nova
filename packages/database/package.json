@@ -2,12 +2,19 @@
   "name": "@nova/db",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "type": "commonjs"
+  "type": "commonjs",
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "@prisma/adapter-neon": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "prisma": "^7.8.0",
+    "ws": "^8.20.0"
+  }
 }
