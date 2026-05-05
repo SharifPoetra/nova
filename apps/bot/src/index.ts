@@ -1,7 +1,7 @@
 import './lib/setup';
 import path from 'path';
-import { GatewayIntentBits, Events } from 'discord.js';
-import { SapphireClient, container } from '@sapphire/framework';
+import { GatewayIntentBits } from 'discord.js';
+import { SapphireClient } from '@sapphire/framework';
 
 const client = new SapphireClient({
   intents: [
