@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, AttachmentBuilder } from 'discord.js';
+import { generateProfileCard } from '../../lib/images/profileCard';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',
@@ -73,7 +74,21 @@ export class ProfileCommand extends Command {
         .setFooter({ text: 'Nova Chronicles • Petualangan Dimulai Dari Sini' })
         .setTimestamp();
 
-      return interaction.editReply({ embeds: [embed] });
+      // return interaction.editReply({ embeds: [embed] });
+      const avatarUrl = target.displayAvatarURL({ extension: 'png', size: 256 });
+      const imageBuffer = await generateProfileCard(
+        target.username,
+        avatarUrl,
+        userData.level,
+        userData.rpgClass ?? 'Novice',
+      );
+
+      const attachment = new AttachmentBuilder(imageBuffer, { name: 'profile.png' });
+
+      // Kirim gambar sebagai attachment, embed-nya bisa kita simpan sebagai caption
+      return interaction.editReply({
+        files: [attachment],
+      });
     } catch (error) {
       this.container.logger.error(error);
       return interaction.editReply('❌ Terjadi kesalahan saat mengambil data dari database.');

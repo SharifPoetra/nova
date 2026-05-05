@@ -1,7 +1,9 @@
-import { UserModel } from '@nova/db';
+import type { User } from '@nova/db';
 
 declare module '@sapphire/pieces' {
   interface Container {
-    db: typeof UserModel;
+    db: {
+      user: typeof User;
+    };
   }
 }

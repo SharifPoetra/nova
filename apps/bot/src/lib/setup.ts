@@ -1,3 +1,6 @@
+import '@sapphire/plugin-logger/register';
+import '@sapphire/decorators/register';
+
 import { container } from '@sapphire/framework';
 import { createDatabase, UserModel } from '@nova/db';
 import dotenv from 'dotenv';
