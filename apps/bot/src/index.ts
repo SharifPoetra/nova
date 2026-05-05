@@ -24,7 +24,6 @@ async function main() {
     client.logger.info('🚀 Nova Sapphire sedang meluncur!');
   } catch (error) {
     client.logger.fatal(error);
-    // await db.$disconnect();
     process.exit(1);
   }
 }
