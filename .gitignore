@@ -7,7 +7,6 @@ dist/
 build/
 .cache/
 .vite/
-packages/database/prisma/generated-client
 
 # Environment variables (Sangat Rahasia!)
 .env

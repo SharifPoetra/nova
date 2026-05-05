@@ -28,14 +28,13 @@ export class ProfileCommand extends Command {
 
 		try {
 			// Menggunakan upsert: Cari user, kalau nggak ada langsung buat baru
-			const userData = await this.container.db.user.upsert({
-				where: { id: target.id },
-				update: {}, // Tidak ada yang diupdate kalau data ketemu
-				create: { 
-					id: target.id,
-					balance: 1000 // Saldo awal buat user baru
-				}
-			});
+			const userData = await this.container.db.user.findOneAndUpdate(
+			  { id: target.id }, // Filter
+        { $setOnInsert: { id: target.id } }, // Data saat pertama buat
+        { upsert: true,
+          returnDocument: "after",
+          setDefaultsOnInsert: true } // Opsi
+			);
 
 			return interaction.editReply({
 				content: `📊 **Profil Nova: ${target.username}**\n\n` +

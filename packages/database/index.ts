@@ -1,17 +1,23 @@
-import { PrismaClient } from './prisma/generated-client/client';
-import { PrismaNeon } from '@prisma/adapter-neon';
-import { neonConfig } from '@neondatabase/serverless';
-import ws from "ws";
+import mongoose from 'mongoose';
 
-// Paksa pakai WebSocket agar tidak nyari localhost
-neonConfig.webSocketConstructor = ws;
-
-export const createDatabase = (connectionString: string) => {
-    // 1. Buat adapter
-    const adapter = new PrismaNeon({ connectionString });
-
-    // 2. Masukkan ke PrismaClient
-    return new PrismaClient({ adapter });
+export const createDatabase = async (connectionString: string) => {
+    try {
+        await mongoose.connect(connectionString);
+        console.log('✅ MongoDB Connected Successfully');
+        return mongoose.connection;
+    } catch (error) {
+        console.error('❌ MongoDB Connection Error:', error);
+        throw error;
+    }
 };
 
-export * from './prisma/generated-client/client';
+// Skema User Todo: pindahin ke file lain biar rapi
+const UserSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true }, // Discord ID
+    balance: { type: Number, default: 1000 },
+    exp: { type: Number, default: 0 },
+    level: { type: Number, default: 1 },
+    lastDaily: { type: Date, default: null }
+}, { timestamps: true });
+
+export const UserModel = mongoose.model('User', UserSchema);
