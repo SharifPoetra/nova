@@ -2,7 +2,9 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 
 @ApplyOptions<Command.Options>({
+  name: 'profile',
   description: 'Melihat profil ekonomi kamu di Nova',
+  fullCategory: ['Economy'],
 })
 export class ProfileCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
