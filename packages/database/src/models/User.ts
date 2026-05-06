@@ -19,21 +19,24 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
-const UserSchema = new Schema<IUser>({
-  discordId: { type: String, required: true, unique: true, index: true },
-  username: { type: String, required: true },
-  balance: { type: Number, default: 1000 },
-  bank: { type: Number, default: 0 },
-  lastDaily: { type: Date, default: null },
-  lastExplore: { type: Date, default: null },
-  level: { type: Number, default: 1 },
-  exp: { type: Number, default: 0 },
-  hp: { type: Number, default: 100 },
-  maxHp: { type: Number, default: 100 },
-  attack: { type: Number, default: 10 },
-  class: { type: String, enum: ['warrior','mage','rogue'], default: null },
-  stamina: { type: Number, default: 100 },
-  maxStamina: { type: Number, default: 100 },
-}, { timestamps: true });
+const UserSchema = new Schema<IUser>(
+  {
+    discordId: { type: String, required: true, unique: true, index: true },
+    username: { type: String, required: true },
+    balance: { type: Number, default: 1000 },
+    bank: { type: Number, default: 0 },
+    lastDaily: { type: Date, default: null },
+    lastExplore: { type: Date, default: null },
+    level: { type: Number, default: 1 },
+    exp: { type: Number, default: 0 },
+    hp: { type: Number, default: 100 },
+    maxHp: { type: Number, default: 100 },
+    attack: { type: Number, default: 10 },
+    class: { type: String, enum: ['warrior', 'mage', 'rogue'], default: null },
+    stamina: { type: Number, default: 100 },
+    maxStamina: { type: Number, default: 100 },
+  },
+  { timestamps: true },
+);
 
 export const User = model<IUser>('User', UserSchema);

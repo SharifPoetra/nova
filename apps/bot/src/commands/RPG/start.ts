@@ -94,18 +94,18 @@ export class StartCommand extends Command {
         return i.reply({ content: 'Bukan urusanmu! 😤', flags: MessageFlags.Ephemeral });
       }
 
-      let selectedClass = '';
-      let stats = { hp: 100, atk: 10 };
+      let selectedClass: 'warrior' | 'mage' | 'rogue' = 'warrior';
+      let stats = { hp: 100, atk: 10, stamina: 0 };
 
       if (i.customId === 'class_warrior') {
-        selectedClass = 'Warrior';
-        stats = { hp: 120, atk: 15 };
+        selectedClass = 'warrior';
+        stats = { hp: 120, atk: 15, stamina: 0 };
       } else if (i.customId === 'class_mage') {
-        selectedClass = 'Mage';
-        stats = { hp: 80, atk: 25 };
+        selectedClass = 'mage';
+        stats = { hp: 80, atk: 25, stamina: 10 };
       } else if (i.customId === 'class_rogue') {
-        selectedClass = 'Rogue';
-        stats = { hp: 100, atk: 18 };
+        selectedClass = 'rogue';
+        stats = { hp: 100, atk: 18, stamina: 20 };
       }
 
       // 5. Update Database (Upsert agar aman)
@@ -113,13 +113,18 @@ export class StartCommand extends Command {
         { discordId: userId },
         {
           $set: {
-            class: selectedClass,
+            class: selectedClass, // <-- lowercase
+            username: interaction.user.username,
             hp: stats.hp,
             maxHp: stats.hp,
             attack: stats.atk,
           },
+          $inc: {
+            maxStamina: stats.stamina,
+            stamina: stats.stamina,
+          },
         },
-        { upsert: true },
+        { upsert: true, returnDocument: 'after' },
       );
 
       // 6. Matikan tombol dan tampilkan hasil

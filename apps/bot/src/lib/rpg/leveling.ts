@@ -16,6 +16,6 @@ export function checkLevelUp(user: IUser) {
     attack: user.attack + atkGain,
     maxStamina: user.maxStamina + staGain,
     hp: user.maxHp + hpGain, // full heal
-    stamina: user.maxStamina + staGain
+    stamina: user.maxStamina + staGain,
   };
 }
