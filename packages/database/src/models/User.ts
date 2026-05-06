@@ -1,32 +1,39 @@
-import { Schema, model, type Document, type Model } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 
 export interface IUser extends Document {
-  id: string;
+  discordId: string;
+  username: string;
   balance: number;
-  exp: number;
-  level: number;
+  bank: number;
   lastDaily: Date | null;
-  rpgClass: string | null;
+  lastExplore: Date | null;
+  level: number;
+  exp: number;
   hp: number;
   maxHp: number;
   attack: number;
+  class: 'warrior' | 'mage' | 'rogue' | null;
+  stamina: number;
+  maxStamina: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const UserSchema = new Schema<IUser>(
-  {
-    id: { type: String, required: true, unique: true },
-    balance: { type: Number, default: 0 },
-    exp: { type: Number, default: 0 },
-    level: { type: Number, default: 1 },
-    lastDaily: { type: Date, default: null },
-    rpgClass: { type: String, default: null },
-    hp: { type: Number, default: 100 },
-    maxHp: { type: Number, default: 100 },
-    attack: { type: Number, default: 10 },
-  },
-  { timestamps: true },
-);
+const UserSchema = new Schema<IUser>({
+  discordId: { type: String, required: true, unique: true, index: true },
+  username: { type: String, required: true },
+  balance: { type: Number, default: 1000 },
+  bank: { type: Number, default: 0 },
+  lastDaily: { type: Date, default: null },
+  lastExplore: { type: Date, default: null },
+  level: { type: Number, default: 1 },
+  exp: { type: Number, default: 0 },
+  hp: { type: Number, default: 100 },
+  maxHp: { type: Number, default: 100 },
+  attack: { type: Number, default: 10 },
+  class: { type: String, enum: ['warrior','mage','rogue'], default: null },
+  stamina: { type: Number, default: 100 },
+  maxStamina: { type: Number, default: 100 },
+}, { timestamps: true });
 
-export const User: Model<IUser> = model<IUser>('User', UserSchema);
+export const User = model<IUser>('User', UserSchema);

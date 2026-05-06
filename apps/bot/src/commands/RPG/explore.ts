@@ -1,100 +1,85 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
+import { User } from '@nova/db';
+import { checkLevelUp } from '../../lib/rpg/leveling.js';
 
 @ApplyOptions<Command.Options>({
   name: 'explore',
-  description: 'Jelajahi dungeon dan lawan monster untuk dapatkan EXP!',
-  fullCategory: ['RPG'],
-  cooldownDelay: 5000,
+  description: 'Jelajahi dunia Nova dan temukan harta karun'
 })
 export class ExploreCommand extends Command {
-  public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((builder) =>
-      builder.setName(this.name).setDescription(this.description),
-    );
-  }
-
-  public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+  public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     await interaction.deferReply();
-    const userId = interaction.user.id;
 
-    // 1. Ambil data user
-    const user = await this.container.db.user.findOne({ id: userId });
-
-    if (!user || !user.rpgClass) {
-      return interaction.editReply(
-        '❌ Kamu harus memilih class dulu! Gunakan `/start` untuk memulai petualangan.',
-      );
+    const user = await User.findOne({ discordId: interaction.user.id });
+    if (!user) {
+      return interaction.editReply('❌ Kamu belum memulai petualangan! Gunakan `/start` dulu.');
     }
 
-    if (user.hp <= 0) {
-      return interaction.editReply(
-        '😵 Kamu terlalu lelah (HP 0). Istirahatlah dulu atau gunakan `/heal`!',
-      );
+    // stamina check
+    if (user.stamina < 10) {
+      return interaction.editReply('🥱 Stamina kamu habis. Tunggu regen atau pakai `/daily`.');
     }
 
-    // 2. Daftar Monster (Sederhana)
-    const monsters = [
-      { name: 'Slime Hijau', hp: 40, atk: 5, exp: 20, gold: 50, emoji: '🟢' },
-      { name: 'Goblin Pencuri', hp: 60, atk: 10, exp: 45, gold: 120, emoji: '👺' },
-      { name: 'Kelelawar Gua', hp: 30, atk: 8, exp: 25, gold: 60, emoji: '🦇' },
-      { name: 'Skeleton Guard', hp: 100, atk: 15, exp: 100, gold: 300, emoji: '💀' },
+    const now = Date.now();
+    const cooldown = 30000;
+    if (user.lastExplore && now - user.lastExplore.getTime() < cooldown) {
+      const s = Math.ceil((cooldown - (now - user.lastExplore.getTime())) / 1000);
+      return interaction.editReply(`⏳ Kamu masih lelah. Tunggu ${s} detik lagi.`);
+    }
+
+    const outcomes = [
+      { text: 'menemukan peti harta karun berisi', coins: 500, exp: 50 },
+      { text: 'mengalahkan slime dan mendapatkan', coins: 200, exp: 30 },
+      { text: 'menemukan koin di jalan', coins: 100, exp: 20 },
+      { text: 'tersesat dan hanya menemukan', coins: 50, exp: 10 },
+      { text: 'menemukan dungeon tersembunyi!', coins: 1000, exp: 100 }
     ];
+    const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
 
-    // Pilih monster secara acak
-    const monster = monsters[Math.floor(Math.random() * monsters.length)];
+    await User.updateOne(
+      { discordId: interaction.user.id },
+      {
+        $inc: { balance: outcome.coins, exp: outcome.exp, stamina: -10 },
+        $set: { lastExplore: new Date() }
+      }
+    );
 
-    // 3. Simulasi Pertarungan (Looping sampai salah satu tumbang)
-    let playerHp = user.hp;
-    let monsterHp = monster.hp;
-    let turn = 0;
-    let log = `⚔️ Pertarungan sengit dimulai melawan **${monster.name}**!\n\n`;
+    const updated = await User.findOne({ discordId: interaction.user.id });
+    if (!updated) return;
 
-    // Berhenti jika salah satu HP <= 0 atau sudah 5 ronde (biar gak spam panjang)
-    while (playerHp > 0 && monsterHp > 0 && turn < 5) {
-      turn++;
-
-      // Player nyerang
-      monsterHp -= user.attack;
-      log += `🔹 **Ronde ${turn}:** Kamu hit **${user.attack}** damage. (Sisa HP Monster: ${Math.max(0, monsterHp)})\n`;
-
-      if (monsterHp <= 0) break; // Monster mati, stop loop
-
-      // Monster nyerang balik
-      playerHp -= monster.atk;
-      log += `🔸 **Ronde ${turn}:** Monster hit **${monster.atk}** damage. (Sisa HP Kamu: ${Math.max(0, playerHp)})\n`;
-    }
-
-    const isWin = monsterHp <= 0;
-    const finalHp = Math.max(0, playerHp);
-
-    // 4. Update Database
-    if (isWin) {
-      await this.container.db.user.updateOne(
-        { id: userId },
-        {
-          $set: { hp: finalHp },
-          $inc: { exp: monster.exp, balance: monster.gold },
-        },
+    let levelUpText = '';
+    const levelData = checkLevelUp(updated);
+    if (levelData) {
+      await User.updateOne(
+        { discordId: interaction.user.id },
+        { $set: {
+            level: levelData.level,
+            exp: levelData.expLeft,
+            maxHp: levelData.maxHp,
+            hp: levelData.hp,
+            attack: levelData.attack,
+            maxStamina: levelData.maxStamina,
+            stamina: levelData.stamina
+        }}
       );
-    } else {
-      await this.container.db.user.updateOne({ id: userId }, { $set: { hp: finalHp } });
+      levelUpText = `\n\n🎉 **LEVEL UP!** Kamu sekarang Level ${levelData.level}! +20 HP, +3 ATK, +10 Stamina`;
     }
 
-    // 5. Tampilan Embed
     const embed = new EmbedBuilder()
-      .setTitle(`${monster.emoji} Dungeon Encounter: ${monster.name}`)
-      .setDescription(log)
-      .addFields({
-        name: isWin ? '✅ Kemenangan!' : '🏃 Terpaksa Mundur...',
-        value: isWin
-          ? `Kamu mengalahkan monster!\n💰 +${monster.gold} koin\n🌟 +${monster.exp} EXP`
-          : `Monster masih terlalu kuat. Kamu melarikan diri dengan sisa HP: **${finalHp}**.`,
-      })
-      .setColor(isWin ? 'Green' : 'Red')
-      .setFooter({ text: `Sisa HP kamu: ${finalHp}` });
+     .setColor(0x00ff00)
+     .setTitle('🗺️ Hasil Eksplorasi')
+     .setDescription(`${interaction.user.username} ${outcome.text} **${outcome.coins} koin** dan **${outcome.exp} EXP**!${levelUpText}`)
+     .setFooter({ text: `Stamina: ${updated.stamina - 10}/${updated.maxStamina}` })
+     .setTimestamp();
 
     return interaction.editReply({ embeds: [embed] });
+  }
+
+  public override registerApplicationCommands(registry: Command.Registry) {
+    registry.registerChatInputCommand((builder) =>
+      builder.setName(this.name).setDescription(this.description)
+    );
   }
 }

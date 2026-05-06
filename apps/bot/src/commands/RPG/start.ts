@@ -25,10 +25,10 @@ export class StartCommand extends Command {
     const userId = interaction.user.id;
 
     // 1. Cek apakah user sudah punya class
-    const user = await this.container.db.user.findOne({ id: userId });
-    if (user?.rpgClass) {
+    const user = await this.container.db.user.findOne({ discordId: userId });
+    if (user?.class) {
       return interaction.reply({
-        content: `❌ Kamu sudah menjadi seorang **${user.rpgClass}**! Gunakan \`/profile\` untuk melihat statistikmu.`,
+        content: `❌ Kamu sudah menjadi seorang **${user.class}**! Gunakan \`/profile\` untuk melihat statistikmu.`,
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -110,10 +110,10 @@ export class StartCommand extends Command {
 
       // 5. Update Database (Upsert agar aman)
       await this.container.db.user.findOneAndUpdate(
-        { id: userId },
+        { discordId: userId },
         {
           $set: {
-            rpgClass: selectedClass,
+            class: selectedClass,
             hp: stats.hp,
             maxHp: stats.hp,
             attack: stats.atk,

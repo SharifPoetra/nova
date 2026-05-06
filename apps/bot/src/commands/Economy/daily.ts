@@ -27,8 +27,8 @@ export class DailyCommand extends Command {
       // 2. Ambil data user atau buat baru jika belum ada (Atomic Upsert)
       // Pastikan kamu sudah meregistrasikan 'db' ke dalam container Sapphire
       const userData = await this.container.db.user.findOneAndUpdate(
-        { id: userId },
-        { $setOnInsert: { id: userId } },
+        { discordId: userId },
+        { $setOnInsert: { discordId: userId } },
         { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
       );
 
@@ -47,9 +47,9 @@ export class DailyCommand extends Command {
 
       // 4. Update Saldo dan Timestamp (Atomic Update)
       await this.container.db.user.updateOne(
-        { id: userId },
+        { discordId: userId },
         {
-          $inc: { balance: rewardAmount },
+          $inc: { balance: rewardAmount, stamina: 20 },
           $set: { lastDaily: now },
         },
       );
