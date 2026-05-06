@@ -7,6 +7,7 @@ export interface IUser extends Document {
   bank: number;
   lastDaily: Date | null;
   lastExplore: Date | null;
+  lastFish: Date | null;
   level: number;
   exp: number;
   hp: number;
@@ -28,6 +29,7 @@ const UserSchema = new Schema<IUser>(
     bank: { type: Number, default: 0 },
     lastDaily: { type: Date, default: null },
     lastExplore: { type: Date, default: null },
+    lastFish: { type: Date, default: null },
     level: { type: Number, default: 1 },
     exp: { type: Number, default: 0 },
     hp: { type: Number, default: 100 },

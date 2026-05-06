@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'node:url';
 import { GatewayIntentBits } from 'discord.js';
 import { SapphireClient, container } from '@sapphire/framework';
-import { createDatabase, User } from '@nova/db';
+import { createDatabase, User, Item } from '@nova/db';
 
 // load .env dari root project, bukan dari apps/bot
 const __filename = fileURLToPath(import.meta.url);
@@ -29,7 +29,11 @@ async function main() {
     if (!mongoUri) throw new Error('MONGODB_URI missing di .env');
 
     await createDatabase(mongoUri);
-    container.db = { user: User };
+
+    container.db = {
+      user: User,
+      item: Item,
+    };
 
     console.log('Token exists:', !!process.env.DISCORD_TOKEN);
     await client.login(process.env.DISCORD_TOKEN);

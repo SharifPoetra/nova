@@ -24,7 +24,6 @@ export class StartCommand extends Command {
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     const userId = interaction.user.id;
 
-    // 1. Cek apakah user sudah punya class
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (user?.class) {
       return interaction.reply({
@@ -33,7 +32,6 @@ export class StartCommand extends Command {
       });
     }
 
-    // 2. Buat Embed Informasi Class
     const embed = new EmbedBuilder()
       .setTitle('🛡️ Selamat Datang di Nova Chronicles!')
       .setDescription(
@@ -42,24 +40,23 @@ export class StartCommand extends Command {
       .addFields(
         {
           name: '⚔️ Warrior',
-          value: 'HP: **120** | ATK: **15**\n*Pertahanan kuat dan nyawa tebal.*',
+          value: 'Stamina: **120** | ATK: **15**\n*Pertahanan kuat, stamina badak.*',
           inline: false,
         },
         {
           name: '🪄 Mage',
-          value: 'HP: **80** | ATK: **25**\n*Serangan sihir dahsyat, tapi fisik lemah.*',
+          value: 'Stamina: **80** | ATK: **25**\n*Serangan sihir dahsyat, tapi cepat lelah.*',
           inline: false,
         },
         {
           name: '🏹 Rogue',
-          value: 'HP: **100** | ATK: **18**\n*Seimbang dengan peluang critical tinggi.*',
+          value: 'Stamina: **100** | ATK: **18**\n*Seimbang dengan peluang critical tinggi.*',
           inline: false,
         },
       )
       .setColor('Gold')
       .setFooter({ text: 'Klik tombol di bawah untuk memilih' });
 
-    // 3. Buat Tombol Interaktif
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId('class_warrior')
@@ -83,10 +80,9 @@ export class StartCommand extends Command {
       components: [row],
     });
 
-    // 4. Kolektor Tombol (Hanya untuk user yang memanggil command)
     const collector = response.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 60000, // 1 menit waktu memilih
+      time: 60000,
     });
 
     collector.on('collect', async (i) => {
@@ -95,41 +91,41 @@ export class StartCommand extends Command {
       }
 
       let selectedClass: 'warrior' | 'mage' | 'rogue' = 'warrior';
-      let stats = { hp: 100, atk: 10, stamina: 0 };
+      let stats = { hp: 120, atk: 15, maxStamina: 120 };
 
       if (i.customId === 'class_warrior') {
         selectedClass = 'warrior';
-        stats = { hp: 120, atk: 15, stamina: 0 };
+        stats = { hp: 120, atk: 15, maxStamina: 120 };
       } else if (i.customId === 'class_mage') {
         selectedClass = 'mage';
-        stats = { hp: 80, atk: 25, stamina: 10 };
+        stats = { hp: 80, atk: 25, maxStamina: 80 };
       } else if (i.customId === 'class_rogue') {
         selectedClass = 'rogue';
-        stats = { hp: 100, atk: 18, stamina: 20 };
+        stats = { hp: 100, atk: 18, maxStamina: 100 };
       }
 
-      // 5. Update Database (Upsert agar aman)
       await this.container.db.user.findOneAndUpdate(
         { discordId: userId },
         {
           $set: {
-            class: selectedClass, // <-- lowercase
+            class: selectedClass,
             username: interaction.user.username,
             hp: stats.hp,
             maxHp: stats.hp,
             attack: stats.atk,
-          },
-          $inc: {
-            maxStamina: stats.stamina,
-            stamina: stats.stamina,
+            maxStamina: stats.maxStamina,
+            stamina: stats.maxStamina,
+            level: 1,
+            xp: 0,
+            coins: 100, // bonus awal
+            items: [],
           },
         },
         { upsert: true, returnDocument: 'after' },
       );
 
-      // 6. Matikan tombol dan tampilkan hasil
       await i.update({
-        content: `✅ Selamat! Kamu sekarang adalah seorang **${selectedClass}**!`,
+        content: `✅ Selamat! Kamu sekarang adalah seorang **${selectedClass.toUpperCase()}**!\n⚡ Stamina: ${stats.maxStamina}/${stats.maxStamina} | 🗡️ ATK: ${stats.atk}`,
         embeds: [],
         components: [],
       });
