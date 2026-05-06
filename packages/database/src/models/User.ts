@@ -15,6 +15,7 @@ export interface IUser extends Document {
   class: 'warrior' | 'mage' | 'rogue' | null;
   stamina: number;
   maxStamina: number;
+  items: { itemId: string; qty: number }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +36,15 @@ const UserSchema = new Schema<IUser>(
     class: { type: String, enum: ['warrior', 'mage', 'rogue'], default: null },
     stamina: { type: Number, default: 100 },
     maxStamina: { type: Number, default: 100 },
+    items: {
+      type: [
+        {
+          itemId: { type: String, required: true },
+          qty: { type: Number, default: 0, min: 0 },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true },
 );

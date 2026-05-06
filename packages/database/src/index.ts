@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 // Ekspor semua model dari sini agar bisa diakses via @nova/db
 export * from './models/User';
+export * from './models/Item';
 
 export const createDatabase = async (connectionString: string) => {
   try {
