@@ -22,11 +22,12 @@ export class StartCommand extends Command {
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    await interaction.deferReply();
     const userId = interaction.user.id;
 
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (user?.class) {
-      return interaction.reply({
+      return interaction.editReply({
         content: `❌ Kamu sudah menjadi seorang **${user.class}**! Gunakan \`/profile\` untuk melihat statistikmu.`,
         flags: MessageFlags.Ephemeral,
       });
@@ -74,10 +75,11 @@ export class StartCommand extends Command {
         .setEmoji('🏹')
         .setStyle(ButtonStyle.Success),
     );
-
-    const response = await interaction.reply({
+    
+    const response = await interaction.editReply({
       embeds: [embed],
       components: [row],
+      withResponse: true
     });
 
     const collector = response.createMessageComponentCollector({
@@ -89,6 +91,7 @@ export class StartCommand extends Command {
       if (i.user.id !== userId) {
         return i.reply({ content: 'Bukan urusanmu! 😤', flags: MessageFlags.Ephemeral });
       }
+      if (i.replied || i.deferred) return;
 
       let selectedClass: 'warrior' | 'mage' | 'rogue' = 'warrior';
       let stats = { hp: 120, atk: 15, maxStamina: 120 };
