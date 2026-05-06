@@ -51,6 +51,13 @@ export class ProfileCommand extends Command {
       const exp = userData.exp ?? 0;
       const expNeeded = level * 100;
 
+      // Cooldown explore
+      const now = Date.now();
+      const cooldown = 60 * 1000;
+      const nextExplore = userData.lastExplore ? userData.lastExplore.getTime() + cooldown : 0;
+      const exploreStatus =
+        nextExplore > now ? `<t:${Math.floor(nextExplore / 1000)}:R>` : '✅ Siap';
+
       const classColors: Record<string, number> = {
         warrior: 0xc41e3a,
         mage: 0x7b68ee,
@@ -87,6 +94,7 @@ export class ProfileCommand extends Command {
             value: `**${(userData.balance ?? 0).toLocaleString('id-ID')}** koin`,
             inline: true,
           },
+          { name: '🗺️ Explore', value: exploreStatus, inline: true },
           {
             name: '📅 Bergabung',
             value: `<t:${Math.floor(new Date(userData.createdAt).getTime() / 1000)}:D>`,
