@@ -27,13 +27,19 @@ export class ProfileCommand extends Command {
     await interaction.deferReply();
 
     try {
-      const userData = await this.container.db.user.findOneAndUpdate(
-        { discordId: target.id },
-        { $setOnInsert: { discordId: target.id, username: target.username } },
-        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
-      );
+      const userData = await this.container.db.user.findOne({ discordId: target.id });
 
-      if (!userData) throw new Error('User not found');
+      if (!userData) {
+        const embed = new EmbedBuilder()
+          .setColor(0xe74c3c)
+          .setAuthor({ name: target.username, iconURL: target.displayAvatarURL() })
+          .setDescription(
+            target.id === interaction.user.id
+              ? '❌ Kamu belum terdaftar di Nova Chronicles!\nGunakan `/start` untuk memulai petualangan dan dapatkan 1.000 koin awal.'
+              : `❌ **${target.username}** belum memulai petualangan.`,
+          );
+        return interaction.editReply({ embeds: [embed] });
+      }
 
       const bar = (current: number, max: number) => {
         const len = 10;
@@ -50,13 +56,16 @@ export class ProfileCommand extends Command {
       const level = userData.level ?? 1;
       const exp = userData.exp ?? 0;
       const expNeeded = level * 100;
+      const balance = userData.balance ?? 0;
+      const bank = userData.bank ?? 0;
 
-      // Cooldown explore
       const now = Date.now();
       const cooldown = 60 * 1000;
       const nextExplore = userData.lastExplore ? userData.lastExplore.getTime() + cooldown : 0;
       const exploreStatus =
         nextExplore > now ? `<t:${Math.floor(nextExplore / 1000)}:R>` : '✅ Siap';
+
+      const itemCount = userData.items?.reduce((a, b) => a + b.qty, 0) || 0;
 
       const classColors: Record<string, number> = {
         warrior: 0xc41e3a,
@@ -89,18 +98,9 @@ export class ProfileCommand extends Command {
         .setColor(color)
         .setDescription(`*“Setiap langkah di Menara Nova menulis takdir.”*`)
         .addFields(
-          {
-            name: '💰 Dompet Astral',
-            value: `**${(userData.balance ?? 0).toLocaleString('id-ID')}** koin`,
-            inline: true,
-          },
-          { name: '🗺️ Explore', value: exploreStatus, inline: true },
-          {
-            name: '📅 Bergabung',
-            value: `<t:${Math.floor(new Date(userData.createdAt).getTime() / 1000)}:D>`,
-            inline: true,
-          },
-          { name: '\u200b', value: '\u200b', inline: true },
+          { name: '💰 Dompet', value: `**${balance.toLocaleString('id-ID')}** koin`, inline: true },
+          { name: '🏦 Bank', value: `**${bank.toLocaleString('id-ID')}** koin`, inline: true },
+          { name: '🎒 Inventory', value: `${itemCount} item`, inline: true },
           {
             name: `${classEmoji} ${className} — Lv.${level}`,
             value: `${bar(exp, expNeeded)} \`${exp}/${expNeeded} EXP\``,
@@ -112,6 +112,12 @@ export class ProfileCommand extends Command {
             value: `${bar(stamina, maxStamina)} \`${stamina}/${maxStamina}\``,
             inline: true,
           },
+          { name: '🗺️ Explore', value: exploreStatus, inline: true },
+          {
+            name: '📅 Bergabung',
+            value: `<t:${Math.floor(new Date(userData.createdAt).getTime() / 1000)}:D>`,
+            inline: true,
+          },
           { name: '🗡️ Attack', value: `**${userData.attack ?? 10}**`, inline: true },
         )
         .setFooter({ text: 'Gunakan /explore untuk menguji kekuatanmu' });
@@ -119,7 +125,7 @@ export class ProfileCommand extends Command {
       return interaction.editReply({ embeds: [embed] });
     } catch (error) {
       this.container.logger.error(error);
-      return interaction.editReply('❌ Terjadi kesalahan saat mengambil data dari database.');
+      return interaction.editReply('❌ Terjadi kesalahan saat mengambil data.');
     }
   }
 }
