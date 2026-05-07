@@ -1,171 +1,95 @@
 import { Command } from '@sapphire/framework';
-import {
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ComponentType,
-} from 'discord.js';
-
-const PRICES = {
-  common: 10,
-  uncommon: 25,
-  rare: 75,
-  epic: 200,
-  legendary: 1000,
-};
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
+import { User } from '@nova/db';
+import { Item } from '@nova/db';
 
 export class SellCommand extends Command {
   public constructor(context: Command.LoaderContext, options: Command.Options) {
-    super(context, {
-      ...options,
-      name: 'sell',
-      description: 'Jual ikan dari inventory',
-    });
+    super(context, {...options, name: 'sell', description: 'Jual ikan/material' });
   }
 
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .addStringOption((opt) =>
-          opt
-            .setName('type')
-            .setDescription('Jual berdasarkan rarity')
-            .setRequired(true)
-            .addChoices(
-              { name: 'All (kecuali legendary)', value: 'all' },
-              { name: 'Common', value: 'common' },
-              { name: 'Uncommon', value: 'uncommon' },
-              { name: 'Rare', value: 'rare' },
-              { name: 'Epic', value: 'epic' },
-              { name: 'Legendary', value: 'legendary' },
-            ),
-        )
-        .addIntegerOption((opt) =>
-          opt.setName('amount').setDescription('Jumlah (kosongkan = semua)').setMinValue(1),
-        ),
+      builder.setName(this.name).setDescription(this.description)
+       .addStringOption(o => o.setName('type').setDescription('Rarity').setRequired(true)
+         .addChoices(
+            { name: 'All', value: 'all' },
+            { name: 'Common', value: 'Common' },
+            { name: 'Uncommon', value: 'Uncommon' },
+            { name: 'Rare', value: 'Rare' },
+            { name: 'Epic', value: 'Epic' },
+            { name: 'Legendary', value: 'Legendary' }
+          ))
     );
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     await interaction.deferReply();
-
     const type = interaction.options.getString('type', true);
-    const amountOpt = interaction.options.getInteger('amount');
-    const userId = interaction.user.id;
+    const user = await User.findOne({ discordId: interaction.user.id });
+    if (!user ||!user.items.length) return interaction.editReply('❌ Inventory kosong!');
 
-    const user = await this.container.db.user.findOne({ discordId: userId });
-    if (!user || !user.inventory?.length) {
-      return interaction.editReply('❌ Inventory kamu kosong!');
-    }
+    // Populate items
+    const itemIds = user.items.map(i => i.itemId);
+    const dbItems = await Item.find({ itemId: { $in: itemIds } });
+    const itemMap = new Map(dbItems.map(i => [i.itemId, i]));
 
-    // Filter ikan
-    let items =
-      type === 'all'
-        ? user.inventory.filter((i) => i.rarity !== 'legendary')
-        : user.inventory.filter((i) => i.rarity === type);
+    let toSell = user.items
+     .map(ui => ({ itemId: ui.itemId, qty: ui.qty, data: itemMap.get(ui.itemId) }))
+     .filter(ui => ui.data && (type === 'all'? ui.data.rarity!== 'Legendary' : ui.data.rarity === type));
 
-    if (!items.length) {
-      return interaction.editReply(`❌ Tidak ada ikan ${type} di inventory!`);
-    }
+    if (!toSell.length) return interaction.editReply(`❌ Tidak ada item ${type}!`);
 
-    // Hitung total jual
-    let toSell = [];
-    let totalCoins = 0;
-
-    for (const item of items) {
-      const sellAmount = amountOpt ? Math.min(amountOpt, item.amount) : item.amount;
-      if (sellAmount <= 0) continue;
-
-      toSell.push({ ...item, sellAmount });
-      totalCoins += sellAmount * PRICES[item.rarity as keyof typeof PRICES];
-      if (amountOpt) break;
-    }
-
-    // Konfirmasi untuk epic/legendary
-    const needConfirm = toSell.some((i) => ['epic', 'legendary'].includes(i.rarity));
-
-    if (needConfirm) {
-      const embed = new EmbedBuilder()
-        .setColor('Orange')
-        .setTitle('⚠️ Konfirmasi Penjualan')
-        .setDescription(
-          `Kamu akan menjual:\n${toSell.map((i) => `**${i.name}** [${i.rarity}] x${i.sellAmount} = ${i.sellAmount * PRICES[i.rarity as keyof typeof PRICES]} coins`).join('\n')}\n\n**Total: ${totalCoins} coins**\nYakin?`,
-        );
-
-      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder().setCustomId('confirm').setLabel('Jual').setStyle(ButtonStyle.Danger),
-        new ButtonBuilder().setCustomId('cancel').setLabel('Batal').setStyle(ButtonStyle.Secondary),
-      );
-
-      const { resource: msg } = await interaction.editReply({
-        embeds: [embed],
-        components: [row],
-        withResponse: true,
-      });
-
-      const collector = msg.createMessageComponentCollector({
-        componentType: ComponentType.Button,
-        time: 15000,
-        max: 1,
-      });
-
-      collector.on('collect', async (i) => {
-        if (i.user.id !== userId) return i.reply({ content: 'Bukan punyamu!', ephemeral: true });
-
-        if (i.customId === 'cancel') {
-          return i.update({ content: '❌ Dibatalkan', embeds: [], components: [] });
-        }
-
-        await this.processSell(userId, toSell, totalCoins, i);
-      });
-
-      return;
-    }
-
-    // Langsung jual kalau common-uncommon-rare
-    await this.processSell(userId, toSell, totalCoins, interaction);
-  }
-
-  private async processSell(userId: string, toSell: any[], totalCoins: number, interaction: any) {
-    const user = await this.container.db.user.findOne({ discordId: userId });
-
-    // Kurangi inventory
-    for (const sell of toSell) {
-      const idx = user.inventory.findIndex(
-        (i: any) => i.name === sell.name && i.rarity === sell.rarity,
-      );
-      if (idx > -1) {
-        user.inventory[idx].amount -= sell.sellAmount;
-        if (user.inventory[idx].amount <= 0) user.inventory.splice(idx, 1);
-      }
-    }
-
-    user.coins = (user.coins || 0) + totalCoins;
-    await user.save();
+    const total = toSell.reduce((sum, i) => sum + i.qty * Number(i.data!.sellPrice), 0);
+    // Konfirmasi jika ada Epic/Legendary
+    const needConfirm = toSell.some(i => ['Rare', 'Epic', 'Legendary'].includes(i.data!.rarity));
 
     const embed = new EmbedBuilder()
-      .setColor('Green')
-      .setTitle('💰 Penjualan Berhasil')
-      .setDescription(
-        toSell
-          .map(
-            (i) =>
-              `${i.name} [${i.rarity}] x${i.sellAmount} = ${i.sellAmount * PRICES[i.rarity as keyof typeof PRICES]} coins`,
-          )
-          .join('\n'),
-      )
-      .addFields(
-        { name: 'Total', value: `+${totalCoins} coins`, inline: true },
-        { name: 'Saldo', value: `${user.coins} coins`, inline: true },
-      );
+     .setColor(needConfirm? 'Orange' : 'Green')
+     .setTitle('💰 Penjualan')
+     .setDescription(toSell.map(i => `${i.data!.emoji} **${i.data!.name}** x${i.qty} — ${i.qty * i.data!.sellPrice} koin`).join('\n'))
+     .addFields({ name: 'Total', value: `+${total} koin` });
 
-    if (interaction.update) {
-      await interaction.update({ embeds: [embed], components: [] });
-    } else {
-      await interaction.editReply({ embeds: [embed] });
+    if (!needConfirm) {
+      // langsung jual
+      console.log(total)
+      user.balance = Number(user.balance) + total;
+      user.items = user.items.filter(ui =>!toSell.some(ts => ts.itemId === ui.itemId));
+      await user.save();
+      embed.addFields({ name: 'Saldo', value: `${user.balance} koin` });
+      return interaction.editReply({ embeds: [embed] });
     }
+
+    // dengan tombol
+const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+  new ButtonBuilder().setCustomId('yes').setLabel('Jual').setStyle(ButtonStyle.Danger),
+  new ButtonBuilder().setCustomId('no').setLabel('Batal').setStyle(ButtonStyle.Secondary)
+);
+
+await interaction.editReply({ embeds: [embed], components: [row] });
+const msg = await interaction.fetchReply();
+
+const col = (msg as any).createMessageComponentCollector({
+  componentType: ComponentType.Button,
+  time: 15000,
+  filter: (btn) => btn.user.id === interaction.user.id,
+  max: 1
+});
+
+col.on('collect', async i => {
+  if (i.customId === 'no') return i.update({ content: 'Dibatalkan', embeds: [], components: [] });
+
+  user.balance = Number(user.balance) + total;
+  user.items = user.items.filter(ui =>!toSell.some(ts => ts.itemId === ui.itemId));
+  await user.save();
+  embed.addFields({ name: 'Saldo', value: `${user.balance} koin` });
+  await i.update({ embeds: [embed], components: [] });
+});
+
+col.on('end', (_, reason) => {
+  if (reason === 'time') {
+    interaction.editReply({ components: [] }).catch(()=>{});
+  }
+});
   }
 }
