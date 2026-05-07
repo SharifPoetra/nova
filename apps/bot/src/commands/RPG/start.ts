@@ -75,11 +75,11 @@ export class StartCommand extends Command {
         .setEmoji('🏹')
         .setStyle(ButtonStyle.Success),
     );
-    
+
     const response = await interaction.editReply({
       embeds: [embed],
       components: [row],
-      withResponse: true
+      withResponse: true,
     });
 
     const collector = response.createMessageComponentCollector({
