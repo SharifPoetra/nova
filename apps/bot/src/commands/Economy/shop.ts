@@ -60,30 +60,82 @@ export class ShopCommand extends Command {
     if (!user) return interaction.editReply('❌ Kamu belum terdaftar! Gunakan `/start` dulu.');
 
     const choice = interaction.options.getString('item');
+    if (choice) return this.handlePurchase(interaction, user, choice);
 
-    if (!choice) {
-      const embed = new EmbedBuilder()
-        .setColor(0xf1c40f)
-        .setTitle('🏪 Nova Shop')
-        .setDescription(
-          SHOP_ITEMS.map((i) => `${i.emoji} **${i.name}**\n> ${i.desc} — **${i.price}** koin`).join(
-            '\n\n',
-          ),
-        )
-        .setFooter({
-          text: `Saldo: ${user.balance.toLocaleString('id-ID')} koin • /shop item:... untuk beli`,
-        });
-      return interaction.editReply({ embeds: [embed] });
-    }
-
-    const item = SHOP_ITEMS.find((i) => i.id === choice)!;
-    if (Number(user.balance) < item.price) {
-      return interaction.editReply(
-        `❌ Koin tidak cukup! Butuh **${item.price}**, kamu punya **${user.balance}**.`,
-      );
-    }
-
+    // === TANPA PILIH ITEM: TAMPILKAN EMBED + TOMBOL ===
     const embed = new EmbedBuilder()
+      .setColor(0xf1c40f)
+      .setTitle('🏪 Nova Shop')
+      .setDescription(
+        SHOP_ITEMS.map((i) => `${i.emoji} **${i.name}**\n> ${i.desc} — **${i.price}** koin`).join(
+          '\n\n',
+        ),
+      )
+      .setFooter({
+        text: `Saldo: ${user.balance.toLocaleString('id-ID')} koin`,
+      });
+
+    const rows = [
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        ...SHOP_ITEMS.map((item) =>
+          new ButtonBuilder()
+            .setCustomId(`shop_${item.id}`)
+            .setLabel(`${item.name}`)
+            .setEmoji(item.emoji)
+            .setStyle(ButtonStyle.Primary),
+        ),
+      ),
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId('shop_cancel')
+          .setLabel('Tutup')
+          .setStyle(ButtonStyle.Secondary),
+      ),
+    ];
+
+    await interaction.editReply({ embeds: [embed], components: rows });
+    const msg = await interaction.fetchReply();
+
+    const collector = msg.createMessageComponentCollector({
+      componentType: ComponentType.Button,
+      time: 30000,
+      filter: (b) => b.user.id === interaction.user.id,
+    });
+
+    collector.on('collect', async (btn) => {
+      if (btn.customId === 'shop_cancel') {
+        collector.stop();
+        return btn.update({ content: '🛒 Shop ditutup.', embeds: [], components: [] });
+      }
+
+      const itemId = btn.customId.replace('shop_', '');
+      collector.stop();
+      await btn.deferUpdate();
+      await this.handlePurchase(interaction, user, itemId, true);
+    });
+
+    collector.on('end', () => {
+      interaction.editReply({ components: [] }).catch(() => {});
+    });
+  }
+
+  private async handlePurchase(
+    interaction: Command.ChatInputCommandInteraction,
+    user: any,
+    itemId: string,
+    fromButton = false,
+  ) {
+    const item = SHOP_ITEMS.find((i) => i.id === itemId)!;
+
+    if (Number(user.balance) < item.price) {
+      const msg = `❌ Koin tidak cukup! Butuh **${item.price}**, kamu punya **${user.balance}**.`;
+      return fromButton
+        ? interaction.editReply({ content: msg, embeds: [], components: [] })
+        : interaction.editReply(msg);
+    }
+
+    // Konfirmasi
+    const confirmEmbed = new EmbedBuilder()
       .setColor(0xe67e22)
       .setTitle('Konfirmasi Pembelian')
       .setDescription(
@@ -95,10 +147,12 @@ export class ShopCommand extends Command {
       new ButtonBuilder().setCustomId('cancel').setLabel('Batal').setStyle(ButtonStyle.Secondary),
     );
 
-    await interaction.editReply({ embeds: [embed], components: [row] });
-    const msg = await interaction.fetchReply();
+    const reply = fromButton
+      ? await interaction.editReply({ embeds: [confirmEmbed], components: [row] })
+      : await interaction.editReply({ embeds: [confirmEmbed], components: [row] });
 
-    const col = (msg as any).createMessageComponentCollector({
+    const msg = await interaction.fetchReply();
+    const col = msg.createMessageComponentCollector({
       componentType: ComponentType.Button,
       time: 15000,
       filter: (b: any) => b.user.id === interaction.user.id,
@@ -110,30 +164,25 @@ export class ShopCommand extends Command {
         return i.update({ content: '❌ Pembelian dibatalkan.', embeds: [], components: [] });
 
       user.balance = Number(user.balance) - item.price;
-
       if (item.effect.stamina) {
         user.stamina = Math.min(user.maxStamina ?? 100, (user.stamina ?? 0) + item.effect.stamina);
       }
       if (item.effect.hp) {
         user.hp = Math.min(user.maxHp ?? 100, (user.hp ?? 0) + item.effect.hp);
       }
-
       await user.save();
 
-      embed
+      const successEmbed = new EmbedBuilder()
         .setColor(0x2ecc71)
         .setTitle('✅ Pembelian Berhasil')
         .setDescription(`${item.emoji} **${item.name}** telah ditambahkan!`)
         .addFields(
           { name: '💰 Saldo', value: `${user.balance.toLocaleString('id-ID')} koin`, inline: true },
           { name: '⚡ Stamina', value: `${user.stamina}/${user.maxStamina}`, inline: true },
+          { name: '❤️ HP', value: `${user.hp}/${user.maxHp}`, inline: true },
         );
 
-      await i.update({ embeds: [embed], components: [] });
-    });
-
-    col.on('end', (_, reason) => {
-      if (reason === 'time') interaction.editReply({ components: [] }).catch(() => {});
+      await i.update({ embeds: [successEmbed], components: [] });
     });
   }
 }
