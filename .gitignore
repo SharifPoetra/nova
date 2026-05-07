@@ -27,3 +27,4 @@ Thumbs.db
 # Termux/Local Specifics
 .bash_history
 .termux/
+deploy.sh
