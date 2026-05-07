@@ -2,13 +2,18 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
 import { GatewayIntentBits } from 'discord.js';
-import { SapphireClient, container } from '@sapphire/framework';
+import { SapphireClient, container, ApplicationCommandRegistries } from '@sapphire/framework';
 import { createDatabase, User, Item } from '@nova/db';
 
 // load .env dari root project, bukan dari apps/bot
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+const devGuildId = process.env.DEV_GUILD_ID;
+if (process.env.NODE_ENV === 'development' && devGuildId) {
+  ApplicationCommandRegistries.setDefaultGuildIds([devGuildId]);
+}
 
 const client = new SapphireClient({
   intents: [
@@ -18,7 +23,6 @@ const client = new SapphireClient({
   ],
   baseUserDirectory: path.dirname(fileURLToPath(import.meta.url)),
   loadMessageCommandListeners: true,
-  // defaultGuildIds: ['641142881238646785'],
 });
 
 async function main() {
