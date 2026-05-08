@@ -147,7 +147,7 @@ export class HuntCommand extends Command {
 
     if ((user.stamina ?? 0) < 20)
       return interaction.editReply(`⚡ Stamina kurang (${user.stamina}/20)`);
-    if ((user.hp ?? 0) < 20) return interaction.editReply(`❤️ HP rendah (${user.hp}). Heal dulu!`);
+    if ((user.hp?? 0) < 20) return interaction.editReply(`❤️ HP rendah (${user.hp}). Masak di /cook atau beli potion di /shop!`);
 
     user.stamina -= 20;
     user.lastHunt = new Date();
