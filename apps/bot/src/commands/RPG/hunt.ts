@@ -3,6 +3,13 @@ import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { checkLevelUp } from '../../lib/rpg/leveling.js';
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const bar = (cur: number, max: number) => {
+  const p = Math.max(0, Math.min(1, cur / max));
+  const f = Math.round(p * 10);
+  return '▰'.repeat(f) + '▱'.repeat(10 - f);
+};
+
 const colorByRarity = {
   Common: 0x95a5a6,
   Uncommon: 0x2ecc71,
@@ -136,8 +143,8 @@ const MONSTERS = [
   fullCategory: ['RPG'],
 })
 export class HuntCommand extends Command {
-  public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((b) => b.setName(this.name).setDescription(this.description));
+  public override registerApplicationCommands(r: Command.Registry) {
+    r.registerChatInputCommand((b) => b.setName(this.name).setDescription(this.description));
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
@@ -147,62 +154,104 @@ export class HuntCommand extends Command {
     if (!user) return interaction.editReply('Gunakan /start dulu!');
 
     const now = Date.now();
-    const lastHunt = user.lastHunt?.getTime() ?? 0;
-    const cd = 45 * 1000;
-    if (now - lastHunt < cd) {
-      const wait = Math.ceil((cd - (now - lastHunt)) / 1000);
-      return interaction.editReply(`🏹 Kamu masih capek! Tunggu ${wait}s lagi.`);
-    }
-
+    if (now - (user.lastHunt?.getTime() ?? 0) < 45000)
+      return interaction.editReply(
+        `🏹 Tunggu ${Math.ceil((45000 - (now - user.lastHunt!.getTime())) / 1000)}s`,
+      );
     if ((user.stamina ?? 0) < 20)
       return interaction.editReply(`⚡ Stamina kurang (${user.stamina}/20)`);
-    if ((user.hp ?? 0) < 20)
-      return interaction.editReply(
-        `❤️ HP rendah (${user.hp}). Masak di /cook atau beli potion di /shop!`,
-      );
+    if ((user.hp ?? 0) < 20) return interaction.editReply(`❤️ HP rendah (${user.hp}). /cook dulu!`);
 
     user.stamina -= 20;
     user.lastHunt = new Date();
+    await user.save();
 
-    // filter monster by level
     const available = MONSTERS.filter((m) => (user.level ?? 1) >= m.minLevel);
     const monster = available[Math.floor(Math.random() * available.length)];
 
     let mHp = monster.hp,
-      uHp = user.hp;
+      uHp = user.hp,
+      mMax = monster.hp,
+      uMax = user.maxHp;
+    let totalDealt = 0,
+      totalTaken = 0;
+    const log: string[] = [];
+
+    let embed = new EmbedBuilder()
+      .setColor(0xe67e22)
+      .setAuthor({
+        name: `${interaction.user.username} berburu`,
+        iconURL: interaction.user.displayAvatarURL(),
+      })
+      .setTitle(`Menemukan ${monster.emoji} ${monster.name}!`)
+      .setDescription(`⚔️ Pertarungan dimulai...`);
+    await interaction.editReply({ embeds: [embed] });
+    await sleep(1000);
+
     while (mHp > 0 && uHp > 0) {
-      mHp -= Math.floor(Math.random() * 15) + 10 + Math.floor((user.attack ?? 10) / 3);
+      // player attack
+      const isCrit = Math.random() < 0.1;
+      let pDmg = Math.floor(Math.random() * 15) + 10 + Math.floor((user.attack ?? 10) / 3);
+      if (isCrit) pDmg = Math.floor(pDmg * 1.8);
+      mHp = Math.max(0, mHp - pDmg);
+      totalDealt += pDmg;
+      log.push(`${isCrit ? '💥' : '🗡️'} Kamu ${isCrit ? 'CRIT ' : ''}**${pDmg}**`);
+
+      embed.setDescription(log.slice(-4).join('\n')).setFields(
+        {
+          name: `${monster.emoji} ${monster.name}`,
+          value: `${bar(mHp, mMax)} \`${mHp}/${mMax}\``,
+          inline: false,
+        },
+        { name: `❤️ Kamu`, value: `${bar(uHp, uMax)} \`${uHp}/${uMax}\``, inline: false },
+      );
+      await interaction.editReply({ embeds: [embed] });
+      await sleep(850);
       if (mHp <= 0) break;
-      uHp -= Math.floor(Math.random() * (monster.dmg[1] - monster.dmg[0])) + monster.dmg[0];
+
+      // monster attack
+      const mDmg = Math.floor(Math.random() * (monster.dmg[1] - monster.dmg[0])) + monster.dmg[0];
+      uHp = Math.max(0, uHp - mDmg);
+      totalTaken += mDmg;
+      log.push(`${monster.emoji} balas **${mDmg}**`);
+
+      embed.setDescription(log.slice(-4).join('\n')).setFields(
+        {
+          name: `${monster.emoji} ${monster.name}`,
+          value: `${bar(mHp, mMax)} \`${mHp}/${mMax}\``,
+          inline: false,
+        },
+        { name: `❤️ Kamu`, value: `${bar(uHp, uMax)} \`${uHp}/${uMax}\``, inline: false },
+      );
+      await interaction.editReply({ embeds: [embed] });
+      await sleep(850);
     }
-    user.hp = Math.max(0, uHp);
+
+    user.hp = uHp;
+    const summary = log.slice(-7).join('\n');
 
     if (uHp <= 0) {
-      user.exp = (user.exp ?? 0) + Math.floor(monster.xp / 3); // tetap dapat XP meski kalah
+      user.exp = (user.exp ?? 0) + Math.floor(monster.xp / 3);
       await user.save();
-      const embed = new EmbedBuilder()
+      embed
         .setColor(0xe74c3c)
-        .setAuthor({
-          name: `${interaction.user.username} berburu`,
-          iconURL: interaction.user.displayAvatarURL(),
-        })
+        .setTitle(`💀 Kalah`)
         .setDescription(
-          `💀 Kalah melawan **${monster.emoji} ${monster.name}**!\n\n> +${Math.floor(monster.xp / 3)} EXP (pantang menyerah)`,
-        );
+          `Tumbang lawan ${monster.emoji} **${monster.name}**\n\n**📜 Pertarungan:**\n${summary}\n\n**📊 Damage:** Dealt ${totalDealt} | Taken ${totalTaken}\n\n> +${Math.floor(monster.xp / 3)} EXP`,
+        )
+        .setFields();
       return interaction.editReply({ embeds: [embed] });
     }
 
+    // menang
     const roll = Math.random() * 100;
     let cum = 0;
     const drop = monster.drops.find((d) => (cum += d.chance) >= roll)!;
-
     const inv = user.items.find((i) => i.itemId === drop.id);
     if (inv) inv.qty += 1;
     else user.items.push({ itemId: drop.id, qty: 1 });
-
     user.balance += 50;
     user.exp = (user.exp ?? 0) + monster.xp;
-
     await user.save();
     await db.item.updateOne(
       { itemId: drop.id },
@@ -219,44 +268,37 @@ export class HuntCommand extends Command {
     );
 
     let levelUpText = '';
-    const levelData = checkLevelUp(user);
-    if (levelData) {
+    const lvl = checkLevelUp(user);
+    if (lvl) {
       await db.user.updateOne(
-        { discordId: interaction.user.id },
+        { discordId: user.discordId },
         {
           $set: {
-            level: levelData.level,
-            exp: levelData.expLeft,
-            maxHp: levelData.maxHp,
-            hp: levelData.hp,
-            attack: levelData.attack,
-            maxStamina: levelData.maxStamina,
-            stamina: levelData.stamina,
+            level: lvl.level,
+            exp: lvl.expLeft,
+            maxHp: lvl.maxHp,
+            hp: lvl.hp,
+            attack: lvl.attack,
+            maxStamina: lvl.maxStamina,
+            stamina: lvl.stamina,
           },
         },
       );
-      levelUpText = `\n🎉 **LEVEL UP!** Lv.${levelData.level}`;
+      levelUpText = `\n\n🎉 **LEVEL UP → Lv.${lvl.level}**`;
+      user.hp = lvl.hp;
     }
 
-    const embed = new EmbedBuilder()
+    embed
       .setColor(colorByRarity[drop.rarity as keyof typeof colorByRarity])
-      .setAuthor({
-        name: `${interaction.user.username} berburu`,
-        iconURL: interaction.user.displayAvatarURL(),
-      })
+      .setTitle(`✅ Menang!`)
       .setDescription(
-        `Mengalahkan **${monster.emoji} ${monster.name}**!${levelUpText}\n\n**${drop.emoji} ${drop.name}** didapat!\n*${drop.rarity}*`,
+        `Kalahkan ${monster.emoji} **${monster.name}**!${levelUpText}\n\n**${drop.emoji} ${drop.name}** ×1 • *${drop.rarity}*\n\n**📜 Pertarungan:**\n${summary}\n\n**📊 Damage:** Dealt ${totalDealt} | Taken ${totalTaken}`,
       )
-      .addFields(
-        { name: '💰 Bonus', value: '50 koin', inline: true },
+      .setFields(
+        { name: '💰', value: `+50`, inline: true },
         { name: '✨ EXP', value: `+${monster.xp}`, inline: true },
-        { name: '⚡ Stamina', value: `${user.stamina + 20} → ${user.stamina}`, inline: true },
         { name: '❤️ HP', value: `${user.hp}/${user.maxHp}`, inline: true },
-      )
-      .setFooter({
-        text: `Lv.${user.level} needed for next monster • Total ${drop.name}: ${user.items.find((i) => i.itemId === drop.id)?.qty}x`,
-      });
-
-    return interaction.editReply({ embeds: [embed] });
+      );
+    await interaction.editReply({ embeds: [embed] });
   }
 }
