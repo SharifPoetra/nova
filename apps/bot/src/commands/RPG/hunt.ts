@@ -1,7 +1,8 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
-import { checkLevelUp } from '../../lib/rpg/leveling.js';
+import { checkLevelUp } from '../../lib/rpg/leveling';
+import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const bar = (cur: number, max: number) => {
@@ -153,39 +154,41 @@ export class HuntCommand extends Command {
     const user = await db.user.findOne({ discordId: interaction.user.id });
     if (!user) return interaction.editReply('Gunakan /start dulu!');
 
+    applyPassiveRegen(user);
+
     const now = Date.now();
-    if (now - (user.lastHunt?.getTime() ?? 0) < 45000)
+    if (now - (user.lastHunt?.getTime() ?? 0) < 45000) {
+      await user.save();
       return interaction.editReply(
         `🏹 Tunggu ${Math.ceil((45000 - (now - user.lastHunt!.getTime())) / 1000)}s`,
       );
-    if ((user.stamina ?? 0) < 20)
+    }
+    if ((user.stamina ?? 0) < 20) {
+      await user.save();
       return interaction.editReply(`⚡ Stamina kurang (${user.stamina}/20)`);
-    if ((user.hp ?? 0) < 20) return interaction.editReply(`❤️ HP rendah (${user.hp}). /cook dulu!`);
-
-    // bersihin buff expired
-    user.buffs = (user.buffs || []).filter((b) => new Date(b.expires) > new Date());
-    await user.save();
-
+    }
+    if ((user.hp ?? 0) < 20) {
+      await user.save();
+      return interaction.editReply(`❤️ HP rendah (${user.hp}). /cook dulu!`);
+    }
     user.stamina -= 20;
     user.lastHunt = new Date();
-    await user.save();
 
     const available = MONSTERS.filter((m) => (user.level ?? 1) >= m.minLevel);
     const monster = available[Math.floor(Math.random() * available.length)];
 
     let mHp = monster.hp,
-      uHp = user.hp,
-      mMax = monster.hp,
-      uMax = user.maxHp;
+      uHp = user.hp;
+    const mMax = monster.hp;
+    const uMax = user.maxHp;
     let totalDealt = 0,
       totalTaken = 0;
     const log: string[] = [];
 
-    const atkBuff = user.buffs.find((b) => b.type === 'atk');
-    const bonusAtk = atkBuff ? atkBuff.value : 0;
+    const bonusAtk = getAtkBuff(user);
     const buffInfo = bonusAtk ? ` • 🔥 ATK +${bonusAtk}` : '';
 
-    let embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setColor(0xe67e22)
       .setAuthor({
         name: `${interaction.user.username} berburu`,
@@ -204,7 +207,7 @@ export class HuntCommand extends Command {
       mHp = Math.max(0, mHp - pDmg);
       totalDealt += pDmg;
       log.push(
-        `${isCrit ? '💥' : '🗡️'} Kamu ${isCrit ? 'CRIT ' : ''}**${pDmg}**${bonusAtk && !isCrit ? ` (+${bonusAtk})` : ''}`,
+        `${isCrit ? '💥' : '🗡️'} Kamu ${isCrit ? 'CRIT ' : ''}**${pDmg}**${bonusAtk ? ` [${user.attack}+${bonusAtk}]` : ''}`,
       );
 
       embed.setDescription(log.slice(-4).join('\n') + buffInfo).setFields(
@@ -260,7 +263,7 @@ export class HuntCommand extends Command {
     else user.items.push({ itemId: drop.id, qty: 1 });
     user.balance += 50;
     user.exp = (user.exp ?? 0) + monster.xp;
-    await user.save();
+
     await db.item.updateOne(
       { itemId: drop.id },
       {
@@ -278,23 +281,17 @@ export class HuntCommand extends Command {
     let levelUpText = '';
     const lvl = checkLevelUp(user);
     if (lvl) {
-      await db.user.updateOne(
-        { discordId: user.discordId },
-        {
-          $set: {
-            level: lvl.level,
-            exp: lvl.expLeft,
-            maxHp: lvl.maxHp,
-            hp: lvl.hp,
-            attack: lvl.attack,
-            maxStamina: lvl.maxStamina,
-            stamina: lvl.stamina,
-          },
-        },
-      );
-      levelUpText = `\n\n🎉 **LEVEL UP → Lv.${lvl.level}**`;
+      user.level = lvl.level;
+      user.exp = lvl.expLeft;
+      user.maxHp = lvl.maxHp;
       user.hp = lvl.hp;
+      user.attack = lvl.attack;
+      user.maxStamina = lvl.maxStamina;
+      user.stamina = lvl.stamina;
+      levelUpText = `\n\n🎉 **LEVEL UP → Lv.${lvl.level}**`;
     }
+
+    await user.save();
 
     embed
       .setColor(colorByRarity[drop.rarity as keyof typeof colorByRarity])

@@ -1,7 +1,16 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
-import { checkLevelUp } from '../../lib/rpg/leveling.js';
+import { checkLevelUp } from '../../lib/rpg/leveling';
+import { applyPassiveRegen } from '../../lib/rpg/buffs';
+
+const colorByRarity = {
+  Common: 0x95a5a6,
+  Uncommon: 0x2ecc71,
+  Rare: 0x3498db,
+  Epic: 0x9b59b6,
+  Legendary: 0xf1c40f,
+};
 
 const FISH_TABLE = [
   // COMMON 55%
@@ -134,29 +143,25 @@ export class FishCommand extends Command {
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user) return interaction.editReply('Gunakan /start dulu!');
 
+    applyPassiveRegen(user);
+
     const now = Date.now();
     const lastFish = user.lastFish?.getTime() ?? 0;
     const cd = 30 * 1000;
     if (now - lastFish < cd) {
       const wait = Math.ceil((cd - (now - lastFish)) / 1000);
+      await user.save();
       return interaction.editReply(`🎣 Joran masih basah! Tunggu ${wait}s`);
     }
 
     if (user.stamina < 10) {
+      await user.save();
       return interaction.editReply(`⚡ Stamina kurang (${user.stamina}/10). Tunggu regen.`);
     }
 
     const roll = Math.random() * 100;
     let cum = 0;
     const fish = FISH_TABLE.find((f) => (cum += f.chance) >= roll)!;
-
-    const colorByRarity = {
-      Common: 0x95a5a6,
-      Uncommon: 0x2ecc71,
-      Rare: 0x3498db,
-      Epic: 0x9b59b6,
-      Legendary: 0xf1c40f,
-    };
 
     user.stamina -= 10;
     user.lastFish = new Date();

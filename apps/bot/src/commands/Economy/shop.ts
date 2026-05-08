@@ -7,7 +7,7 @@ import {
   ComponentType,
   EmbedBuilder,
 } from 'discord.js';
-import { User } from '@nova/db';
+import { applyPassiveRegen } from '../../lib/rpg/buffs';
 
 const SHOP_ITEMS = [
   {
@@ -56,8 +56,12 @@ export class ShopCommand extends Command {
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     await interaction.deferReply();
-    const user = await User.findOne({ discordId: interaction.user.id });
+    const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user) return interaction.editReply('❌ Kamu belum terdaftar! Gunakan `/start` dulu.');
+
+    // regen pasif dulu
+    applyPassiveRegen(user);
+    await user.save();
 
     const choice = interaction.options.getString('item');
     if (choice) return this.handlePurchase(interaction, user, choice);
@@ -147,9 +151,7 @@ export class ShopCommand extends Command {
       new ButtonBuilder().setCustomId('cancel').setLabel('Batal').setStyle(ButtonStyle.Secondary),
     );
 
-    const reply = fromButton
-      ? await interaction.editReply({ embeds: [confirmEmbed], components: [row] })
-      : await interaction.editReply({ embeds: [confirmEmbed], components: [row] });
+    await interaction.editReply({ embeds: [confirmEmbed], components: [row] });
 
     const msg = await interaction.fetchReply();
     const col = msg.createMessageComponentCollector({

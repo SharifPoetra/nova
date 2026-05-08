@@ -15,6 +15,7 @@ export interface IUser extends Document {
   lastExplore: Date | null;
   lastFish: Date | null;
   lastHunt: Date | null;
+  lastPassive: Date | null;
   level: number;
   exp: number;
   hp: number;
@@ -39,6 +40,7 @@ const UserSchema = new Schema<IUser>(
     lastExplore: { type: Date, default: null },
     lastFish: { type: Date, default: null },
     lastHunt: { type: Date, default: null },
+    lastPassive: { type: Date, default: null },
     level: { type: Number, default: 1 },
     exp: { type: Number, default: 0 },
     hp: { type: Number, default: 100 },

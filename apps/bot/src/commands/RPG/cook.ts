@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder, ComponentType } from 'discord.js';
+import { applyPassiveRegen } from '../../lib/rpg/buffs';
 
 const RECIPES = [
   // === RESEP LAMA (tetap) ===
@@ -182,9 +183,10 @@ export class CookCommand extends Command {
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     await interaction.deferReply();
-    const db = this.container.db;
-    const user = await db.user.findOne({ discordId: interaction.user.id });
+    const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user) return interaction.editReply('Gunakan /start dulu!');
+
+    applyPassiveRegen(user);
 
     const available = RECIPES.filter((r) =>
       r.ingredients.every(
@@ -192,10 +194,12 @@ export class CookCommand extends Command {
       ),
     );
 
-    if (!available.length)
+    if (!available.length) {
+      await user.save();
       return interaction.editReply(
         '📦 Tidak ada bahan! `/explore` untuk cabai/herb, `/hunt` untuk daging.',
       );
+    }
 
     const options = available.map((r) => ({
       label: `${r.name} (+${r.heal} HP)${r.buff ? ` [${r.buff.type.toUpperCase()}+${r.buff.value}]` : ''}`,

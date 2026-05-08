@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
+import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',
@@ -37,6 +38,16 @@ export class ProfileCommand extends Command {
         return interaction.editReply({ embeds: [embed] });
       }
 
+      // === REGEN & BUFF CLEANUP ===
+      const isSelf = target.id === interaction.user.id;
+      if (isSelf) {
+        applyPassiveRegen(userData);
+        await userData.save();
+      } else {
+        // untuk orang lain, cuma bersihin expired (tanpa regen)
+        userData.buffs = (userData.buffs || []).filter((b) => new Date(b.expires) > new Date());
+      }
+
       const bar = (current: number, max: number) => {
         const len = 10;
         const safeMax = Math.max(1, max ?? 1);
@@ -51,7 +62,7 @@ export class ProfileCommand extends Command {
       const maxStamina = userData.maxStamina ?? 100;
       const level = userData.level ?? 1;
       const exp = userData.exp ?? 0;
-      const expNeeded = level * 100; // sesuai checkLevelUp
+      const expNeeded = level * 100;
       const expNext = expNeeded - exp;
       const balance = userData.balance ?? 0;
       const bank = userData.bank ?? 0;
@@ -85,6 +96,27 @@ export class ProfileCommand extends Command {
         'Petualang Baru',
       ];
 
+      // === BUFF DISPLAY ===
+      const bonusAtk = getAtkBuff(userData);
+      const activeBuffs = (userData.buffs || []).filter((b) => new Date(b.expires) > new Date());
+
+      const buffText = activeBuffs.length
+        ? activeBuffs
+            .map((b) => {
+              const mins = Math.max(0, Math.ceil((new Date(b.expires).getTime() - now) / 60000));
+              const icon = b.type === 'atk' ? '⚔️' : b.type === 'stamina_regen' ? '⚡' : '✨';
+              const label =
+                b.type === 'atk' ? 'ATK' : b.type === 'stamina_regen' ? 'Regen' : b.type;
+              return `${icon} ${label} +${b.value} (${mins}m)`;
+            })
+            .join('\n')
+        : 'Tidak ada';
+
+      const atkDisplay =
+        bonusAtk > 0
+          ? `**${userData.attack ?? 10}** (+${bonusAtk}) 🔥`
+          : `**${userData.attack ?? 10}**`;
+
       const embed = new EmbedBuilder()
         .setAuthor({
           name: `Nova Chronicles — ${target.username}`,
@@ -108,7 +140,8 @@ export class ProfileCommand extends Command {
             value: `${bar(stamina, maxStamina)} \`${stamina}/${maxStamina}\``,
             inline: true,
           },
-          { name: '🗡️ Attack', value: `**${userData.attack ?? 10}**`, inline: true },
+          { name: '🗡️ Attack', value: atkDisplay, inline: true },
+          { name: '✨ Buff Aktif', value: buffText, inline: false },
           { name: '🗺️ Explore', value: exploreStatus, inline: true },
           { name: '🎣 Fish', value: fishStatus, inline: true },
           { name: '🏹 Hunt', value: huntStatus, inline: true },
