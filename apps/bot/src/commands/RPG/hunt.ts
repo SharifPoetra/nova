@@ -162,6 +162,10 @@ export class HuntCommand extends Command {
       return interaction.editReply(`⚡ Stamina kurang (${user.stamina}/20)`);
     if ((user.hp ?? 0) < 20) return interaction.editReply(`❤️ HP rendah (${user.hp}). /cook dulu!`);
 
+    // bersihin buff expired
+    user.buffs = (user.buffs || []).filter((b) => new Date(b.expires) > new Date());
+    await user.save();
+
     user.stamina -= 20;
     user.lastHunt = new Date();
     await user.save();
@@ -177,6 +181,10 @@ export class HuntCommand extends Command {
       totalTaken = 0;
     const log: string[] = [];
 
+    const atkBuff = user.buffs.find((b) => b.type === 'atk');
+    const bonusAtk = atkBuff ? atkBuff.value : 0;
+    const buffInfo = bonusAtk ? ` • 🔥 ATK +${bonusAtk}` : '';
+
     let embed = new EmbedBuilder()
       .setColor(0xe67e22)
       .setAuthor({
@@ -184,20 +192,22 @@ export class HuntCommand extends Command {
         iconURL: interaction.user.displayAvatarURL(),
       })
       .setTitle(`Menemukan ${monster.emoji} ${monster.name}!`)
-      .setDescription(`⚔️ Pertarungan dimulai...`);
+      .setDescription(`⚔️ Pertarungan dimulai...${buffInfo}`);
     await interaction.editReply({ embeds: [embed] });
     await sleep(1000);
 
     while (mHp > 0 && uHp > 0) {
-      // player attack
       const isCrit = Math.random() < 0.1;
-      let pDmg = Math.floor(Math.random() * 15) + 10 + Math.floor((user.attack ?? 10) / 3);
+      let pDmg =
+        Math.floor(Math.random() * 15) + 10 + Math.floor((user.attack ?? 10) / 3) + bonusAtk;
       if (isCrit) pDmg = Math.floor(pDmg * 1.8);
       mHp = Math.max(0, mHp - pDmg);
       totalDealt += pDmg;
-      log.push(`${isCrit ? '💥' : '🗡️'} Kamu ${isCrit ? 'CRIT ' : ''}**${pDmg}**`);
+      log.push(
+        `${isCrit ? '💥' : '🗡️'} Kamu ${isCrit ? 'CRIT ' : ''}**${pDmg}**${bonusAtk && !isCrit ? ` (+${bonusAtk})` : ''}`,
+      );
 
-      embed.setDescription(log.slice(-4).join('\n')).setFields(
+      embed.setDescription(log.slice(-4).join('\n') + buffInfo).setFields(
         {
           name: `${monster.emoji} ${monster.name}`,
           value: `${bar(mHp, mMax)} \`${mHp}/${mMax}\``,
@@ -209,13 +219,12 @@ export class HuntCommand extends Command {
       await sleep(850);
       if (mHp <= 0) break;
 
-      // monster attack
       const mDmg = Math.floor(Math.random() * (monster.dmg[1] - monster.dmg[0])) + monster.dmg[0];
       uHp = Math.max(0, uHp - mDmg);
       totalTaken += mDmg;
       log.push(`${monster.emoji} balas **${mDmg}**`);
 
-      embed.setDescription(log.slice(-4).join('\n')).setFields(
+      embed.setDescription(log.slice(-4).join('\n') + buffInfo).setFields(
         {
           name: `${monster.emoji} ${monster.name}`,
           value: `${bar(mHp, mMax)} \`${mHp}/${mMax}\``,
@@ -237,13 +246,12 @@ export class HuntCommand extends Command {
         .setColor(0xe74c3c)
         .setTitle(`💀 Kalah`)
         .setDescription(
-          `Tumbang lawan ${monster.emoji} **${monster.name}**\n\n**📜 Pertarungan:**\n${summary}\n\n**📊 Damage:** Dealt ${totalDealt} | Taken ${totalTaken}\n\n> +${Math.floor(monster.xp / 3)} EXP`,
+          `Tumbang lawan ${monster.emoji} **${monster.name}**${buffInfo}\n\n**📜 Pertarungan:**\n${summary}\n\n**📊 Damage:** Dealt ${totalDealt} | Taken ${totalTaken}\n\n> +${Math.floor(monster.xp / 3)} EXP`,
         )
         .setFields();
       return interaction.editReply({ embeds: [embed] });
     }
 
-    // menang
     const roll = Math.random() * 100;
     let cum = 0;
     const drop = monster.drops.find((d) => (cum += d.chance) >= roll)!;
@@ -292,7 +300,7 @@ export class HuntCommand extends Command {
       .setColor(colorByRarity[drop.rarity as keyof typeof colorByRarity])
       .setTitle(`✅ Menang!`)
       .setDescription(
-        `Kalahkan ${monster.emoji} **${monster.name}**!${levelUpText}\n\n**${drop.emoji} ${drop.name}** ×1 • *${drop.rarity}*\n\n**📜 Pertarungan:**\n${summary}\n\n**📊 Damage:** Dealt ${totalDealt} | Taken ${totalTaken}`,
+        `Kalahkan ${monster.emoji} **${monster.name}**!${levelUpText}${buffInfo}\n\n**${drop.emoji} ${drop.name}** ×1 • *${drop.rarity}*\n\n**📜 Pertarungan:**\n${summary}\n\n**📊 Damage:** Dealt ${totalDealt} | Taken ${totalTaken}`,
       )
       .setFields(
         { name: '💰', value: `+50`, inline: true },

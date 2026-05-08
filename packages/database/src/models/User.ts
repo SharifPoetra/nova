@@ -1,5 +1,11 @@
 import { Schema, model, Document } from 'mongoose';
 
+export interface IBuff {
+  type: 'atk' | 'stamina_regen';
+  value: number;
+  expires: Date;
+}
+
 export interface IUser extends Document {
   discordId: string;
   username: string;
@@ -18,6 +24,7 @@ export interface IUser extends Document {
   stamina: number;
   maxStamina: number;
   items: { itemId: string; qty: number }[];
+  buffs: IBuff[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +52,16 @@ const UserSchema = new Schema<IUser>(
         {
           itemId: { type: String, required: true },
           qty: { type: Number, default: 0, min: 0 },
+        },
+      ],
+      default: [],
+    },
+    buffs: {
+      type: [
+        {
+          type: { type: String, enum: ['atk', 'stamina_regen'], required: true },
+          value: { type: Number, required: true },
+          expires: { type: Date, required: true },
         },
       ],
       default: [],
