@@ -8,8 +8,12 @@ const RECIPES = [
   { need: 'fish_tilapia', heal: 30, name: 'Nila Bakar', emoji: '🐠' },
   { need: 'fish_salmon', heal: 45, name: 'Salmon Panggang', emoji: '🍣' },
   { need: 'fish_tuna', heal: 40, name: 'Tuna Steak', emoji: '🐟' },
-  { need: 'meat', heal: 60, name: 'Steak Daging', emoji: '🥩' },
+  { need: 'meat', heal: 30, name: 'Steak Daging', emoji: '🥩' },
   { need: 'hide', heal: 15, name: 'Sup Kulit', emoji: '🦌' },
+  { need: 'wolf_meat', heal: 35, name: 'Steak Serigala', emoji: '🍖' },
+  { need: 'bear_meat', heal: 70, name: 'Bear Steak', emoji: '🥩' },
+  { need: 'lizard_meat', heal: 25, name: 'Sate Kadal', emoji: '🍗' },
+  { need: 'honey', heal: 40, name: 'Madu Hangat', emoji: '🍯' },
 ];
 
 @ApplyOptions<Command.Options>({
