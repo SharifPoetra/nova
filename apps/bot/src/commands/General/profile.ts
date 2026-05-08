@@ -13,11 +13,8 @@ export class ProfileCommand extends Command {
       builder
         .setName(this.name)
         .setDescription(this.description)
-        .addUserOption((option) =>
-          option
-            .setName('user')
-            .setDescription('User yang ingin dilihat profilnya')
-            .setRequired(false),
+        .addUserOption((o) =>
+          o.setName('user').setDescription('User yang ingin dilihat profilnya').setRequired(false),
         ),
     );
   }
@@ -28,14 +25,13 @@ export class ProfileCommand extends Command {
 
     try {
       const userData = await this.container.db.user.findOne({ discordId: target.id });
-
       if (!userData) {
         const embed = new EmbedBuilder()
           .setColor(0xe74c3c)
           .setAuthor({ name: target.username, iconURL: target.displayAvatarURL() })
           .setDescription(
             target.id === interaction.user.id
-              ? '❌ Kamu belum terdaftar di Nova Chronicles!\nGunakan `/start` untuk memulai petualangan dan dapatkan 1.000 koin awal.'
+              ? '❌ Kamu belum terdaftar di Nova Chronicles!\nGunakan `/start` untuk memulai petualangan.'
               : `❌ **${target.username}** belum memulai petualangan.`,
           );
         return interaction.editReply({ embeds: [embed] });
@@ -55,15 +51,20 @@ export class ProfileCommand extends Command {
       const maxStamina = userData.maxStamina ?? 100;
       const level = userData.level ?? 1;
       const exp = userData.exp ?? 0;
-      const expNeeded = level * 100;
+      const expNeeded = level * 100; // sesuai checkLevelUp
+      const expNext = expNeeded - exp;
       const balance = userData.balance ?? 0;
       const bank = userData.bank ?? 0;
 
       const now = Date.now();
-      const cooldown = 60 * 1000;
-      const nextExplore = userData.lastExplore ? userData.lastExplore.getTime() + cooldown : 0;
-      const exploreStatus =
-        nextExplore > now ? `<t:${Math.floor(nextExplore / 1000)}:R>` : '✅ Siap';
+      const cd = (last: Date | undefined, ms: number) =>
+        !last || now - last.getTime() >= ms
+          ? '✅ Siap'
+          : `<t:${Math.floor((last.getTime() + ms) / 1000)}:R>`;
+
+      const exploreStatus = cd(userData.lastExplore, 30_000);
+      const fishStatus = cd(userData.lastFish, 30_000);
+      const huntStatus = cd(userData.lastHunt, 45_000);
 
       const itemCount = userData.items?.reduce((a, b) => a + b.qty, 0) || 0;
 
@@ -74,20 +75,15 @@ export class ProfileCommand extends Command {
       };
       const color = classColors[userData.class as string] ?? 0x3498db;
 
-      let classEmoji = '👤';
-      let className = 'Petualang Baru';
-      if (userData.class === 'warrior') {
-        classEmoji = '⚔️';
-        className = 'Warrior';
-      }
-      if (userData.class === 'mage') {
-        classEmoji = '🪄';
-        className = 'Mage';
-      }
-      if (userData.class === 'rogue') {
-        classEmoji = '🏹';
-        className = 'Rogue';
-      }
+      const classMap: Record<string, [string, string]> = {
+        warrior: ['⚔️', 'Warrior'],
+        mage: ['🪄', 'Mage'],
+        rogue: ['🏹', 'Rogue'],
+      };
+      const [classEmoji, className] = classMap[userData.class as string] ?? [
+        '👤',
+        'Petualang Baru',
+      ];
 
       const embed = new EmbedBuilder()
         .setAuthor({
@@ -98,12 +94,12 @@ export class ProfileCommand extends Command {
         .setColor(color)
         .setDescription(`*“Setiap langkah di Menara Nova menulis takdir.”*`)
         .addFields(
-          { name: '💰 Dompet', value: `**${balance.toLocaleString('id-ID')}** koin`, inline: true },
-          { name: '🏦 Bank', value: `**${bank.toLocaleString('id-ID')}** koin`, inline: true },
+          { name: '💰 Dompet', value: `**${balance.toLocaleString('id-ID')}**`, inline: true },
+          { name: '🏦 Bank', value: `**${bank.toLocaleString('id-ID')}**`, inline: true },
           { name: '🎒 Inventory', value: `${itemCount} item`, inline: true },
           {
             name: `${classEmoji} ${className} — Lv.${level}`,
-            value: `${bar(exp, expNeeded)} \`${exp}/${expNeeded} EXP\``,
+            value: `${bar(exp, expNeeded)} \`${exp}/${expNeeded} EXP\` • **${expNext} lagi**`,
             inline: false,
           },
           { name: '❤️ Vitalitas', value: `${bar(hp, maxHp)} \`${hp}/${maxHp}\``, inline: true },
@@ -112,15 +108,17 @@ export class ProfileCommand extends Command {
             value: `${bar(stamina, maxStamina)} \`${stamina}/${maxStamina}\``,
             inline: true,
           },
+          { name: '🗡️ Attack', value: `**${userData.attack ?? 10}**`, inline: true },
           { name: '🗺️ Explore', value: exploreStatus, inline: true },
+          { name: '🎣 Fish', value: fishStatus, inline: true },
+          { name: '🏹 Hunt', value: huntStatus, inline: true },
           {
             name: '📅 Bergabung',
             value: `<t:${Math.floor(new Date(userData.createdAt).getTime() / 1000)}:D>`,
             inline: true,
           },
-          { name: '🗡️ Attack', value: `**${userData.attack ?? 10}**`, inline: true },
         )
-        .setFooter({ text: 'Gunakan /explore untuk menguji kekuatanmu' });
+        .setFooter({ text: 'Hunt Lv.3 = Wolf • Lv.5 = Bear' });
 
       return interaction.editReply({ embeds: [embed] });
     } catch (error) {
