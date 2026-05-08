@@ -28,7 +28,7 @@ export function checkLevelUp(user: IUser) {
     maxHp,
     attack,
     maxStamina,
-    hp: maxHp,        // full heal saat level up
+    hp: maxHp, // full heal saat level up
     stamina: maxStamina, // full stamina saat level up
   };
 }
