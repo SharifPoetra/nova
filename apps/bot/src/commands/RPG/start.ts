@@ -28,35 +28,35 @@ export class StartCommand extends Command {
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (user?.class) {
       return interaction.editReply({
-        content: `❌ Kamu sudah menjadi seorang **${user.class}**! Gunakan \`/profile\` untuk melihat statistikmu.`,
+        content: `❌ Kamu sudah menjadi seorang **${user.class.toUpperCase()}**! Gunakan \`/profile\` untuk melihat statistikmu.`,
         flags: MessageFlags.Ephemeral,
       });
     }
 
     const embed = new EmbedBuilder()
       .setTitle('🛡️ Selamat Datang di Nova Chronicles!')
-      .setDescription(
-        'Pilih salah satu Class di bawah ini untuk memulai petualanganmu. Pilihlah dengan bijak!',
-      )
+      .setDescription('Pilih Class untuk memulai. Bonus awal **1.000 koin**!')
       .addFields(
         {
           name: '⚔️ Warrior',
-          value: 'Stamina: **120** | ATK: **15**\n*Pertahanan kuat, stamina badak.*',
+          value:
+            'HP: **120** | ATK: **15** | Stamina: **120**\n*Tahan banting, cocok untuk hunt lama.*',
           inline: false,
         },
         {
           name: '🪄 Mage',
-          value: 'Stamina: **80** | ATK: **25**\n*Serangan sihir dahsyat, tapi cepat lelah.*',
+          value: 'HP: **80** | ATK: **25** | Stamina: **80**\n*Damage besar, cepat habis stamina.*',
           inline: false,
         },
         {
           name: '🏹 Rogue',
-          value: 'Stamina: **100** | ATK: **18**\n*Seimbang dengan peluang critical tinggi.*',
+          value:
+            'HP: **100** | ATK: **18** | Stamina: **100**\n*Seimbang, crit lebih sering di hunt.*',
           inline: false,
         },
       )
-      .setColor('Gold')
-      .setFooter({ text: 'Klik tombol di bawah untuk memilih' });
+      .setColor(0xf1c40f)
+      .setFooter({ text: 'Pilih dalam 60 detik' });
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
@@ -88,18 +88,14 @@ export class StartCommand extends Command {
     });
 
     collector.on('collect', async (i) => {
-      if (i.user.id !== userId) {
-        return i.reply({ content: 'Bukan urusanmu! 😤', flags: MessageFlags.Ephemeral });
-      }
+      if (i.user.id !== userId)
+        return i.reply({ content: 'Bukan pilihanmu!', flags: MessageFlags.Ephemeral });
       if (i.replied || i.deferred) return;
 
       let selectedClass: 'warrior' | 'mage' | 'rogue' = 'warrior';
       let stats = { hp: 120, atk: 15, maxStamina: 120 };
 
-      if (i.customId === 'class_warrior') {
-        selectedClass = 'warrior';
-        stats = { hp: 120, atk: 15, maxStamina: 120 };
-      } else if (i.customId === 'class_mage') {
+      if (i.customId === 'class_mage') {
         selectedClass = 'mage';
         stats = { hp: 80, atk: 25, maxStamina: 80 };
       } else if (i.customId === 'class_rogue') {
@@ -119,27 +115,31 @@ export class StartCommand extends Command {
             maxStamina: stats.maxStamina,
             stamina: stats.maxStamina,
             level: 1,
-            xp: 0,
-            coins: 100, // bonus awal
+            exp: 0,
+            balance: 1000,
+            bank: 0,
             items: [],
+            createdAt: new Date(),
+            lastExplore: null,
+            lastFish: null,
+            lastHunt: null,
           },
         },
-        { upsert: true, returnDocument: 'after' },
+        { upsert: true },
       );
 
       await i.update({
-        content: `✅ Selamat! Kamu sekarang adalah seorang **${selectedClass.toUpperCase()}**!\n⚡ Stamina: ${stats.maxStamina}/${stats.maxStamina} | 🗡️ ATK: ${stats.atk}`,
+        content: `✅ Selamat datang, **${selectedClass.toUpperCase()}**!\n💰 **+1.000 koin** telah masuk ke dompetmu.\n⚡ Stamina: ${stats.maxStamina} | 🗡️ ATK: ${stats.atk} | ❤️ HP: ${stats.hp}\n\n> Lanjut: \`/profile\` → \`/hunt\``,
         embeds: [],
         components: [],
       });
-
       collector.stop();
     });
 
-    collector.on('end', (collected) => {
-      if (collected.size === 0) {
+    collector.on('end', (_, reason) => {
+      if (reason === 'time') {
         interaction.editReply({
-          content: '⏳ Waktu habis. Silakan ketik `/start` lagi.',
+          content: '⏳ Waktu habis. Ketik `/start` lagi.',
           embeds: [],
           components: [],
         });
