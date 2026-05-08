@@ -99,6 +99,75 @@ const RECIPES = [
     ],
     buff: { type: 'stamina_regen', value: 2, duration: 1800000 }, // 30 menit
   },
+  {
+    id: 'mushroom_soup',
+    heal: 35,
+    name: 'Sup Jamur',
+    emoji: '🍄',
+    ingredients: [
+      { id: 'mushroom', qty: 3 },
+      { id: 'root', qty: 1 },
+    ],
+    buff: null,
+  },
+  {
+    id: 'ginseng_brew',
+    heal: 50,
+    name: 'Ginseng Brew',
+    emoji: '🌱',
+    ingredients: [
+      { id: 'root', qty: 2 },
+      { id: 'honey', qty: 1 },
+    ],
+    buff: { type: 'stamina_regen', value: 3, duration: 3600000 }, // 1 jam +3
+  },
+  {
+    id: 'mana_potion',
+    heal: 15,
+    name: 'Mana Potion',
+    emoji: '🔷',
+    ingredients: [
+      { id: 'mana_crystal', qty: 1 },
+      { id: 'herb', qty: 1 },
+      { id: 'bark', qty: 1 },
+    ],
+    buff: { type: 'atk', value: 8, duration: 1800000 }, // 30 menit +8 ATK
+  },
+  {
+    id: 'bark_tea',
+    heal: 20,
+    name: 'Bark Tea',
+    emoji: '🪵',
+    ingredients: [
+      { id: 'bark', qty: 2 },
+      { id: 'mushroom', qty: 1 },
+    ],
+    buff: null,
+  },
+  {
+    id: 'moon_elixir',
+    heal: 80,
+    name: 'Moon Elixir',
+    emoji: '🌸',
+    ingredients: [
+      { id: 'moonflower', qty: 1 },
+      { id: 'mana_crystal', qty: 2 },
+      { id: 'honey', qty: 2 },
+    ],
+    buff: { type: 'atk', value: 12, duration: 3600000 }, // 1 jam +12 ATK (rare)
+  },
+  {
+    id: 'golden_omelette',
+    heal: 100,
+    name: 'Golden Omelette',
+    emoji: '🥚',
+    ingredients: [
+      { id: 'monster_egg', qty: 1 },
+      { id: 'gold_nugget', qty: 1 },
+      { id: 'bear_meat', qty: 1 },
+    ],
+    buff: { type: 'atk', value: 15, duration: 7200000 }, // 2 jam +15 ATK (epic)
+  },
 ];
 
 @ApplyOptions<Command.Options>({
