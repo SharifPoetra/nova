@@ -100,12 +100,10 @@ Kami menyediakan beberapa script untuk menjaga kualitas kode:
  * [x] **Monorepo Architecture:** Menggunakan NPM Workspaces.
 
 ## 🤝 Kontribusi
- * 1. Fork repo
- * 2. npm run bot:dev untuk test
- * 3. Buat branch: feat/duel
- * 4. PR dengan deskripsi jelas
- * 
-Pastikan npm run lint lolos sebelum push.
+
+Kami terbuka untuk kontribusi! Silakan baca panduan lengkap di **[CONTRIBUTING.md](CONTRIBUTING.md)** sebelum membuat pull request.
+
+Pastikan `npm run lint` lolos sebelum push.
 
 ## 👤 Author
  * **SharifPoetra** - *Main Developer* - [GitHub](https://github.com/SharifPoetra/)
