@@ -25,7 +25,6 @@ export class DailyCommand extends Command {
 
     try {
       // 2. Ambil data user atau buat baru jika belum ada (Atomic Upsert)
-      // Pastikan kamu sudah meregistrasikan 'db' ke dalam container Sapphire
       const userData = await this.container.db.user.findOneAndUpdate(
         { discordId: userId },
         { $setOnInsert: { discordId: userId } },
