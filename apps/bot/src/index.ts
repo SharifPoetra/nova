@@ -32,11 +32,12 @@ async function main() {
     const mongoUri = process.env.MONGODB_URI;
     if (!mongoUri) throw new Error('MONGODB_URI missing di.env');
 
-    await createDatabase(mongoUri);
+    const conn = await createDatabase(mongoUri);
 
     container.db = {
       user: User,
       item: Item,
+      connection: conn.connection,
     };
 
     console.log('Token exists:', !!process.env.DISCORD_TOKEN);
