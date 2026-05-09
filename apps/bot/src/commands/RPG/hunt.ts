@@ -3,6 +3,7 @@ import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
+import { getScaledMonster } from '../../lib/rpg/monsters';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const bar = (cur: number, max: number) => {
@@ -18,125 +19,6 @@ const colorByRarity = {
   Epic: 0x9b59b6,
   Legendary: 0xf1c40f,
 };
-
-const MONSTERS = [
-  {
-    name: 'Wild Boar',
-    emoji: '🐗',
-    hp: 60,
-    dmg: [8, 15],
-    minLevel: 1,
-    xp: 18,
-    drops: [
-      { id: 'meat', name: 'Daging Babi', emoji: '🥩', rarity: 'Common', chance: 60, sell: 12 },
-      { id: 'fang', name: 'Taring Babi', emoji: '🦷', rarity: 'Uncommon', chance: 30, sell: 28 },
-      { id: 'boar_heart', name: 'Jantung Babi', emoji: '❤️', rarity: 'Rare', chance: 10, sell: 75 },
-    ],
-  },
-  {
-    name: 'Goblin Scout',
-    emoji: '👺',
-    hp: 50,
-    dmg: [5, 12],
-    minLevel: 1,
-    xp: 15,
-    drops: [
-      {
-        id: 'goblin_ear',
-        name: 'Telinga Goblin',
-        emoji: '👂',
-        rarity: 'Common',
-        chance: 55,
-        sell: 10,
-      },
-      { id: 'hide', name: 'Kulit Goblin', emoji: '🦌', rarity: 'Common', chance: 30, sell: 12 },
-      {
-        id: 'goblin_dagger',
-        name: 'Belati Karat',
-        emoji: '🗡️',
-        rarity: 'Uncommon',
-        chance: 15,
-        sell: 40,
-      },
-    ],
-  },
-  {
-    name: 'Swamp Lizard',
-    emoji: '🦎',
-    hp: 70,
-    dmg: [10, 18],
-    minLevel: 2,
-    xp: 22,
-    drops: [
-      {
-        id: 'lizard_meat',
-        name: 'Daging Kadal',
-        emoji: '🍗',
-        rarity: 'Common',
-        chance: 60,
-        sell: 14,
-      },
-      {
-        id: 'lizard_tail',
-        name: 'Ekor Kadal',
-        emoji: '🦎',
-        rarity: 'Uncommon',
-        chance: 30,
-        sell: 26,
-      },
-      { id: 'scale', name: 'Sisik Hijau', emoji: '🟢', rarity: 'Rare', chance: 10, sell: 60 },
-    ],
-  },
-  {
-    name: 'Forest Wolf',
-    emoji: '🐺',
-    hp: 80,
-    dmg: [12, 20],
-    minLevel: 3,
-    xp: 28,
-    drops: [
-      {
-        id: 'wolf_meat',
-        name: 'Daging Serigala',
-        emoji: '🍖',
-        rarity: 'Common',
-        chance: 50,
-        sell: 15,
-      },
-      { id: 'claw', name: 'Cakar Serigala', emoji: '🐾', rarity: 'Uncommon', chance: 35, sell: 25 },
-      { id: 'pelt', name: 'Bulu Alpha', emoji: '🧶', rarity: 'Rare', chance: 5, sell: 55 },
-      { id: 'eye_wolf', name: 'Mata Serigala', emoji: '👁️', rarity: 'Epic', chance: 10, sell: 180 },
-    ],
-  },
-  {
-    name: 'Cave Bear',
-    emoji: '🐻',
-    hp: 120,
-    dmg: [18, 28],
-    minLevel: 5,
-    xp: 45,
-    drops: [
-      {
-        id: 'bear_meat',
-        name: 'Daging Beruang',
-        emoji: '🥩',
-        rarity: 'Uncommon',
-        chance: 50,
-        sell: 35,
-      },
-      { id: 'honey', name: 'Madu Liar', emoji: '🍯', rarity: 'Uncommon', chance: 15, sell: 30 },
-      { id: 'bear_claw', name: 'Cakar Beruang', emoji: '🐾', rarity: 'Rare', chance: 30, sell: 80 },
-      {
-        id: 'heart_alpha',
-        name: 'Jantung Alpha',
-        emoji: '❤️‍🔥',
-        rarity: 'Legendary',
-        chance: 5,
-        sell: 400,
-      },
-    ],
-  },
-];
 
 @ApplyOptions<Command.Options>({
   name: 'hunt',
@@ -174,8 +56,7 @@ export class HuntCommand extends Command {
     user.stamina -= 20;
     user.lastHunt = new Date();
 
-    const available = MONSTERS.filter((m) => (user.level ?? 1) >= m.minLevel);
-    const monster = available[Math.floor(Math.random() * available.length)];
+    const monster = getScaledMonster(user.level ?? 1);
 
     let mHp = monster.hp,
       uHp = user.hp;
