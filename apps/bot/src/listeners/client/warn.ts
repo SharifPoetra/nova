@@ -3,7 +3,7 @@ import { Listener } from '@sapphire/framework';
 
 @ApplyOptions<Listener.Options>({
   event: 'warn',
-  name: 'clientWarn'
+  name: 'clientWarn',
 })
 export class ClientWarnListener extends Listener {
   public override run(message: string) {
