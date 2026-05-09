@@ -1,19 +1,19 @@
 {
   "name": "nova",
   "version": "1.0.0",
-  "private": true,
   "description": "A high-performance Discord Bot & Activity RPG Monorepo built with Sapphire and Mongoose",
   "author": "SharifPoetra",
   "license": "MIT",
+  "private": true,
   "type": "module",
   "workspaces": [
-    "apps/bot",
-    "packages/database"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "bot:dev": "npm run dev -w apps/bot",
     "activity:dev": "npm run dev -w apps/activity",
-    "build": "npm run build --workspace=@nova/db && npm run build --workspace=@nova/bot",
+    "build": "npm run build -w packages/database && npm run build -w apps/bot",
     "start": "node apps/bot/dist/index.js",
     "start:bot": "node apps/bot/dist/index.js",
     "start:activity": "node apps/activity/dist/index.js",
@@ -41,5 +41,9 @@
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.2"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
   }
 }

@@ -5,6 +5,7 @@
   "author": "SharifPoetra",
   "license": "MIT",
   "private": true,
+  "type": "commonjs",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
