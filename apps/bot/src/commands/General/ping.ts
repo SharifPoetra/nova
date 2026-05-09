@@ -20,8 +20,8 @@ export class PingCommand extends Command {
 
     // DB ping
     const dbStart = Date.now();
-    await this.container.db.connection.db
-      .admin()
+    await this.container.db.connection
+      .db!.admin()
       .ping()
       .catch(() => {});
     const dbLatency = Date.now() - dbStart;
