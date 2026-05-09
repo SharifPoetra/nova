@@ -28,6 +28,7 @@ export function applyPassiveRegen(user: HydratedDocument<RPGUser> | RPGUser) {
   );
 
   let totalRegen = 0;
+  let furthestProcessed = last;
 
   // 2. Perfect stack: hitung per-buff sampai waktu expired masing-masing
   for (const buff of regenBuffs) {
@@ -37,6 +38,8 @@ export function applyPassiveRegen(user: HydratedDocument<RPGUser> | RPGUser) {
     if (effectiveMs > 0) {
       const mins = Math.floor(effectiveMs / 60000);
       totalRegen += mins * buff.value;
+
+      if (buffEnd > furthestProcessed) furthestProcessed = buffEnd;
     }
   }
 
@@ -49,7 +52,11 @@ export function applyPassiveRegen(user: HydratedDocument<RPGUser> | RPGUser) {
 
   // 4. Bersihkan buff expired
   user.buffs = (user.buffs || []).filter((b) => new Date(b.expires) > now);
-  user.lastPassive = now;
+
+  const totalMinsProcessed = Math.floor((furthestProcessed.getTime() - last.getTime()) / 60000);
+  if (totalMinsProcessed > 0) {
+    user.lastPassive = new Date(last.getTime() + totalMinsProcessed * 60000);
+  }
 }
 
 export function getAtkBuff(user: HydratedDocument<RPGUser> | RPGUser): number {
