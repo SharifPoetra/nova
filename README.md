@@ -6,7 +6,7 @@ Nova adalah proyek Discord Bot berbasis **Activity RPG** yang dibangun dengan ar
 
 ## 🛠️ Tech Stack
 
-- **Runtime:** [Node.js](https://nodejs.org/) (ESM Mode)
+- **Runtime:** [Node.js 20+](https://nodejs.org/) (tested di 24.14.1 Termux)
 - **Language:** [TypeScript](https://www.typescript.org/)
 - **Bot Framework:** [Sapphire Framework](https://www.sapphirejs.dev/)
 - **Database:** [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/)
@@ -21,13 +21,22 @@ Nova adalah proyek Discord Bot berbasis **Activity RPG** yang dibangun dengan ar
 ```text
 nova/
 ├── apps/
-│   ├── bot/          # Core logika Discord Bot
-│   └── activity/     # (Planned) Web dashboard atau activity RPG logic
+│   └── bot/ # Sapphire bot (CommonJS output)
+│       ├── src/
+│       │   ├── commands/ # /ping, /daily, /hunt, dll
+│       │   ├── listeners/
+│       │   └── index.ts
+│       └── dist/ # hasil build
 ├── packages/
-│   └── database/     # Skema database & koneksi (Shared package)
-├── .env              # Konfigurasi environment (Root)
-├── package.json      # Root konfigurasi Monorepo
-└── tsconfig.base.json     # Root konfigurasi TypeScript
+│   └── database/ # @nova/db - schema & connection
+│       ├── src/
+│       │   ├── models/
+│       │   └── index.ts
+│       └── dist/
+├──.env # di root
+├── eslint.config.js
+├── tsconfig.base.json
+└── package.json
 ```
 
 ## 🚀 Cara Setup (Local/Termux)
@@ -48,9 +57,14 @@ npm install
 ### 3. Konfigurasi (.env)
 Buat file .env di **folder root** (/nova/.env):
 ```env
-DISCORD_TOKEN=Token_Bot_Kamu_Disini
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/nova
+# Wajib
+DISCORD_TOKEN=your_bot_token
+MONGODB_URI=mongodb+srv://user:pass@cluster/nova
 
+# Opsional dev
+NODE_ENV=development
+OWNER_ID=your_discord_account_id
+DEV_GUILD_ID=your_test_server_id
 ```
 
 ## 🏃 Menjalankan Proyek
@@ -65,20 +79,29 @@ npm run bot:dev
 Untuk mengompilasi TypeScript menjadi JavaScript:
 ```bash
 npm run build
-
+npm run start
 ```
 
-## 🧹 Maintenance Commands
+## 🧹 Maintenance Code
 Kami menyediakan beberapa script untuk menjaga kualitas kode:
  * **Linting:** npm run lint (Mengecek kesalahan kode).
  * **Formatting:** npm run format (Merapikan penulisan kode).
  * **Clean:** npm run clean (Menghapus node_modules dan dist di semua workspace jika terjadi error cache).
+
 ## 📜 Fitur Saat Ini
  * [x] **Modular Database:** Skema terpisah di @nova/db.
  * [x] **Economy System:** /daily reward dengan cooldown 24 jam.
  * [x] **Profile System:** Cek saldo, EXP, dan level.
  * [x] **Modern ESLint:** Menggunakan Flat Config (ESLint 10).
  * [x] **Monorepo Architecture:** Menggunakan NPM Workspaces.
+
+## 🤝 Kontribusi
+ * 1. Fork repo
+ * 2. npm run bot:dev untuk test
+ * 3. Buat branch: feat/duel
+ * 4. PR dengan deskripsi jelas
+ * 
+Pastikan npm run lint lolos sebelum push.
 
 ## 👤 Author
  * **SharifPoetra** - *Main Developer* - [GitHub](https://github.com/SharifPoetra/)
