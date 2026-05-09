@@ -68,7 +68,7 @@ export class ProfileCommand extends Command {
       const bank = userData.bank ?? 0;
 
       const now = Date.now();
-      const cd = (last: Date | undefined, ms: number) =>
+      const cd = (last: Date | null | undefined, ms: number) =>
         !last || now - last.getTime() >= ms
           ? '✅ Siap'
           : `<t:${Math.floor((last.getTime() + ms) / 1000)}:R>`;

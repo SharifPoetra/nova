@@ -7,16 +7,21 @@
   "license": "MIT",
   "type": "module",
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/bot",
+    "packages/database"
   ],
   "scripts": {
     "bot:dev": "npm run dev -w apps/bot",
     "activity:dev": "npm run dev -w apps/activity",
-    "build": "npm run build --workspaces",
+    "build": "npm run build --workspace=@nova/db && npm run build --workspace=@nova/bot",
+    "start": "node apps/bot/dist/index.js",
+    "start:bot": "node apps/bot/dist/index.js",
+    "start:activity": "node apps/activity/dist/index.js",
+    "dev": "npm run build && npm run start",
     "format": "prettier --write \"{apps,packages}/**/*.ts\"",
     "lint": "eslint \"{apps,packages}/**/*.ts\" --fix",
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/dist packages/*/dist",
+    "clean:dist": "rm -rf apps/*/dist packages/*/dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -29,6 +34,7 @@
   ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/node": "^24.12.3",
     "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",

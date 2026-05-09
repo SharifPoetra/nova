@@ -1,13 +1,10 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'node:url';
 import { GatewayIntentBits } from 'discord.js';
 import { SapphireClient, container, ApplicationCommandRegistries } from '@sapphire/framework';
 import { createDatabase, User, Item } from '@nova/db';
 
-// load .env dari root project, bukan dari apps/bot
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// load.env dari root project
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const devGuildId = process.env.DEV_GUILD_ID;
@@ -21,16 +18,15 @@ const client = new SapphireClient({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
   ],
-  baseUserDirectory: path.dirname(fileURLToPath(import.meta.url)),
+  baseUserDirectory: __dirname,
   loadMessageCommandListeners: true,
 });
 
 async function main() {
   try {
-    // Cek log sebentar di terminal buat mastiin
     console.log('--- STARTING NOVA ---');
     const mongoUri = process.env.MONGODB_URI;
-    if (!mongoUri) throw new Error('MONGODB_URI missing di .env');
+    if (!mongoUri) throw new Error('MONGODB_URI missing di.env');
 
     await createDatabase(mongoUri);
 

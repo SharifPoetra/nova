@@ -27,9 +27,9 @@ export class StartCommand extends Command {
 
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (user?.class) {
-      return interaction.editReply({
+      return interaction.reply({
         content: `❌ Kamu sudah menjadi seorang **${user.class.toUpperCase()}**! Gunakan \`/profile\` untuk melihat statistikmu.`,
-        flags: MessageFlags.Ephemeral,
+        flags: [MessageFlags.Ephemeral],
       });
     }
 
@@ -79,7 +79,6 @@ export class StartCommand extends Command {
     const response = await interaction.editReply({
       embeds: [embed],
       components: [row],
-      withResponse: true,
     });
 
     const collector = response.createMessageComponentCollector({

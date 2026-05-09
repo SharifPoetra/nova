@@ -1,7 +1,10 @@
 import { Schema, model, Document } from 'mongoose';
 
+export const BUFF_TYPES = ['atk', 'stamina_regen'] as const;
+export type BuffType = (typeof BUFF_TYPES)[number] | (string & {});
+
 export interface IBuff {
-  type: 'atk' | 'stamina_regen';
+  type: BuffType;
   value: number;
   expires: Date;
 }
@@ -61,7 +64,7 @@ const UserSchema = new Schema<IUser>(
     buffs: {
       type: [
         {
-          type: { type: String, enum: ['atk', 'stamina_regen'], required: true },
+          type: { type: String, enum: BUFF_TYPES, required: true },
           value: { type: Number, required: true },
           expires: { type: Date, required: true },
         },
