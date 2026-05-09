@@ -261,7 +261,7 @@ export class HuntCommand extends Command {
     const inv = user.items.find((i) => i.itemId === drop.id);
     if (inv) inv.qty += 1;
     else user.items.push({ itemId: drop.id, qty: 1 });
-    user.balance += 50;
+    user.balance += monster.xp * 2;
     user.exp = (user.exp ?? 0) + monster.xp;
 
     await db.item.updateOne(
@@ -300,7 +300,7 @@ export class HuntCommand extends Command {
         `Kalahkan ${monster.emoji} **${monster.name}**!${levelUpText}${buffInfo}\n\n**${drop.emoji} ${drop.name}** ×1 • *${drop.rarity}*\n\n**📜 Pertarungan:**\n${summary}\n\n**📊 Damage:** Dealt ${totalDealt} | Taken ${totalTaken}`,
       )
       .setFields(
-        { name: '💰', value: `+50`, inline: true },
+        { name: '💰', value: `+${monster.xp * 2}`, inline: true },
         { name: '✨ EXP', value: `+${monster.xp}`, inline: true },
         { name: '❤️ HP', value: `${user.hp}/${user.maxHp}`, inline: true },
       );
