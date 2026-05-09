@@ -69,6 +69,16 @@ export class HuntCommand extends Command {
     const bonusAtk = getAtkBuff(user);
     const buffInfo = bonusAtk ? ` • 🔥 ATK +${bonusAtk}` : '';
 
+    // class passives
+    const userClass = user.class ?? 'warrior';
+    const isRogue = userClass === 'rogue';
+    const isMage = userClass === 'mage';
+    const isWarrior = userClass === 'warrior';
+
+    // Rogue has higher crit chance of 18% than the others ~ 10%
+    const critChance = isRogue ? 0.18 : 0.1;
+    const classIcon = isWarrior ? '🛡️' : isMage ? '🪄' : '🏹';
+
     const embed = new EmbedBuilder()
       .setColor(0xe67e22)
       .setAuthor({
@@ -76,20 +86,28 @@ export class HuntCommand extends Command {
         iconURL: interaction.user.displayAvatarURL(),
       })
       .setTitle(`Menemukan ${monster.emoji} ${monster.name}!`)
-      .setDescription(`⚔️ Pertarungan dimulai...${buffInfo}`);
+      .setDescription(`⚔️ Pertarungan dimulai...${buffInfo}\n${classIcon} ${userClass}`);
     await interaction.editReply({ embeds: [embed] });
     await sleep(1000);
 
     while (mHp > 0 && uHp > 0) {
-      const isCrit = Math.random() < 0.1;
+      // PLAYER TURN
+      const isCrit = Math.random() < critChance;
       let pDmg =
         Math.floor(Math.random() * 15) + 10 + Math.floor((user.attack ?? 10) / 3) + bonusAtk;
       if (isCrit) pDmg = Math.floor(pDmg * 1.8);
       mHp = Math.max(0, mHp - pDmg);
       totalDealt += pDmg;
-      log.push(
-        `${isCrit ? '💥' : '🗡️'} Kamu ${isCrit ? 'CRIT ' : ''}**${pDmg}**${bonusAtk ? ` [${user.attack}+${bonusAtk}]` : ''}`,
-      );
+
+      let playerLog = `${isCrit ? '💥' : '🗡️'} Kamu ${isCrit ? 'CRIT ' : ''}**${pDmg}**`;
+
+      // Mage lifesteal 15% chance, heal 25% damage
+      if (isMage && Math.random() < 0.15 && uHp < uMax) {
+        const heal = Math.floor(pDmg * 0.25);
+        uHp = Math.min(uMax, uHp + heal);
+        playerLog += ` +🩸${heal}`;
+      }
+      log.push(playerLog);
 
       embed.setDescription(log.slice(-4).join('\n') + buffInfo).setFields(
         {
@@ -103,10 +121,19 @@ export class HuntCommand extends Command {
       await sleep(850);
       if (mHp <= 0) break;
 
-      const mDmg = Math.floor(Math.random() * (monster.dmg[1] - monster.dmg[0])) + monster.dmg[0];
+      // MONSTER TURN
+      let mDmg = Math.floor(Math.random() * (monster.dmg[1] - monster.dmg[0])) + monster.dmg[0];
+
+      // Warrior damage reduction 20% chance, 30% damage
+      let blocked = 0;
+      if (isWarrior && Math.random() < 0.2) {
+        blocked = Math.floor(mDmg * 0.3);
+        mDmg -= blocked;
+      }
+
       uHp = Math.max(0, uHp - mDmg);
       totalTaken += mDmg;
-      log.push(`${monster.emoji} balas **${mDmg}**`);
+      log.push(`${monster.emoji} balas **${mDmg}**${blocked ? ` 🛡️-${blocked}` : ''}`);
 
       embed.setDescription(log.slice(-4).join('\n') + buffInfo).setFields(
         {
