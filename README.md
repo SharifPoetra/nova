@@ -46,7 +46,7 @@ nova/
 ### 2. Clone & Install
 ```bash
 # Clone repository ini
-git clone [https://github.com/SharifPoetra/nova.git](https://github.com/SharifPoetra/nova.git)
+git clone https://github.com/SharifPoetra/nova.git
 cd nova
 
 # Install semua dependencies (otomatis melink workspaces)
@@ -57,11 +57,8 @@ npm install
 ### 3. Konfigurasi (.env)
 Buat file .env di **folder root** (/nova/.env):
 ```env
-# Wajib
 DISCORD_TOKEN=your_bot_token
 MONGODB_URI=mongodb+srv://user:pass@cluster/nova
-
-# Opsional dev
 NODE_ENV=development
 OWNER_ID=your_discord_account_id
 DEV_GUILD_ID=your_test_server_id
@@ -72,11 +69,10 @@ DEV_GUILD_ID=your_test_server_id
 Untuk menjalankan bot dengan fitur *hot-reload* (otomatis restart saat kode diubah):
 ```bash
 npm run bot:dev
-
 ```
 
 ### Mode Produksi (Build)
-Untuk mengompilasi TypeScript menjadi JavaScript:
+Untuk mengompilasi TypeScript:
 ```bash
 npm run build
 npm run start
