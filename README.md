@@ -1,5 +1,13 @@
 # 🌌 Nova - Discord Bot & Activity RPG
 
+[![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Sapphire](https://img.shields.io/badge/Sapphire-v5-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://sapphirejs.dev/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongoosejs.com/)
+[![ESLint](https://img.shields.io/badge/ESLint-10-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)](https://eslint.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+[![Monorepo](https://img.shields.io/badge/Monorepo-NPM_Workspaces-CB3837?style=for-the-badge&logo=npm&logoColor=white)](https://docs.npmjs.com/cli/v7/using-npm/workspaces)
+
 Nova adalah proyek Discord Bot berbasis **Activity RPG** yang dibangun dengan arsitektur **Monorepo**. Proyek ini menggunakan **Sapphire Framework** untuk logika bot dan **Mongoose (MongoDB)** untuk manajemen database yang scalable.
 
 ---
