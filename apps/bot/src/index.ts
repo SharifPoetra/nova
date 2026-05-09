@@ -3,6 +3,7 @@ import path from 'path';
 import { GatewayIntentBits } from 'discord.js';
 import { SapphireClient, container, ApplicationCommandRegistries } from '@sapphire/framework';
 import { createDatabase, User, Item } from '@nova/db';
+import { logger } from './lib/logger';
 
 // load.env dari root project
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -18,6 +19,9 @@ const client = new SapphireClient({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
   ],
+  logger: {
+    instance: logger,
+  },
   baseUserDirectory: __dirname,
   loadMessageCommandListeners: true,
 });
