@@ -6,6 +6,16 @@ import { EXPLORES, rollExplore } from '../../lib/rpg/explorations';
 import { BASE_MONSTERS, getScaledMonster } from '../../lib/rpg/monsters';
 import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/constants';
 
+const groupByRarity = <T extends { rarity: string }>(arr: T[]) => {
+  return arr.reduce(
+    (acc, cur) => {
+      (acc[cur.rarity] = acc[cur.rarity] ?? []).push(cur);
+      return acc;
+    },
+    {} as Record<string, T[]>,
+  );
+};
+
 @ApplyOptions<Command.Options>({
   name: 'droprate',
   description: 'Lihat drop rate detail untuk fish, explore, dan hunt',
@@ -87,10 +97,13 @@ export class DroprateCommand extends Command {
         }
         if (tipe === 'hunt') {
           const m = getScaledMonster(5);
-          const d = m.drops.find((x) => Math.random() * 100 < x.chance);
+          const roll = Math.random() * 100;
+          let cum = 0;
+          const d = m.drops.find((x) => (cum += x.chance) >= roll);
           key = d ? d.name : 'No Drop';
           emoji = d?.emoji ?? '❌';
         }
+
         if (!counts[key]) counts[key] = { c: 0, emoji };
         counts[key].c++;
       }
@@ -116,12 +129,15 @@ export class DroprateCommand extends Command {
         (f) =>
           `${f.emoji} **${f.name}** ${RARITY_EMOJI[f.rarity]}\n> Chance: \`${f.chance}%\` • Jual: \`${f.sell}💰\` • XP: \`${f.xp}\``,
       ).join('\n\n');
-      const summary = Object.entries(Object.groupBy(FISHES, (f) => f.rarity))
+
+      const byRarity = groupByRarity(FISHES);
+      const summary = Object.entries(byRarity)
         .map(
           ([r, arr]) =>
-            `${RARITY_EMOJI[r as keyof typeof RARITY_EMOJI]} **${r}**: ${arr!.reduce((a, b) => a + b.chance, 0)}%`,
+            `${RARITY_EMOJI[r as keyof typeof RARITY_EMOJI]} **${r}**: ${arr.reduce((a, b) => a + b.chance, 0)}%`,
         )
         .join(' • ');
+
       const ev = Math.round(FISHES.reduce((a, f) => a + f.sell * (f.chance / 100), 0));
       return interaction.reply({
         embeds: [
@@ -141,12 +157,15 @@ export class DroprateCommand extends Command {
         const item = e.item ? `\n> Drop: ${e.item.qty}x ${e.item.emoji} ${e.item.name}` : '';
         return `${e.emoji} **${e.text}** ${RARITY_EMOJI[e.rarity]}\n> Chance: \`${e.chance}%\` • +${e.coins}💰 • +${e.exp}XP${item}`;
       }).join('\n\n');
-      const summary = Object.entries(Object.groupBy(EXPLORES, (e) => e.rarity))
+
+      const byRarity = groupByRarity(EXPLORES);
+      const summary = Object.entries(byRarity)
         .map(
           ([r, arr]) =>
-            `${RARITY_EMOJI[r as keyof typeof RARITY_EMOJI]} ${r}: ${arr!.reduce((a, b) => a + b.chance, 0)}%`,
+            `${RARITY_EMOJI[r as keyof typeof RARITY_EMOJI]} ${r}: ${arr.reduce((a, b) => a + b.chance, 0)}%`,
         )
         .join(' • ');
+
       const avgC = Math.round(EXPLORES.reduce((a, e) => a + e.coins * (e.chance / 100), 0));
       return interaction.reply({
         embeds: [
