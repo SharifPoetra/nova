@@ -102,7 +102,6 @@ export class HelpCommand extends Command {
     const all = [...this.container.stores.get('commands').values()] as Command[];
     const usable: Command[] = [];
     for (const cmd of all) {
-      if (cmd.name === 'help') continue;
       if (await this.canUse(cmd, interaction)) usable.push(cmd);
     }
 
