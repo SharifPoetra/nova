@@ -11,6 +11,26 @@ import {
 @ApplyOptions<Command.Options>({
   name: 'help',
   description: 'Lihat semua command Nova',
+  detailedDescription: {
+    usage: '/help [command:optional]',
+    examples: ['/help', '/help command:fish', '/help command:profile'],
+    extendedHelp: `
+Pusat bantuan interaktif Nova.
+
+**Cara pakai:**
+- /help — lihat daftar semua command yang bisa kamu pakai
+- /help command:... — langsung lihat detail (autocomplete tersedia)
+- Pilih dari dropdown menu untuk detail cepat
+
+**Fitur:**
+- Hanya menampilkan command yang kamu punya izin
+- Menampilkan usage, contoh, dan penjelasan lengkap
+- Dikelompokkan per kategori (RPG, Economy, General)
+- Private reply (ephemeral)
+
+Tips: ketik /help lalu pilih /fish untuk lihat droprate ikan.
+    `.trim(),
+  },
   fullCategory: ['General'],
 })
 export class HelpCommand extends Command {
@@ -26,15 +46,11 @@ export class HelpCommand extends Command {
   }
 
   private async canUse(cmd: Command, interaction: ChatInputCommandInteraction) {
-    // cek yang penting saja
     const perms = (cmd.options as any).requiredUserPermissions as bigint[] | undefined;
     const preconditions = (cmd.options.preconditions as string[]) || [];
-
-    // cek owner-only
     if (preconditions.includes('OwnerOnly') && interaction.user.id !== process.env.OWNER_ID)
       return false;
     if (perms?.length) return interaction.memberPermissions?.has(perms) ?? false;
-
     return true;
   }
 
@@ -65,7 +81,13 @@ export class HelpCommand extends Command {
       .setDescription(`Kamu bisa pakai **${usable.length}** command`)
       .setColor(0x5865f2);
 
-    const emojis: Record<string, string> = { rpg: '🎮', general: '⚙️', fun: '🎲', admin: '🛠️' };
+    const emojis: Record<string, string> = {
+      rpg: '🎮',
+      economy: '💰',
+      general: '⚙️',
+      fun: '🎲',
+      admin: '🛠️',
+    };
     for (const [cat, list] of [...grouped.entries()].sort()) {
       embed.addFields({
         name: `${emojis[cat] || '📁'} ${cat.toUpperCase()}`,
@@ -97,11 +119,13 @@ export class HelpCommand extends Command {
         .setCustomId(`help_select_${interaction.user.id}`)
         .setPlaceholder('Pilih command untuk detail')
         .addOptions(
-          usable.slice(0, 25).map((c) => ({
-            label: `/${c.name}`,
-            description: c.description.slice(0, 100),
-            value: c.name,
-          })),
+          usable
+            .slice(0, 25)
+            .map((c) => ({
+              label: `/${c.name}`,
+              description: c.description.slice(0, 100),
+              value: c.name,
+            })),
         ),
     );
 
