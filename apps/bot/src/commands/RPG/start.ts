@@ -7,6 +7,7 @@ import {
   EmbedBuilder,
   MessageFlags,
 } from 'discord.js';
+import { CLASSES, getClass } from '../lib/rpg/classes';
 
 @ApplyOptions<Command.Options>({
   name: 'start',
@@ -16,17 +17,14 @@ import {
     usage: '/start',
     extendedHelp: `Pilih 1 dari 3 class (**tidak bisa diganti**):
 
-🛡️ **Warrior**
-> HP 120 | ATK 15
-> Passive: 20% chance block 30% damage
-
-🪄 **Mage**
-> HP 80 | ATK 22
-> Passive: 15% chance lifesteal 25%
-
-🏹 **Rogue**
-> HP 95 | ATK 18
-> Passive: Crit rate 18% (base 10%)
+${Object.values(CLASSES)
+  .map(
+    (c) =>
+      `${c.emoji} **${c.name}**
+> HP ${c.hp} | ATK ${c.atk}
+> Passive: ${c.passive}`,
+  )
+  .join('\n\n')}
 
 Ketik \`/start\` lalu klik tombol class.`,
   },
@@ -43,6 +41,7 @@ export class StartCommand extends Command {
     const user = await this.container.db.user.findOne({ discordId: userId });
 
     if (user?.class) {
+      const existing = getClass(user.class);
       const embed = new EmbedBuilder()
         .setAuthor({
           name: interaction.user.username,
@@ -50,14 +49,16 @@ export class StartCommand extends Command {
         })
         .setTitle('😅 Kamu Sudah Punya Class')
         .setDescription(
-          `Kamu sudah terdaftar sebagai **${user.class.charAt(0).toUpperCase() + user.class.slice(1)}**.\n` +
+          `Kamu sudah terdaftar sebagai **${existing?.name ?? user.class}**.\n` +
             `Class tidak bisa diganti, jadi lanjutkan aja petualanganmu!`,
         )
-        .setColor(0x95a5a6)
+        .setColor(existing?.color ?? 0x95a5a6)
         .setFooter({ text: 'Gunakan /profile untuk melihat status' });
 
       return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
+
+    const classList = Object.values(CLASSES);
 
     const embed = new EmbedBuilder()
       .setTitle('🛡️ Nova Chronicles — Pilih Takdirmu')
@@ -66,45 +67,30 @@ export class StartCommand extends Command {
           `Dunia Nova lagi kacau, pilih class-mu sekarang dan langsung dapat **1.000 koin** buat modal awal.`,
       )
       .addFields(
-        {
-          name: '⚔️ Warrior',
-          value:
-            '**Tank garis depan**\n❤️ 120 HP | 🗡️ 15 ATK | ⚡ 120 Stamina\n*Cocok buat yang suka tabrak dulu, mikir belakangan.*',
+        classList.map((c) => ({
+          name: `${c.emoji} ${c.name}`,
+          value: `**${c.desc}**\n❤️ ${c.hp} HP | 🗡️ ${c.atk} ATK | ⚡ ${c.stamina} Stamina\n*Passive: ${c.passive}*`,
           inline: false,
-        },
-        {
-          name: '🪄 Mage',
-          value:
-            '**Damage meledak**\n❤️ 80 HP | 🗡️ 25 ATK | ⚡ 80 Stamina\n*Glass cannon, sekali combo musuh hilang.*',
-          inline: false,
-        },
-        {
-          name: '🏹 Rogue',
-          value:
-            '**Lincah & kritikal**\n❤️ 100 HP | 🗡️ 18 ATK | ⚡ 100 Stamina\n*Main aman, crit sering, hunt jadi cepat.*',
-          inline: false,
-        },
+        })),
       )
       .setColor(0xf1c40f)
       .setFooter({ text: 'Pilih dengan bijak — class tidak bisa diganti!' })
       .setThumbnail(interaction.user.displayAvatarURL());
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`class_warrior_${userId}`)
-        .setLabel('Warrior')
-        .setEmoji('⚔️')
-        .setStyle(ButtonStyle.Danger),
-      new ButtonBuilder()
-        .setCustomId(`class_mage_${userId}`)
-        .setLabel('Mage')
-        .setEmoji('🪄')
-        .setStyle(ButtonStyle.Primary),
-      new ButtonBuilder()
-        .setCustomId(`class_rogue_${userId}`)
-        .setLabel('Rogue')
-        .setEmoji('🏹')
-        .setStyle(ButtonStyle.Success),
+      classList.map((c) =>
+        new ButtonBuilder()
+          .setCustomId(`class_${c.key}_${userId}`)
+          .setLabel(c.name)
+          .setEmoji(c.emoji)
+          .setStyle(
+            c.key === 'warrior'
+              ? ButtonStyle.Danger
+              : c.key === 'mage'
+                ? ButtonStyle.Primary
+                : ButtonStyle.Success,
+          ),
+      ),
     );
 
     return interaction.reply({ embeds: [embed], components: [row] });
