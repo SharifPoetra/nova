@@ -7,7 +7,7 @@ import {
   EmbedBuilder,
   MessageFlags,
 } from 'discord.js';
-import { CLASSES, getClass } from '../lib/rpg/classes';
+import { CLASSES, getClass } from '../../lib/rpg/classes';
 
 @ApplyOptions<Command.Options>({
   name: 'start',
