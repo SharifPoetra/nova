@@ -118,18 +118,29 @@ export class HelpCommand extends Command {
         .setCustomId(`help_select_${interaction.user.id}`)
         .setPlaceholder('Pilih command untuk detail')
         .addOptions(
-          usable
-            .slice(0, 25)
-            .map((c) => ({
-              label: `/${c.name}`,
-              description: c.description.slice(0, 100),
-              value: c.name,
-            })),
+          usable.slice(0, 25).map((c) => ({
+            label: `/${c.name}`,
+            description: c.description.slice(0, 100),
+            value: c.name,
+          })),
         ),
     );
 
     await interaction.editReply({ embeds: [embed], components: [menu] });
-    setTimeout(() => interaction.editReply({ components: [] }).catch(() => {}), 120_000);
+    setTimeout(
+      () =>
+        interaction
+          .editReply({
+            components: [],
+            embeds: [
+              EmbedBuilder.from(embed)
+                .setColor(0x95a5a6)
+                .setFooter({ text: '⏰ Waktu habis (2 menit) — ketik /help lagi' }),
+            ],
+          })
+          .catch(() => {}),
+      300_000,
+    );
   }
 
   public override async autocompleteRun(interaction) {
