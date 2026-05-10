@@ -2,19 +2,33 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
+import { RARITY_COLOR } from '../../lib/constants';
 
 const RARITY_ORDER = ['Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'];
-const RARITY_COLOR: Record<string, number> = {
-  Legendary: 0xf1c40f,
-  Epic: 0x9b59b6,
-  Rare: 0x3498db,
-  Uncommon: 0x2ecc71,
-  Common: 0x95a5a6,
-};
 
 @ApplyOptions<Command.Options>({
   name: 'inventory',
   description: 'Lihat semua item kamu',
+  detailedDescription: {
+    usage: '/inventory',
+    examples: ['/inventory'],
+    extendedHelp: `
+Lihat semua bahan dan drop yang kamu punya.
+
+**Fitur:**
+- Item dikelompokkan berdasarkan rarity (Legendary → Common)
+- Menampilkan jumlah dan total nilai jual
+- Warna embed otomatis ikut rarity tertinggi
+- Update stamina pasif saat buka
+
+**Gunakan untuk:**
+- Cek bahan sebelum /cook
+- Hitung total aset sebelum /sell
+- Pastikan stok ikan/daging/herb cukup
+
+Tip: item dari /fish, /hunt, dan /explore otomatis masuk ke sini.
+    `.trim(),
+  },
   fullCategory: ['RPG'],
 })
 export class InventoryCommand extends Command {
@@ -27,7 +41,6 @@ export class InventoryCommand extends Command {
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user) return interaction.editReply('❌ Gunakan /start dulu!');
 
-    // regen pasif biar stamina update pas cek inv
     applyPassiveRegen(user);
     await user.save();
 
@@ -35,7 +48,6 @@ export class InventoryCommand extends Command {
       return interaction.editReply('📦 Inventory kosong. Coba /fish atau /explore!');
     }
 
-    // ambil data item dari DB
     const itemIds = user.items.map((i) => i.itemId);
     const itemsData = await this.container.db.item.find({ itemId: { $in: itemIds } });
     const itemMap = new Map(itemsData.map((i) => [i.itemId, i]));
@@ -54,29 +66,18 @@ export class InventoryCommand extends Command {
       grouped[rarity].push(line);
     }
 
-    // tentukan warna berdasarkan rarity tertinggi yang dimiliki
     const topRarity = RARITY_ORDER.find((r) => grouped[r]?.length) || 'Common';
 
     const embed = new EmbedBuilder()
-      .setAuthor({
-        name: `${interaction.user.username}'s Inventory`,
-        iconURL: interaction.user.displayAvatarURL(),
-      })
-      .setColor(RARITY_COLOR[topRarity])
-      .setDescription(`⚡ Stamina: ${user.stamina}/${user.maxStamina}`)
-      .setFooter({
-        text: `Total nilai jual: ${totalValue.toLocaleString('id-ID')} koin | /sell untuk jual`,
-      });
+     .setAuthor({ name: `${interaction.user.username}'s Inventory`, iconURL: interaction.user.displayAvatarURL() })
+     .setColor(RARITY_COLOR[topRarity as keyof typeof RARITY_COLOR])
+     .setDescription(`⚡ Stamina: ${user.stamina}/${user.maxStamina}`)
+     .setFooter({ text: `Total nilai jual: ${totalValue.toLocaleString('id-ID')} koin | /sell untuk jual` });
 
     for (const rarity of RARITY_ORDER) {
       if (grouped[rarity]?.length) {
-        // sort alphabet di dalam rarity
         const sorted = grouped[rarity].sort();
-        embed.addFields({
-          name: `${rarity} (${sorted.length})`,
-          value: sorted.join('\n').slice(0, 1024),
-          inline: false,
-        });
+        embed.addFields({ name: `${rarity} (${sorted.length})`, value: sorted.join('\n').slice(0, 1024), inline: false });
       }
     }
 

@@ -8,6 +8,30 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 @ApplyOptions<Command.Options>({
   name: 'cook',
   description: 'Masak untuk heal atau buff',
+  detailedDescription: {
+    usage: '/cook',
+    examples: ['/cook'],
+    extendedHelp: `
+Cost ${ACTION_COST.cook} stamina • cooldown tidak ada.
+
+**Cara kerja:**
+1. Pilih resep dari menu (maks 25)
+2. Bahan otomatis terpakai
+3. HP pulih + buff aktif 30 menit
+
+**Resep umum:**
+🍖 Grilled Meat — +30 HP (butuh meat)
+🍲 Stew — +50 HP (meat + herb)
+🐟 Fish Soup — +40 HP (fish + herb)
+🌶️ Spicy Curry — +35 HP + ATK+5 (meat + chili)
+🧪 Elixir — +20 HP + regen 5 HP/5m
+
+Buff tidak stack — masakan baru akan ganti buff lama.
+Gunakan sebelum /hunt untuk hasil maksimal.
+
+Dapatkan bahan dari /fish, /hunt, /explore.
+    `.trim(),
+  },
   fullCategory: ['RPG'],
 })
 export class CookCommand extends Command {
@@ -81,7 +105,7 @@ export class CookCommand extends Command {
       } catch {
         /* ignore */
       }
-    }, 120_000); // 2 menit
+    }, 120_000);
 
     return msg;
   }
