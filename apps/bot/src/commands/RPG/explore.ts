@@ -3,13 +3,18 @@ import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { RARITY_COLOR } from '../../lib/constants';
+import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/constants';
 import { rollExplore } from '../../lib/rpg/explorations';
 import { ACTION_COST } from '../../lib/rpg/actions';
 
 @ApplyOptions<Command.Options>({
   name: 'explore',
   description: 'Jelajahi dunia Nova dan temukan harta karun',
+  detailedDescription: {
+    usage: '/explore',
+    examples: ['/explore'],
+    extendedHelp: 'Cooldown 30 detik • cost 15 stamina. Hasil tergantung rarity.',
+  },
   fullCategory: ['RPG'],
 })
 export class ExploreCommand extends Command {
@@ -39,24 +44,20 @@ export class ExploreCommand extends Command {
       return interaction.editReply(`⏳ Tunggu ${s}s lagi.`);
     }
 
+    user.stamina -= ACTION_COST.explore;
+    user.lastExplore = new Date();
+
     const outcome = rollExplore();
-
-    await db.user.updateOne(
-      { discordId: user.discordId },
-      {
-        $inc: { balance: outcome.coins, exp: outcome.exp, stamina: -ACTION_COST.explore },
-        $set: { lastExplore: new Date() },
-      },
-    );
-
-    let updated = await db.user.findOne({ discordId: user.discordId });
-    if (!updated) return;
+    user.balance += outcome.coins;
+    user.exp += outcome.exp;
 
     if (outcome.item) {
-      const inv = updated.items.find((i) => i.itemId === outcome.item.id);
-      if (inv) inv.qty += outcome.item.qty;
-      else updated.items.push({ itemId: outcome.item.id, qty: outcome.item.qty });
-      await updated.save();
+      const inv = user.items.find((i) => i.itemId === outcome.item!.id);
+      if (inv) {
+        inv.qty += outcome.item.qty;
+      } else {
+        user.items.push({ itemId: outcome.item.id, qty: outcome.item.qty });
+      }
 
       await db.item.updateOne(
         { itemId: outcome.item.id },
@@ -74,34 +75,34 @@ export class ExploreCommand extends Command {
     }
 
     let levelUpText = '';
-    const lvl = checkLevelUp(updated);
+    const lvl = checkLevelUp(user);
     if (lvl) {
-      await db.user.updateOne(
-        { discordId: user.discordId },
-        {
-          $set: {
-            level: lvl.level,
-            exp: lvl.expLeft,
-            maxHp: lvl.maxHp,
-            hp: lvl.hp,
-            attack: lvl.attack,
-            maxStamina: lvl.maxStamina,
-            stamina: lvl.stamina,
-          },
-        },
-      );
+      user.level = lvl.level;
+      user.exp = lvl.expLeft;
+      user.maxHp = lvl.maxHp;
+      user.hp = lvl.hp;
+      user.attack = lvl.attack;
+      user.maxStamina = lvl.maxStamina;
+      user.stamina = lvl.stamina;
       levelUpText = `\n\n🎉 **LEVEL UP → Lv.${lvl.level}**`;
-      updated = await db.user.findOne({ discordId: user.discordId });
     }
 
+    await user.save();
+
     const embed = new EmbedBuilder()
-      .setColor(RARITY_COLOR[outcome.rarity])
+      .setColor(RARITY_COLOR[outcome.rarity as keyof typeof RARITY_COLOR])
       .setTitle(`${outcome.emoji} Penjelajahan`)
       .setDescription(
-        `*${outcome.text}*\n\n> **+${outcome.coins}** koin\n> **+${outcome.exp}** EXP${outcome.item ? `\n> **+${outcome.item.qty}x ${outcome.item.emoji} ${outcome.item.name}**` : ''}${levelUpText}`,
+        `*${outcome.text}*\n\n` +
+          `> **+${outcome.coins}** koin\n` +
+          `> **+${outcome.exp}** EXP` +
+          (outcome.item
+            ? `\n> **+${outcome.item.qty}x ${outcome.item.emoji} ${outcome.item.name}** ${RARITY_EMOJI[outcome.item.rarity as keyof typeof RARITY_EMOJI]}`
+            : '') +
+          levelUpText,
       )
       .setFooter({
-        text: `Stamina -${ACTION_COST.explore} • ${updated?.stamina}/${updated?.maxStamina}`,
+        text: `Stamina -${ACTION_COST.explore} • ${user.stamina}/${user.maxStamina}`,
       });
 
     return interaction.editReply({ embeds: [embed] });
