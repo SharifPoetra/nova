@@ -4,6 +4,7 @@ import { EmbedBuilder } from 'discord.js';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
 import { getScaledMonster } from '../../lib/rpg/monsters';
+import { ACTION_COST } from '../../lib/rpg/actions';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const bar = (cur: number, max: number) => {
@@ -45,15 +46,15 @@ export class HuntCommand extends Command {
         `🏹 Tunggu ${Math.ceil((45000 - (now - user.lastHunt!.getTime())) / 1000)}s`,
       );
     }
-    if ((user.stamina ?? 0) < 20) {
+    if ((user.stamina ?? 0) < ACTION_COST.hunt) {
       await user.save();
-      return interaction.editReply(`⚡ Stamina kurang (${user.stamina}/20)`);
+      return interaction.editReply(`⚡ Stamina kurang (${user.stamina}/${ACTION_COST.hunt})`);
     }
     if ((user.hp ?? 0) < 20) {
       await user.save();
       return interaction.editReply(`❤️ HP rendah (${user.hp}). /cook dulu!`);
     }
-    user.stamina -= 20;
+    user.stamina -= ACTION_COST.hunt;
     user.lastHunt = new Date();
 
     const monster = getScaledMonster(user.level ?? 1);
@@ -205,7 +206,14 @@ export class HuntCommand extends Command {
       .setColor(colorByRarity[drop.rarity as keyof typeof colorByRarity])
       .setTitle(`✅ Menang!`)
       .setDescription(
-        `Kalahkan ${monster.emoji} **${monster.name}**!${levelUpText}${buffInfo}\n\n**${drop.emoji} ${drop.name}** ×1 • *${drop.rarity}*\n\n**📜 Pertarungan:**\n${summary}\n\n**📊 Damage:** Dealt ${totalDealt} | Taken ${totalTaken}`,
+        `Kalahkan ${monster.emoji} **${monster.name}**!${levelUpText}${buffInfo}
+        
+        **${drop.emoji} ${drop.name}** ×1 • *${drop.rarity}*
+        
+        **📜 Pertarungan:**
+        ${summary}
+        
+        **📊 Damage:** Dealt ${totalDealt} | Taken ${totalTaken}`,
       )
       .setFields(
         { name: '💰', value: `+${monster.xp * 2}`, inline: true },
