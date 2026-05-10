@@ -1,6 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener, Events, type ChatInputCommandErrorPayload } from '@sapphire/framework';
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, MessageFlags } from 'discord.js';
 
 @ApplyOptions<Listener.Options>({
   event: Events.ChatInputCommandError,
@@ -27,7 +27,7 @@ export class ChatInputCommandErrorListener extends Listener {
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply({ embeds: [embed], content: null });
       } else {
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
       }
     } catch {
       this.container.logger.warn(`[${id}] Gagal kirim error reply`);
