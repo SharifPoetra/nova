@@ -5,7 +5,6 @@ import {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
-  ComponentType,
   MessageFlags,
 } from 'discord.js';
 
@@ -13,6 +12,24 @@ import {
   name: 'start',
   description: 'Mulai petualanganmu di Nova Chronicles dan pilih Class!',
   fullCategory: ['RPG'],
+  detailedDescription: {
+    usage: '/start',
+    extendedHelp: `Pilih 1 dari 3 class (**tidak bisa diganti**):
+
+🛡️ **Warrior**
+> HP 120 | ATK 15
+> Passive: 20% chance block 30% damage
+
+🪄 **Mage**
+> HP 80 | ATK 22
+> Passive: 15% chance lifesteal 25%
+
+🏹 **Rogue**
+> HP 95 | ATK 18
+> Passive: Crit rate 18% (base 10%)
+
+Ketik \`/start\` lalu klik tombol class.`,
+  },
 })
 export class StartCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
@@ -21,128 +38,75 @@ export class StartCommand extends Command {
     );
   }
 
-  public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-    await interaction.deferReply();
+  public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     const userId = interaction.user.id;
-
     const user = await this.container.db.user.findOne({ discordId: userId });
+
     if (user?.class) {
-      return interaction.reply({
-        content: `❌ Kamu sudah menjadi seorang **${user.class.toUpperCase()}**! Gunakan \`/profile\` untuk melihat statistikmu.`,
-        flags: [MessageFlags.Ephemeral],
-      });
+      const embed = new EmbedBuilder()
+        .setAuthor({
+          name: interaction.user.username,
+          iconURL: interaction.user.displayAvatarURL(),
+        })
+        .setTitle('😅 Kamu Sudah Punya Class')
+        .setDescription(
+          `Kamu sudah terdaftar sebagai **${user.class.charAt(0).toUpperCase() + user.class.slice(1)}**.\n` +
+            `Class tidak bisa diganti, jadi lanjutkan aja petualanganmu!`,
+        )
+        .setColor(0x95a5a6)
+        .setFooter({ text: 'Gunakan /profile untuk melihat status' });
+
+      return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
 
     const embed = new EmbedBuilder()
-      .setTitle('🛡️ Selamat Datang di Nova Chronicles!')
-      .setDescription('Pilih Class untuk memulai. Bonus awal **1.000 koin**!')
+      .setTitle('🛡️ Nova Chronicles — Pilih Takdirmu')
+      .setDescription(
+        `Selamat datang, **${interaction.user.username}**!\n` +
+          `Dunia Nova lagi kacau, pilih class-mu sekarang dan langsung dapat **1.000 koin** buat modal awal.`,
+      )
       .addFields(
         {
           name: '⚔️ Warrior',
           value:
-            'HP: **120** | ATK: **15** | Stamina: **120**\n*Tahan banting, cocok untuk hunt lama.*',
+            '**Tank garis depan**\n❤️ 120 HP | 🗡️ 15 ATK | ⚡ 120 Stamina\n*Cocok buat yang suka tabrak dulu, mikir belakangan.*',
           inline: false,
         },
         {
           name: '🪄 Mage',
-          value: 'HP: **80** | ATK: **25** | Stamina: **80**\n*Damage besar, cepat habis stamina.*',
+          value:
+            '**Damage meledak**\n❤️ 80 HP | 🗡️ 25 ATK | ⚡ 80 Stamina\n*Glass cannon, sekali combo musuh hilang.*',
           inline: false,
         },
         {
           name: '🏹 Rogue',
           value:
-            'HP: **100** | ATK: **18** | Stamina: **100**\n*Seimbang, crit lebih sering di hunt.*',
+            '**Lincah & kritikal**\n❤️ 100 HP | 🗡️ 18 ATK | ⚡ 100 Stamina\n*Main aman, crit sering, hunt jadi cepat.*',
           inline: false,
         },
       )
       .setColor(0xf1c40f)
-      .setFooter({ text: 'Pilih dalam 60 detik' });
+      .setFooter({ text: 'Pilih dengan bijak — class tidak bisa diganti!' })
+      .setThumbnail(interaction.user.displayAvatarURL());
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId('class_warrior')
+        .setCustomId(`class_warrior_${userId}`)
         .setLabel('Warrior')
         .setEmoji('⚔️')
         .setStyle(ButtonStyle.Danger),
       new ButtonBuilder()
-        .setCustomId('class_mage')
+        .setCustomId(`class_mage_${userId}`)
         .setLabel('Mage')
         .setEmoji('🪄')
         .setStyle(ButtonStyle.Primary),
       new ButtonBuilder()
-        .setCustomId('class_rogue')
+        .setCustomId(`class_rogue_${userId}`)
         .setLabel('Rogue')
         .setEmoji('🏹')
         .setStyle(ButtonStyle.Success),
     );
 
-    const response = await interaction.editReply({
-      embeds: [embed],
-      components: [row],
-    });
-
-    const collector = response.createMessageComponentCollector({
-      componentType: ComponentType.Button,
-      time: 60000,
-    });
-
-    collector.on('collect', async (i) => {
-      if (i.user.id !== userId)
-        return i.reply({ content: 'Bukan pilihanmu!', flags: MessageFlags.Ephemeral });
-      if (i.replied || i.deferred) return;
-
-      let selectedClass: 'warrior' | 'mage' | 'rogue' = 'warrior';
-      let stats = { hp: 120, atk: 15, maxStamina: 120 };
-
-      if (i.customId === 'class_mage') {
-        selectedClass = 'mage';
-        stats = { hp: 80, atk: 25, maxStamina: 80 };
-      } else if (i.customId === 'class_rogue') {
-        selectedClass = 'rogue';
-        stats = { hp: 100, atk: 18, maxStamina: 100 };
-      }
-
-      await this.container.db.user.findOneAndUpdate(
-        { discordId: userId },
-        {
-          $set: {
-            class: selectedClass,
-            username: interaction.user.username,
-            hp: stats.hp,
-            maxHp: stats.hp,
-            attack: stats.atk,
-            maxStamina: stats.maxStamina,
-            stamina: stats.maxStamina,
-            level: 1,
-            exp: 0,
-            balance: 1000,
-            bank: 0,
-            items: [],
-            createdAt: new Date(),
-            lastExplore: null,
-            lastFish: null,
-            lastHunt: null,
-          },
-        },
-        { upsert: true },
-      );
-
-      await i.update({
-        content: `✅ Selamat datang, **${selectedClass.toUpperCase()}**!\n💰 **+1.000 koin** telah masuk ke dompetmu.\n⚡ Stamina: ${stats.maxStamina} | 🗡️ ATK: ${stats.atk} | ❤️ HP: ${stats.hp}\n\n> Lanjut: \`/profile\` → \`/hunt\``,
-        embeds: [],
-        components: [],
-      });
-      collector.stop();
-    });
-
-    collector.on('end', (_, reason) => {
-      if (reason === 'time') {
-        interaction.editReply({
-          content: '⏳ Waktu habis. Ketik `/start` lagi.',
-          embeds: [],
-          components: [],
-        });
-      }
-    });
+    return interaction.reply({ embeds: [embed], components: [row] });
   }
 }
