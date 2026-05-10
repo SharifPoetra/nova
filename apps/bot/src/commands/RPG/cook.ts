@@ -63,6 +63,26 @@ export class CookCommand extends Command {
         `HP: **${user.hp}/${user.maxHp}**\nPilih resep (stamina -${ACTION_COST.cook} saat masak):`,
       );
 
-    return interaction.editReply({ embeds: [embed], components: [row] });
+    const msg = await interaction.editReply({ embeds: [embed], components: [row] });
+
+    setTimeout(async () => {
+      try {
+        const fresh = await interaction.fetchReply();
+        if (fresh.components?.length) {
+          await interaction.editReply({
+            components: [],
+            embeds: [
+              EmbedBuilder.from(embed)
+                .setColor(0x95a5a6)
+                .setFooter({ text: '⏰ Waktu habis (2 menit) — ketik /cook lagi' }),
+            ],
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    }, 120_000); // 2 menit
+
+    return msg;
   }
 }
