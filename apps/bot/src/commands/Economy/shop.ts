@@ -31,6 +31,28 @@ const SHOP_ITEMS = [
 @ApplyOptions<Command.Options>({
   name: 'shop',
   description: 'Beli item di Nova Shop',
+  detailedDescription: {
+    usage: '/shop [item:optional]',
+    examples: ['/shop', '/shop item:potion_stamina'],
+    extendedHelp: `
+Beli potion untuk lanjut grinding.
+
+**Item tersedia:**
+🧪 Stamina Potion — 150 koin → +30 stamina
+🍖 HP Potion — 100 koin → +50 HP
+
+**Cara pakai:**
+1. /shop — buka katalog dengan tombol
+2. /shop item:... — langsung beli
+
+**Catatan:**
+- Efek langsung aktif, tidak masuk inventory
+- Stamina/HP tidak bisa melebihi max
+- Wajib /start dulu
+
+Tips: beli HP Potion sebelum /hunt, Stamina Potion untuk spam /fish atau /explore.
+    `.trim(),
+  },
   fullCategory: ['Economy'],
 })
 export class ShopCommand extends Command {
@@ -59,14 +81,12 @@ export class ShopCommand extends Command {
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user) return interaction.editReply('❌ Kamu belum terdaftar! Gunakan `/start` dulu.');
 
-    // regen pasif dulu
     applyPassiveRegen(user);
     await user.save();
 
     const choice = interaction.options.getString('item');
     if (choice) return this.handlePurchase(interaction, user, choice);
 
-    // === TANPA PILIH ITEM: TAMPILKAN EMBED + TOMBOL ===
     const embed = new EmbedBuilder()
       .setColor(0xf1c40f)
       .setTitle('🏪 Nova Shop')
@@ -75,9 +95,7 @@ export class ShopCommand extends Command {
           '\n\n',
         ),
       )
-      .setFooter({
-        text: `Saldo: ${user.balance.toLocaleString('id-ID')} koin`,
-      });
+      .setFooter({ text: `Saldo: ${user.balance.toLocaleString('id-ID')} koin` });
 
     const rows = [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -111,7 +129,6 @@ export class ShopCommand extends Command {
         collector.stop();
         return btn.update({ content: '🛒 Shop ditutup.', embeds: [], components: [] });
       }
-
       const itemId = btn.customId.replace('shop_', '');
       collector.stop();
       await btn.deferUpdate();
@@ -138,7 +155,6 @@ export class ShopCommand extends Command {
         : interaction.editReply(msg);
     }
 
-    // Konfirmasi
     const confirmEmbed = new EmbedBuilder()
       .setColor(0xe67e22)
       .setTitle('Konfirmasi Pembelian')
@@ -166,18 +182,15 @@ export class ShopCommand extends Command {
         return i.update({ content: '❌ Pembelian dibatalkan.', embeds: [], components: [] });
 
       user.balance = Number(user.balance) - item.price;
-      if (item.effect.stamina) {
+      if (item.effect.stamina)
         user.stamina = Math.min(user.maxStamina ?? 100, (user.stamina ?? 0) + item.effect.stamina);
-      }
-      if (item.effect.hp) {
-        user.hp = Math.min(user.maxHp ?? 100, (user.hp ?? 0) + item.effect.hp);
-      }
+      if (item.effect.hp) user.hp = Math.min(user.maxHp ?? 100, (user.hp ?? 0) + item.effect.hp);
       await user.save();
 
       const successEmbed = new EmbedBuilder()
         .setColor(0x2ecc71)
         .setTitle('✅ Pembelian Berhasil')
-        .setDescription(`${item.emoji} **${item.name}** telah ditambahkan!`)
+        .setDescription(`${item.emoji} **${item.name}** telah digunakan!`)
         .addFields(
           { name: '💰 Saldo', value: `${user.balance.toLocaleString('id-ID')} koin`, inline: true },
           { name: '⚡ Stamina', value: `${user.stamina}/${user.maxStamina}`, inline: true },
