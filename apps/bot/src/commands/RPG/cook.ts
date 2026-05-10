@@ -50,7 +50,7 @@ export class CookCommand extends Command {
     }));
 
     const menu = new StringSelectMenuBuilder()
-      .setCustomId(`cook_${interaction.user.id}`) // CHANGED: pakai userId
+      .setCustomId(`cook_${interaction.user.id}`)
       .setPlaceholder('Pilih masakan...')
       .addOptions(options);
 
