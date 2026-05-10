@@ -4,8 +4,21 @@ import { EmbedBuilder } from 'discord.js';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/constants';
-import { rollExplore } from '../../lib/rpg/explorations';
+import { rollExplore, EXPLORES } from '../../lib/rpg/explorations';
 import { ACTION_COST } from '../../lib/rpg/actions';
+
+const groupByRarity = <T extends { rarity: string }>(arr: T[]) =>
+  arr.reduce(
+    (acc, cur) => ((acc[cur.rarity] = acc[cur.rarity] ?? []).push(cur), acc),
+    {} as Record<string, T[]>,
+  );
+
+const raritySummary = Object.entries(groupByRarity(EXPLORES))
+  .map(
+    ([r, arr]) =>
+      `${RARITY_EMOJI[r as keyof typeof RARITY_EMOJI]} ${r} ${arr.reduce((a, b) => a + b.chance, 0)}%`,
+  )
+  .join(' • ');
 
 @ApplyOptions<Command.Options>({
   name: 'explore',
@@ -13,7 +26,19 @@ import { ACTION_COST } from '../../lib/rpg/actions';
   detailedDescription: {
     usage: '/explore',
     examples: ['/explore'],
-    extendedHelp: 'Cooldown 30 detik • cost 15 stamina. Hasil tergantung rarity.',
+    extendedHelp: `
+Cooldown 30 detik • cost ${ACTION_COST.explore} stamina.
+
+**Hasil:**
+• Koin & EXP acak
+• Kadang dapat material untuk /cook (Herb, Chili, Ore, dll)
+• 15 outcome unik
+
+**Rarity:** ${raritySummary}
+
+Rata-rata: ~${Math.round(EXPLORES.reduce((a, e) => a + e.coins * (e.chance / 100), 0))}💰 per explore.
+Lihat tabel lengkap: /droprate tipe:explore
+    `.trim(),
   },
   fullCategory: ['RPG'],
 })
@@ -53,11 +78,8 @@ export class ExploreCommand extends Command {
 
     if (outcome.item) {
       const inv = user.items.find((i) => i.itemId === outcome.item!.id);
-      if (inv) {
-        inv.qty += outcome.item.qty;
-      } else {
-        user.items.push({ itemId: outcome.item.id, qty: outcome.item.qty });
-      }
+      if (inv) inv.qty += outcome.item.qty;
+      else user.items.push({ itemId: outcome.item.id, qty: outcome.item.qty });
 
       await db.item.updateOne(
         { itemId: outcome.item.id },
@@ -77,13 +99,15 @@ export class ExploreCommand extends Command {
     let levelUpText = '';
     const lvl = checkLevelUp(user);
     if (lvl) {
-      user.level = lvl.level;
-      user.exp = lvl.expLeft;
-      user.maxHp = lvl.maxHp;
-      user.hp = lvl.hp;
-      user.attack = lvl.attack;
-      user.maxStamina = lvl.maxStamina;
-      user.stamina = lvl.stamina;
+      Object.assign(user, {
+        level: lvl.level,
+        exp: lvl.expLeft,
+        maxHp: lvl.maxHp,
+        hp: lvl.hp,
+        attack: lvl.attack,
+        maxStamina: lvl.maxStamina,
+        stamina: lvl.stamina,
+      });
       levelUpText = `\n\n🎉 **LEVEL UP → Lv.${lvl.level}**`;
     }
 
@@ -101,9 +125,7 @@ export class ExploreCommand extends Command {
             : '') +
           levelUpText,
       )
-      .setFooter({
-        text: `Stamina -${ACTION_COST.explore} • ${user.stamina}/${user.maxStamina}`,
-      });
+      .setFooter({ text: `Stamina -${ACTION_COST.explore} • ${user.stamina}/${user.maxStamina}` });
 
     return interaction.editReply({ embeds: [embed] });
   }
