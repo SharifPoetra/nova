@@ -1,6 +1,12 @@
 import { Command } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, MessageFlags } from 'discord.js';
+import {
+  EmbedBuilder,
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+  MessageFlags,
+  type ChatInputCommandInteraction,
+} from 'discord.js';
 
 @ApplyOptions<Command.Options>({
   name: 'help',
@@ -8,7 +14,7 @@ import { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, MessageFlags }
   fullCategory: ['General'],
 })
 export class HelpCommand extends Command {
-  public override registerApplicationCommands(registry) {
+  public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((builder) =>
       builder
         .setName(this.name)
@@ -19,38 +25,37 @@ export class HelpCommand extends Command {
     );
   }
 
-  private async canUse(cmd: Command, interaction) {
-    try {
-      const result = await this.container.stores.get('preconditions').run(interaction, cmd, {});
-      return result.isOk();
-    } catch {
-      if (cmd.requiredUserPermissions?.length) {
-        return interaction.memberPermissions?.has(cmd.requiredUserPermissions);
-      }
-      return true;
-    }
+  private async canUse(cmd: Command, interaction: ChatInputCommandInteraction) {
+    // cek yang penting saja
+    const perms = (cmd.options as any).requiredUserPermissions as bigint[] | undefined;
+    const preconditions = (cmd.options.preconditions as string[]) || [];
+
+    // cek owner-only
+    if (preconditions.includes('OwnerOnly') && interaction.user.id !== process.env.OWNER_ID)
+      return false;
+    if (perms?.length) return interaction.memberPermissions?.has(perms) ?? false;
+
+    return true;
   }
 
   public getCommandDetail(cmd: Command) {
     const detail = (cmd as any).detailedDescription;
-
-    const embed = new EmbedBuilder()
+    return new EmbedBuilder()
       .setTitle(`/${cmd.name}`)
       .setDescription(detail?.extendedHelp || cmd.description)
-      .setColor(0x5865f2);
-
-    if (detail?.usage)
-      embed.addFields({ name: 'Usage', value: `\`${detail.usage}\``, inline: true });
-    if (cmd.fullCategory?.length)
-      embed.addFields({ name: 'Kategori', value: cmd.fullCategory[0], inline: true });
-
-    return embed;
+      .setColor(0x5865f2)
+      .addFields(
+        ...(detail?.usage ? [{ name: 'Usage', value: `\`${detail.usage}\``, inline: true }] : []),
+        ...(cmd.fullCategory?.length
+          ? [{ name: 'Kategori', value: cmd.fullCategory[0], inline: true }]
+          : []),
+      );
   }
 
   public buildMainEmbed(usable: Command[]) {
     const grouped = new Map<string, Command[]>();
     for (const cmd of usable) {
-      const cat = cmd.fullCategory[0] || 'general';
+      const cat = cmd.fullCategory?.[0] || 'general';
       if (!grouped.has(cat)) grouped.set(cat, []);
       grouped.get(cat)!.push(cmd);
     }
@@ -70,8 +75,9 @@ export class HelpCommand extends Command {
     return embed;
   }
 
-  public override async chatInputRun(interaction) {
-    const all = [...this.container.stores.get('commands').values()];
+  public override async chatInputRun(interaction: ChatInputCommandInteraction) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    const all = [...this.container.stores.get('commands').values()] as Command[];
     const usable: Command[] = [];
     for (const cmd of all) {
       if (cmd.name === 'help') continue;
@@ -81,17 +87,14 @@ export class HelpCommand extends Command {
     const target = interaction.options.getString('command');
     if (target) {
       const cmd = usable.find((c) => c.name === target);
-      if (!cmd)
-        return interaction.reply({ content: 'Tidak ditemukan', flags: MessageFlags.Ephemeral });
-
-      const embed = this.getCommandDetail(cmd);
-      return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+      if (!cmd) return interaction.editReply({ content: 'Tidak ditemukan' });
+      return interaction.editReply({ embeds: [this.getCommandDetail(cmd)] });
     }
 
     const embed = this.buildMainEmbed(usable);
     const menu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
-        .setCustomId('help_select')
+        .setCustomId(`help_select_${interaction.user.id}`)
         .setPlaceholder('Pilih command untuk detail')
         .addOptions(
           usable.slice(0, 25).map((c) => ({
@@ -102,20 +105,17 @@ export class HelpCommand extends Command {
         ),
     );
 
-    return interaction.reply({
-      embeds: [embed],
-      components: [menu],
-      flags: MessageFlags.Ephemeral,
-    });
+    await interaction.editReply({ embeds: [embed], components: [menu] });
+    setTimeout(() => interaction.editReply({ components: [] }).catch(() => {}), 120_000);
   }
 
   public override async autocompleteRun(interaction) {
     const focused = interaction.options.getFocused().toLowerCase();
-    const all = [...this.container.stores.get('commands').values()];
-    const list = [];
-    for (const cmd of all) {
-      if (cmd.name.includes(focused) && (await this.canUse(cmd, interaction))) list.push(cmd);
-    }
+    const all = [...this.container.stores.get('commands').values()] as Command[];
+    const list: Command[] = [];
+    for (const cmd of all)
+      if (cmd.name.includes(focused) && (await this.canUse(cmd, interaction as any)))
+        list.push(cmd);
     await interaction.respond(
       list.slice(0, 25).map((c) => ({ name: `/${c.name}`, value: c.name })),
     );

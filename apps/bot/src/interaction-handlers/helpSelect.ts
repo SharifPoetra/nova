@@ -5,6 +5,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  MessageFlags,
 } from 'discord.js';
 import type { HelpCommand } from '../commands/General/help';
 
@@ -13,33 +14,35 @@ import type { HelpCommand } from '../commands/General/help';
 })
 export class HelpSelectHandler extends InteractionHandler {
   public override parse(interaction) {
-    return interaction.customId === 'help_select' ? this.some() : this.none();
+    return interaction.isStringSelectMenu() && interaction.customId.startsWith('help_select_')
+      ? this.some()
+      : this.none();
   }
 
   public async run(interaction: StringSelectMenuInteraction) {
-    // 1. ambil nama command dari dropdown
-    const cmdName = interaction.values[0];
-    const cmd = this.container.stores.get('commands').get(cmdName);
+    const ownerId = interaction.customId.split('_')[2];
+    if (interaction.user.id !== ownerId)
+      return interaction.reply({
+        content: 'Ini help menu orang lain 🙂',
+        flags: MessageFlags.Ephemeral,
+      });
 
-    if (!cmd) {
+    const cmd = this.container.stores.get('commands').get(interaction.values[0]);
+    if (!cmd)
       return interaction.update({
         content: '❌ Command tidak ditemukan',
         embeds: [],
         components: [],
       });
-    }
 
-    // 2. ambil help command
     const helpCmd = this.container.stores.get('commands').get('help') as HelpCommand;
     const embed = helpCmd.getCommandDetail(cmd);
-
     const back = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId('help_back')
+        .setCustomId(`help_back_${ownerId}`)
         .setLabel('← Kembali')
         .setStyle(ButtonStyle.Secondary),
     );
-
     await interaction.update({ embeds: [embed], components: [back] });
   }
 }
