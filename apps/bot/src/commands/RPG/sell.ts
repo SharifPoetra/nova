@@ -1,3 +1,4 @@
+import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import {
   EmbedBuilder,
@@ -8,11 +9,31 @@ import {
 } from 'discord.js';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 
-export class SellCommand extends Command {
-  public constructor(context: Command.LoaderContext, options: Command.Options) {
-    super(context, { ...options, name: 'sell', description: 'Jual ikan/material' });
-  }
+@ApplyOptions<Command.Options>({
+  name: 'sell',
+  description: 'Jual ikan/material',
+  detailedDescription: {
+    usage: '/sell type:<rarity>',
+    examples: ['/sell type:all', '/sell type:Rare', '/sell type:Legendary'],
+    extendedHelp: `
+Jual item dari inventory untuk koin.
 
+**Pilihan type:**
+- all — jual semua kecuali Legendary (aman)
+- Common / Uncommon — langsung terjual
+- Rare / Epic / Legendary — perlu konfirmasi tombol
+
+**Catatan:**
+- Item dari /fish, /hunt, /explore bisa dijual
+- Legendary tidak ikut 'all' untuk mencegah salah jual
+- Gunakan /inventory dulu untuk cek total nilai
+
+Tip: simpan Rare+ untuk /cook, jual Common/Uncommon saja untuk farming cepat.
+    `.trim(),
+  },
+  fullCategory: ['RPG'],
+})
+export class SellCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((builder) =>
       builder
@@ -21,10 +42,10 @@ export class SellCommand extends Command {
         .addStringOption((o) =>
           o
             .setName('type')
-            .setDescription('Rarity')
+            .setDescription('Rarity yang mau dijual')
             .setRequired(true)
             .addChoices(
-              { name: 'All', value: 'all' },
+              { name: 'All (kecuali Legendary)', value: 'all' },
               { name: 'Common', value: 'Common' },
               { name: 'Uncommon', value: 'Uncommon' },
               { name: 'Rare', value: 'Rare' },
@@ -41,7 +62,6 @@ export class SellCommand extends Command {
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user) return interaction.editReply('❌ Kamu belum terdaftar! Gunakan `/start` dulu.');
 
-    // === REGEN PASIF ===
     applyPassiveRegen(user);
 
     if (!user.items?.length) {
@@ -49,7 +69,6 @@ export class SellCommand extends Command {
       return interaction.editReply('❌ Inventory kosong!');
     }
 
-    // Populate items
     const itemIds = user.items.map((i) => i.itemId);
     const dbItems = await this.container.db.item.find({ itemId: { $in: itemIds } });
     const itemMap = new Map(dbItems.map((i) => [i.itemId, i]));
@@ -76,16 +95,13 @@ export class SellCommand extends Command {
         toSell
           .map(
             (i) =>
-              `${i.data!.emoji} **${i.data!.name}** x${i.qty} — ${(
-                i.qty * i.data!.sellPrice
-              ).toLocaleString('id-ID')} koin`,
+              `${i.data!.emoji} **${i.data!.name}** x${i.qty} — ${(i.qty * i.data!.sellPrice).toLocaleString('id-ID')} koin`,
           )
           .join('\n'),
       )
       .addFields({ name: 'Total', value: `+${total.toLocaleString('id-ID')} koin` });
 
     if (!needConfirm) {
-      // langsung jual
       user.balance = Number(user.balance) + total;
       user.items = user.items.filter((ui) => !toSell.some((ts) => ts.itemId === ui.itemId));
       await user.save();
@@ -93,7 +109,6 @@ export class SellCommand extends Command {
       return interaction.editReply({ embeds: [embed] });
     }
 
-    // dengan tombol
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder().setCustomId('yes').setLabel('Jual').setStyle(ButtonStyle.Danger),
       new ButtonBuilder().setCustomId('no').setLabel('Batal').setStyle(ButtonStyle.Secondary),
@@ -111,7 +126,7 @@ export class SellCommand extends Command {
 
     col.on('collect', async (i) => {
       if (i.customId === 'no') {
-        await user.save(); // simpan regen walaupun batal
+        await user.save();
         return i.update({ content: '❌ Dibatalkan', embeds: [], components: [] });
       }
 
