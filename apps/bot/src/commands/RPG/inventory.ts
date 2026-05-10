@@ -69,15 +69,24 @@ export class InventoryCommand extends Command {
     const topRarity = RARITY_ORDER.find((r) => grouped[r]?.length) || 'Common';
 
     const embed = new EmbedBuilder()
-     .setAuthor({ name: `${interaction.user.username}'s Inventory`, iconURL: interaction.user.displayAvatarURL() })
-     .setColor(RARITY_COLOR[topRarity as keyof typeof RARITY_COLOR])
-     .setDescription(`⚡ Stamina: ${user.stamina}/${user.maxStamina}`)
-     .setFooter({ text: `Total nilai jual: ${totalValue.toLocaleString('id-ID')} koin | /sell untuk jual` });
+      .setAuthor({
+        name: `${interaction.user.username}'s Inventory`,
+        iconURL: interaction.user.displayAvatarURL(),
+      })
+      .setColor(RARITY_COLOR[topRarity as keyof typeof RARITY_COLOR])
+      .setDescription(`⚡ Stamina: ${user.stamina}/${user.maxStamina}`)
+      .setFooter({
+        text: `Total nilai jual: ${totalValue.toLocaleString('id-ID')} koin | /sell untuk jual`,
+      });
 
     for (const rarity of RARITY_ORDER) {
       if (grouped[rarity]?.length) {
         const sorted = grouped[rarity].sort();
-        embed.addFields({ name: `${rarity} (${sorted.length})`, value: sorted.join('\n').slice(0, 1024), inline: false });
+        embed.addFields({
+          name: `${rarity} (${sorted.length})`,
+          value: sorted.join('\n').slice(0, 1024),
+          inline: false,
+        });
       }
     }
 
