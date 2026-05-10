@@ -5,6 +5,7 @@ import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
 import { getScaledMonster } from '../../lib/rpg/monsters';
 import { ACTION_COST } from '../../lib/rpg/actions';
+import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/constants';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const bar = (cur: number, max: number) => {
@@ -13,17 +14,23 @@ const bar = (cur: number, max: number) => {
   return '▰'.repeat(f) + '▱'.repeat(10 - f);
 };
 
-const colorByRarity = {
-  Common: 0x95a5a6,
-  Uncommon: 0x2ecc71,
-  Rare: 0x3498db,
-  Epic: 0x9b59b6,
-  Legendary: 0xf1c40f,
-};
-
 @ApplyOptions<Command.Options>({
   name: 'hunt',
   description: 'Berburu monster (cost 20 stamina)',
+  detailedDescription: {
+    usage: '/hunt',
+    examples: ['/hunt'],
+    extendedHelp: `
+Cooldown 45 detik • butuh ${ACTION_COST.hunt} stamina dan minimal 20 HP.
+
+**Class passive:**
+🛡️ Warrior — 20% chance block 30% damage
+🏹 Rogue — 18% crit chance (normal 10%)
+🪄 Mage — 15% lifesteal 25% dari damage
+
+Drop tergantung monster dan level kamu. Gunakan /droprate tipe:hunt untuk lihat tabel lengkap.
+    `.trim(),
+  },
   fullCategory: ['RPG'],
 })
 export class HuntCommand extends Command {
@@ -70,13 +77,11 @@ export class HuntCommand extends Command {
     const bonusAtk = getAtkBuff(user);
     const buffInfo = bonusAtk ? ` • 🔥 ATK +${bonusAtk}` : '';
 
-    // class passives
     const userClass = user.class ?? 'warrior';
     const isRogue = userClass === 'rogue';
     const isMage = userClass === 'mage';
     const isWarrior = userClass === 'warrior';
 
-    // Rogue has higher crit chance of 18% than the others ~ 10%
     const critChance = isRogue ? 0.18 : 0.1;
     const classIcon = isWarrior ? '🛡️' : isMage ? '🪄' : '🏹';
 
@@ -92,7 +97,7 @@ export class HuntCommand extends Command {
     await sleep(1000);
 
     while (mHp > 0 && uHp > 0) {
-      // PLAYER TURN
+      // PLAYER
       const isCrit = Math.random() < critChance;
       let pDmg =
         Math.floor(Math.random() * 15) + 10 + Math.floor((user.attack ?? 10) / 3) + bonusAtk;
@@ -101,8 +106,6 @@ export class HuntCommand extends Command {
       totalDealt += pDmg;
 
       let playerLog = `${isCrit ? '💥' : '🗡️'} Kamu ${isCrit ? 'CRIT ' : ''}**${pDmg}**`;
-
-      // Mage lifesteal 15% chance, heal 25% damage
       if (isMage && Math.random() < 0.15 && uHp < uMax) {
         const heal = Math.floor(pDmg * 0.25);
         uHp = Math.min(uMax, uHp + heal);
@@ -122,16 +125,13 @@ export class HuntCommand extends Command {
       await sleep(850);
       if (mHp <= 0) break;
 
-      // MONSTER TURN
+      // MONSTER
       let mDmg = Math.floor(Math.random() * (monster.dmg[1] - monster.dmg[0])) + monster.dmg[0];
-
-      // Warrior damage reduction 20% chance, 30% damage
       let blocked = 0;
       if (isWarrior && Math.random() < 0.2) {
         blocked = Math.floor(mDmg * 0.3);
         mDmg -= blocked;
       }
-
       uHp = Math.max(0, uHp - mDmg);
       totalTaken += mDmg;
       log.push(`${monster.emoji} balas **${mDmg}**${blocked ? ` 🛡️-${blocked}` : ''}`);
@@ -156,9 +156,12 @@ export class HuntCommand extends Command {
       await user.save();
       embed
         .setColor(0xe74c3c)
-        .setTitle(`💀 Kalah`)
+        .setTitle(`💀 Kalah dari ${monster.name}`)
         .setDescription(
-          `Tumbang lawan ${monster.emoji} **${monster.name}**${buffInfo}\n\n**📜 Pertarungan:**\n${summary}\n\n**📊 Damage:** Dealt ${totalDealt} | Taken ${totalTaken}\n\n> +${Math.floor(monster.xp / 3)} EXP`,
+          `Tumbang lawan ${monster.emoji} **${monster.name}**${buffInfo}\n\n` +
+            `**📜 Pertarungan:**\n${summary}\n\n` +
+            `**📊** Dealt ${totalDealt} | Taken ${totalTaken}\n\n` +
+            `> +${Math.floor(monster.xp / 3)} EXP`,
         )
         .setFields();
       return interaction.editReply({ embeds: [embed] });
@@ -203,22 +206,19 @@ export class HuntCommand extends Command {
     await user.save();
 
     embed
-      .setColor(colorByRarity[drop.rarity as keyof typeof colorByRarity])
-      .setTitle(`✅ Menang!`)
+      .setColor(RARITY_COLOR[drop.rarity as keyof typeof RARITY_COLOR])
+      .setTitle(`✅ Menang lawan ${monster.name}!`)
       .setDescription(
-        `Kalahkan ${monster.emoji} **${monster.name}**!${levelUpText}${buffInfo}
-        
-        **${drop.emoji} ${drop.name}** ×1 • *${drop.rarity}*
-        
-        **📜 Pertarungan:**
-        ${summary}
-        
-        **📊 Damage:** Dealt ${totalDealt} | Taken ${totalTaken}`,
+        `${monster.emoji} **${monster.name}** berhasil dikalahkan!${levelUpText}${buffInfo}\n\n` +
+          `${drop.emoji} **${drop.name}** ×1 ${RARITY_EMOJI[drop.rarity as keyof typeof RARITY_EMOJI]} *${drop.rarity}*\n\n` +
+          `**📜 Pertarungan Terakhir:**\n${summary}\n\n` +
+          `**📊 Statistik:** Dealt **${totalDealt}** • Taken **${totalTaken}**`,
       )
       .setFields(
-        { name: '💰', value: `+${monster.xp * 2}`, inline: true },
+        { name: '💰 Koin', value: `+${monster.xp * 2}`, inline: true },
         { name: '✨ EXP', value: `+${monster.xp}`, inline: true },
         { name: '❤️ HP', value: `${user.hp}/${user.maxHp}`, inline: true },
+        { name: '⚡ Stamina', value: `${user.stamina}/${user.maxStamina}`, inline: true },
       );
     await interaction.editReply({ embeds: [embed] });
   }
