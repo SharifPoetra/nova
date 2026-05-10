@@ -1,5 +1,7 @@
 import { IUser } from '@nova/db';
 
+export const getExpNeeded = (level: number) => level * 100;
+
 export function checkLevelUp(user: IUser) {
   let { level, exp, maxHp, attack, maxStamina } = user;
   const hpGain = 20;

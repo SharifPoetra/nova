@@ -2,6 +2,9 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
+import { getClass } from '../../lib/rpg/classes';
+import { BASE_MONSTERS } from '../../lib/rpg/monsters';
+import { getExpNeeded } from '../../lib/rpg/leveling';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',
@@ -44,7 +47,6 @@ export class ProfileCommand extends Command {
         applyPassiveRegen(userData);
         await userData.save();
       } else {
-        // untuk orang lain, cuma bersihin expired (tanpa regen)
         userData.buffs = (userData.buffs || []).filter((b) => new Date(b.expires) > new Date());
       }
 
@@ -62,7 +64,7 @@ export class ProfileCommand extends Command {
       const maxStamina = userData.maxStamina ?? 100;
       const level = userData.level ?? 1;
       const exp = userData.exp ?? 0;
-      const expNeeded = level * 100;
+      const expNeeded = getExpNeeded(level);
       const expNext = expNeeded - exp;
       const balance = userData.balance ?? 0;
       const bank = userData.bank ?? 0;
@@ -79,22 +81,10 @@ export class ProfileCommand extends Command {
 
       const itemCount = userData.items?.reduce((a, b) => a + b.qty, 0) || 0;
 
-      const classColors: Record<string, number> = {
-        warrior: 0xc41e3a,
-        mage: 0x7b68ee,
-        rogue: 0x2ecc71,
-      };
-      const color = classColors[userData.class as string] ?? 0x3498db;
-
-      const classMap: Record<string, [string, string]> = {
-        warrior: ['⚔️', 'Warrior'],
-        mage: ['🪄', 'Mage'],
-        rogue: ['🏹', 'Rogue'],
-      };
-      const [classEmoji, className] = classMap[userData.class as string] ?? [
-        '👤',
-        'Petualang Baru',
-      ];
+      const classData = getClass(userData.class);
+      const color = classData?.color ?? 0x3498db;
+      const classEmoji = classData?.emoji ?? '👤';
+      const className = classData?.name ?? 'Petualang Baru';
 
       // === BUFF DISPLAY ===
       const bonusAtk = getAtkBuff(userData);
@@ -116,6 +106,21 @@ export class ProfileCommand extends Command {
         bonusAtk > 0
           ? `**${userData.attack ?? 10}** (+${bonusAtk}) 🔥`
           : `**${userData.attack ?? 10}**`;
+
+      // generate footer hunt info dari monster list
+      const huntMilestones = Object.entries(
+        BASE_MONSTERS.filter((m) => m.minLevel >= 3).reduce(
+          (acc, m) => {
+            (acc[m.minLevel] = acc[m.minLevel] || []).push(m.name);
+            return acc;
+          },
+          {} as Record<number, string[]>,
+        ),
+      )
+        .sort(([a], [b]) => Number(a) - Number(b))
+        .slice(0, 3)
+        .map(([lvl, names]) => `Lv.${lvl} = ${names.join(', ')}`)
+        .join(' • ');
 
       const embed = new EmbedBuilder()
         .setAuthor({
@@ -151,7 +156,7 @@ export class ProfileCommand extends Command {
             inline: true,
           },
         )
-        .setFooter({ text: 'Hunt Lv.3 = Wolf • Lv.5 = Bear' });
+        .setFooter({ text: huntMilestones || 'Hunt untuk naik level!' });
 
       return interaction.editReply({ embeds: [embed] });
     } catch (error) {
