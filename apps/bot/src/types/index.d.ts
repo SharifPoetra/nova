@@ -1,4 +1,4 @@
-import type { User, Item } from '@nova/db';
+import type { User, Item, Dungeon } from '@nova/db';
 import type { Connection } from 'mongoose';
 
 declare module '@sapphire/pieces' {
@@ -6,6 +6,7 @@ declare module '@sapphire/pieces' {
     db: {
       user: typeof User;
       item: typeof Item;
+      dungeon: typeof Dungeon;
       connection: Connection;
     };
   }
