@@ -7,8 +7,7 @@
   "prHourlyLimit": 2,
   "prConcurrentLimit": 3,
   "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": ["before 4am on first day of the month"]
+    "enabled": true
   },
   "packageRules": [
     {
