@@ -46,6 +46,6 @@ export const CLASSES: Record<ClassData['key'], ClassData> = {
   },
 };
 
-export function getClass(key: string) {
+export function getClass(key: string | null) {
   return CLASSES[key as keyof typeof CLASSES];
 }
