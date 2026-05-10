@@ -3,13 +3,43 @@ import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { RARITY_COLOR } from '../../lib/constants';
-import { catchFish } from '../../lib/rpg/fishes';
+import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/constants';
+import { catchFish, FISHES } from '../../lib/rpg/fishes';
 import { ACTION_COST } from '../../lib/rpg/actions';
+
+const groupByRarity = <T extends { rarity: string }>(arr: T[]) =>
+  arr.reduce(
+    (acc, cur) => ((acc[cur.rarity] = acc[cur.rarity] ?? []).push(cur), acc),
+    {} as Record<string, T[]>,
+  );
+
+const raritySummary = Object.entries(groupByRarity(FISHES))
+  .map(
+    ([r, arr]) =>
+      `${RARITY_EMOJI[r as keyof typeof RARITY_EMOJI]} ${r} ${arr.reduce((a, b) => a + b.chance, 0)}%`,
+  )
+  .join(' • ');
 
 @ApplyOptions<Command.Options>({
   name: 'fish',
-  description: 'Mancing santai, dapat ikan untuk dijual',
+  description: 'Mancing santai, dapat ikan untuk dijual atau dimasak',
+  detailedDescription: {
+    usage: '/fish',
+    examples: ['/fish'],
+    extendedHelp: `
+Cooldown 30 detik • cost ${ACTION_COST.fish} stamina.
+
+**Kegunaan ikan:**
+1. **Jual** — pakai /sell untuk koin instan
+2. **Masak** — pakai /cook untuk jadi Fish Soup (+40 HP) atau resep lain
+
+**Drop:** 13 jenis ikan dari Common sampai Legendary
+**Rarity:** ${raritySummary}
+
+Tips: ikan Rare+ jangan langsung dijual, simpan untuk masak sebelum /hunt. Rata-rata jual ~${Math.round(FISHES.reduce((a, f) => a + f.sell * (f.chance / 100), 0))}💰.
+Lihat tabel: /droprate tipe:fish
+    `.trim(),
+  },
   fullCategory: ['RPG'],
 })
 export class FishCommand extends Command {
@@ -89,15 +119,15 @@ export class FishCommand extends Command {
       .setDescription(`**${fish.emoji} ${fish.name}** tertangkap!\n*${fish.rarity}*${levelUpText}`)
       .addFields(
         { name: '💰 Jual', value: `${fish.sell} koin`, inline: true },
+        { name: '🍳 Masak', value: 'Bisa untuk Fish Soup', inline: true },
         { name: '✨ EXP', value: `+${fish.xp}`, inline: true },
-        { name: '⚡ Stamina', value: `${user.stamina + 10} → ${user.stamina}`, inline: true },
         {
-          name: '📦 Total',
-          value: `${user.items.find((i) => i.itemId === fish.id)?.qty}x`,
+          name: '⚡ Stamina',
+          value: `${user.stamina + ACTION_COST.fish} → ${user.stamina}`,
           inline: true,
         },
       )
-      .setFooter({ text: 'Rarity lebih tinggi = XP lebih besar' });
+      .setFooter({ text: 'Gunakan /cook untuk heal sebelum hunt' });
 
     return interaction.editReply({ embeds: [embed] });
   }
