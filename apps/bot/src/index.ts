@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { GatewayIntentBits } from 'discord.js';
 import { SapphireClient, container, ApplicationCommandRegistries } from '@sapphire/framework';
-import { createDatabase, User, Item } from '@nova/db';
+import { createDatabase, User, Item, Dungeon } from '@nova/db';
 import { logger } from './lib/logger';
 
 // load.env dari root project
@@ -37,6 +37,7 @@ async function main() {
     container.db = {
       user: User,
       item: Item,
+      dungeon: Dungeon,
       connection: conn.connection,
     };
 
