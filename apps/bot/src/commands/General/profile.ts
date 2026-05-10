@@ -9,6 +9,28 @@ import { getExpNeeded } from '../../lib/rpg/leveling';
 @ApplyOptions<Command.Options>({
   name: 'profile',
   description: 'Melihat profil lengkap Ekonomi dan RPG kamu di Nova',
+  detailedDescription: {
+    usage: '/profile [user:optional]',
+    examples: ['/profile', '/profile user:@Kaito'],
+    extendedHelp: `
+Lihat semua statistik karakter kamu atau orang lain.
+
+**Yang ditampilkan:**
+- 💰 Ekonomi: dompet, bank, total item
+- 📊 RPG: level, EXP bar, HP, stamina, attack
+- ✨ Buff aktif dengan sisa waktu
+- ⏱️ Cooldown /explore, /fish, /hunt
+- 📅 Tanggal bergabung
+
+**Fitur khusus:**
+- Regen pasif otomatis saat cek profil sendiri
+- Lihat profil orang lain tanpa mengganggu data mereka
+- Warna embed sesuai class
+- Footer menampilkan milestone hunt
+
+Gunakan untuk cek kesiapan sebelum hunt atau pamer build ke teman.
+    `.trim(),
+  },
   fullCategory: ['General'],
 })
 export class ProfileCommand extends Command {
@@ -41,7 +63,6 @@ export class ProfileCommand extends Command {
         return interaction.editReply({ embeds: [embed] });
       }
 
-      // === REGEN & BUFF CLEANUP ===
       const isSelf = target.id === interaction.user.id;
       if (isSelf) {
         applyPassiveRegen(userData);
@@ -86,7 +107,6 @@ export class ProfileCommand extends Command {
       const classEmoji = classData?.emoji ?? '👤';
       const className = classData?.name ?? 'Petualang Baru';
 
-      // === BUFF DISPLAY ===
       const bonusAtk = getAtkBuff(userData);
       const activeBuffs = (userData.buffs || []).filter((b) => new Date(b.expires) > new Date());
 
@@ -107,7 +127,6 @@ export class ProfileCommand extends Command {
           ? `**${userData.attack ?? 10}** (+${bonusAtk}) 🔥`
           : `**${userData.attack ?? 10}**`;
 
-      // generate footer hunt info dari monster list
       const huntMilestones = Object.entries(
         BASE_MONSTERS.filter((m) => m.minLevel >= 3).reduce(
           (acc, m) => {
