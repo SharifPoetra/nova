@@ -1,6 +1,61 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
-  ]
+    "config:base",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "timezone": "Asia/Kuala_Lumpur",
+  "schedule": ["before 3am on Monday"],
+  "labels": ["dependencies"],
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 3,
+
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 4am on first day of the month"]
+  },
+
+  "packageRules": [
+    {
+      "description": "Jangan sentuh major discord.js dan Sapphire - breaking",
+      "matchPackageNames": [
+        "discord.js",
+        "@sapphire/framework",
+        "@sapphire/decorators",
+        "@sapphire/plugin-logger"
+      ],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Auto-merge patch aman",
+      "matchUpdateTypes": ["patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "platformAutomerge": true
+    },
+    {
+      "description": "Minor untuk dev tools - auto merge",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "groupName": "devDependencies"
+    },
+    {
+      "description": "Group database packages",
+      "matchPackageNames": ["mongoose", "mongodb", "@types/mongoose"],
+      "groupName": "database"
+    },
+    {
+      "description": "Group Sapphire ecosystem",
+      "matchPackagePatterns": ["^@sapphire/"],
+      "groupName": "sapphire"
+    }
+  ],
+
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "schedule": ["at any time"]
+  }
 }
