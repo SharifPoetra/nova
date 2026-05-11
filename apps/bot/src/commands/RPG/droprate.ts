@@ -4,7 +4,7 @@ import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { FISHES, catchFish } from '../../lib/rpg/fishes';
 import { EXPLORES, rollExplore } from '../../lib/rpg/explorations';
 import { BASE_MONSTERS, getScaledMonster } from '../../lib/rpg/monsters';
-import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/constants';
+import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 
 const groupByRarity = <T extends { rarity: string }>(arr: T[]) => {
   return arr.reduce(
