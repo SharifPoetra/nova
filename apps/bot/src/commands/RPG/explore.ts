@@ -9,16 +9,16 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 
 const groupByRarity = <T extends { rarity: string }>(arr: T[]) =>
   arr.reduce(
-    (acc, cur) => ((acc[cur.rarity] = acc[cur.rarity]?? []).push(cur), acc),
+    (acc, cur) => ((acc[cur.rarity] = acc[cur.rarity] ?? []).push(cur), acc),
     {} as Record<string, T[]>,
   );
 
 const raritySummary = Object.entries(groupByRarity(EXPLORES))
- .map(
+  .map(
     ([r, arr]) =>
       `${RARITY_EMOJI[r as keyof typeof RARITY_EMOJI]} ${r} ${arr.reduce((a, b) => a + b.chance, 0)}%`,
   )
- .join(' • ');
+  .join(' • ');
 
 @ApplyOptions<Command.Options>({
   name: 'explore',
@@ -106,18 +106,18 @@ export class ExploreCommand extends Command {
     await user.save();
 
     const embed = new EmbedBuilder()
-     .setColor(RARITY_COLOR[outcome.rarity as keyof typeof RARITY_COLOR])
-     .setTitle(`${outcome.emoji} Penjelajahan`)
-     .setDescription(
+      .setColor(RARITY_COLOR[outcome.rarity as keyof typeof RARITY_COLOR])
+      .setTitle(`${outcome.emoji} Penjelajahan`)
+      .setDescription(
         `*${outcome.text}*\n\n` +
           `> **+${outcome.coins}** koin\n` +
           `> **+${outcome.exp}** EXP` +
           (outcome.item
-           ? `\n> **+${outcome.item.qty}x ${outcome.item.emoji} ${outcome.item.name}** ${RARITY_EMOJI[outcome.item.rarity as keyof typeof RARITY_EMOJI]}`
+            ? `\n> **+${outcome.item.qty}x ${outcome.item.emoji} ${outcome.item.name}** ${RARITY_EMOJI[outcome.item.rarity as keyof typeof RARITY_EMOJI]}`
             : '') +
           levelUpText,
       )
-     .setFooter({ text: `Stamina -${ACTION_COST.explore} • ${user.stamina}/${user.maxStamina}` });
+      .setFooter({ text: `Stamina -${ACTION_COST.explore} • ${user.stamina}/${user.maxStamina}` });
 
     return interaction.editReply({ embeds: [embed] });
   }
