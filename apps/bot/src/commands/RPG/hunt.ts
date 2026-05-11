@@ -41,24 +41,24 @@ export class HuntCommand extends Command {
     applyPassiveRegen(user);
 
     const now = Date.now();
-    if (now - (user.lastHunt?.getTime() ?? 0) < 45000) {
+    if (now - (user.lastHunt?.getTime()?? 0) < 45000) {
       await user.save();
       return interaction.editReply(
         `🏹 Tunggu ${Math.ceil((45000 - (now - user.lastHunt!.getTime())) / 1000)}s`,
       );
     }
-    if ((user.stamina ?? 0) < ACTION_COST.hunt) {
+    if ((user.stamina?? 0) < ACTION_COST.hunt) {
       await user.save();
       return interaction.editReply(`⚡ Stamina kurang (${user.stamina}/${ACTION_COST.hunt})`);
     }
-    if ((user.hp ?? 0) < 20) {
+    if ((user.hp?? 0) < 20) {
       await user.save();
       return interaction.editReply(`❤️ HP rendah (${user.hp}). /cook dulu!`);
     }
     user.stamina -= ACTION_COST.hunt;
     user.lastHunt = new Date();
 
-    const monster = getScaledMonster(user.level ?? 1);
+    const monster = getScaledMonster(user.level?? 1);
 
     let mHp = monster.hp,
       uHp = user.hp;
@@ -69,24 +69,24 @@ export class HuntCommand extends Command {
     const log: string[] = [];
 
     const bonusAtk = getAtkBuff(user);
-    const buffInfo = bonusAtk ? ` • 🔥 ATK +${bonusAtk}` : '';
+    const buffInfo = bonusAtk? ` • 🔥 ATK +${bonusAtk}` : '';
 
-    const userClass = user.class ?? 'warrior';
+    const userClass = user.class?? 'warrior';
     const isRogue = userClass === 'rogue';
     const isMage = userClass === 'mage';
     const isWarrior = userClass === 'warrior';
 
-    const critChance = isRogue ? 0.18 : 0.1;
-    const classIcon = isWarrior ? '🛡️' : isMage ? '🪄' : '🏹';
+    const critChance = isRogue? 0.18 : 0.1;
+    const classIcon = isWarrior? '🛡️' : isMage? '🪄' : '🏹';
 
     const embed = new EmbedBuilder()
-      .setColor(0xe67e22)
-      .setAuthor({
+     .setColor(0xe67e22)
+     .setAuthor({
         name: `${interaction.user.username} berburu`,
         iconURL: interaction.user.displayAvatarURL(),
       })
-      .setTitle(`Menemukan ${monster.emoji} ${monster.name}!`)
-      .setDescription(`⚔️ Pertarungan dimulai...${buffInfo}\n${classIcon} ${userClass}`);
+     .setTitle(`Menemukan ${monster.emoji} ${monster.name}!`)
+     .setDescription(`⚔️ Pertarungan dimulai...${buffInfo}\n${classIcon} ${userClass}`);
     await interaction.editReply({ embeds: [embed] });
     await sleep(1000);
 
@@ -94,12 +94,12 @@ export class HuntCommand extends Command {
       // PLAYER
       const isCrit = Math.random() < critChance;
       let pDmg =
-        Math.floor(Math.random() * 15) + 10 + Math.floor((user.attack ?? 10) / 3) + bonusAtk;
+        Math.floor(Math.random() * 15) + 10 + Math.floor((user.attack?? 10) / 3) + bonusAtk;
       if (isCrit) pDmg = Math.floor(pDmg * 1.8);
       mHp = Math.max(0, mHp - pDmg);
       totalDealt += pDmg;
 
-      let playerLog = `${isCrit ? '💥' : '🗡️'} Kamu ${isCrit ? 'CRIT ' : ''}**${pDmg}**`;
+      let playerLog = `${isCrit? '💥' : '🗡️'} Kamu ${isCrit? 'CRIT ' : ''}**${pDmg}**`;
       if (isMage && Math.random() < 0.15 && uHp < uMax) {
         const heal = Math.floor(pDmg * 0.25);
         uHp = Math.min(uMax, uHp + heal);
@@ -128,7 +128,7 @@ export class HuntCommand extends Command {
       }
       uHp = Math.max(0, uHp - mDmg);
       totalTaken += mDmg;
-      log.push(`${monster.emoji} balas **${mDmg}**${blocked ? ` 🛡️-${blocked}` : ''}`);
+      log.push(`${monster.emoji} balas **${mDmg}**${blocked? ` 🛡️-${blocked}` : ''}`);
 
       embed.setDescription(log.slice(-4).join('\n') + buffInfo).setFields(
         {
@@ -146,18 +146,18 @@ export class HuntCommand extends Command {
     const summary = log.slice(-7).join('\n');
 
     if (uHp <= 0) {
-      user.exp = (user.exp ?? 0) + Math.floor(monster.xp / 3);
+      user.exp = (user.exp?? 0) + Math.floor(monster.xp / 3);
       await user.save();
       embed
-        .setColor(0xe74c3c)
-        .setTitle(`💀 Kalah dari ${monster.name}`)
-        .setDescription(
+       .setColor(0xe74c3c)
+       .setTitle(`💀 Kalah dari ${monster.name}`)
+       .setDescription(
           `Tumbang lawan ${monster.emoji} **${monster.name}**${buffInfo}\n\n` +
             `**📜 Pertarungan:**\n${summary}\n\n` +
             `**📊** Dealt ${totalDealt} | Taken ${totalTaken}\n\n` +
             `> +${Math.floor(monster.xp / 3)} EXP`,
         )
-        .setFields();
+       .setFields();
       return interaction.editReply({ embeds: [embed] });
     }
 
@@ -168,7 +168,7 @@ export class HuntCommand extends Command {
     if (inv) inv.qty += 1;
     else user.items.push({ itemId: drop.id, qty: 1 });
     user.balance += monster.xp * 2;
-    user.exp = (user.exp ?? 0) + monster.xp;
+    user.exp = (user.exp?? 0) + monster.xp;
 
     await db.item.updateOne(
       { itemId: drop.id },
@@ -187,28 +187,22 @@ export class HuntCommand extends Command {
     let levelUpText = '';
     const lvl = checkLevelUp(user);
     if (lvl) {
-      user.level = lvl.level;
-      user.exp = lvl.expLeft;
-      user.maxHp = lvl.maxHp;
-      user.hp = lvl.hp;
-      user.attack = lvl.attack;
-      user.maxStamina = lvl.maxStamina;
-      user.stamina = lvl.stamina;
+      Object.assign(user, lvl);
       levelUpText = `\n\n🎉 **LEVEL UP → Lv.${lvl.level}**`;
     }
 
     await user.save();
 
     embed
-      .setColor(RARITY_COLOR[drop.rarity as keyof typeof RARITY_COLOR])
-      .setTitle(`✅ Menang lawan ${monster.name}!`)
-      .setDescription(
+     .setColor(RARITY_COLOR[drop.rarity as keyof typeof RARITY_COLOR])
+     .setTitle(`✅ Menang lawan ${monster.name}!`)
+     .setDescription(
         `${monster.emoji} **${monster.name}** berhasil dikalahkan!${levelUpText}${buffInfo}\n\n` +
           `${drop.emoji} **${drop.name}** ×1 ${RARITY_EMOJI[drop.rarity as keyof typeof RARITY_EMOJI]} *${drop.rarity}*\n\n` +
           `**📜 Pertarungan Terakhir:**\n${summary}\n\n` +
           `**📊 Statistik:** Dealt **${totalDealt}** • Taken **${totalTaken}**`,
       )
-      .setFields(
+     .setFields(
         { name: '💰 Koin', value: `+${monster.xp * 2}`, inline: true },
         { name: '✨ EXP', value: `+${monster.xp}`, inline: true },
         { name: '❤️ HP', value: `${user.hp}/${user.maxHp}`, inline: true },

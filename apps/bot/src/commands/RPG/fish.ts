@@ -9,16 +9,16 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 
 const groupByRarity = <T extends { rarity: string }>(arr: T[]) =>
   arr.reduce(
-    (acc, cur) => ((acc[cur.rarity] = acc[cur.rarity] ?? []).push(cur), acc),
+    (acc, cur) => ((acc[cur.rarity] = acc[cur.rarity]?? []).push(cur), acc),
     {} as Record<string, T[]>,
   );
 
 const raritySummary = Object.entries(groupByRarity(FISHES))
-  .map(
+.map(
     ([r, arr]) =>
       `${RARITY_EMOJI[r as keyof typeof RARITY_EMOJI]} ${r} ${arr.reduce((a, b) => a + b.chance, 0)}%`,
   )
-  .join(' • ');
+.join(' • ');
 
 @ApplyOptions<Command.Options>({
   name: 'fish',
@@ -55,8 +55,8 @@ export class FishCommand extends Command {
     applyPassiveRegen(user);
     const now = Date.now();
     const cd = 30_000;
-    if (now - (user.lastFish?.getTime() ?? 0) < cd) {
-      const wait = Math.ceil((cd - (now - (user.lastFish?.getTime() ?? 0))) / 1000);
+    if (now - (user.lastFish?.getTime()?? 0) < cd) {
+      const wait = Math.ceil((cd - (now - (user.lastFish?.getTime()?? 0))) / 1000);
       await user.save();
       return interaction.editReply(`🎣 Joran masih basah! Tunggu ${wait}s`);
     }
@@ -69,12 +69,11 @@ export class FishCommand extends Command {
 
     user.stamina -= ACTION_COST.fish;
     user.lastFish = new Date();
-    user.exp = (user.exp ?? 0) + fish.xp;
+    user.exp = (user.exp?? 0) + fish.xp;
 
     const inv = user.items.find((i) => i.itemId === fish.id);
     if (inv) inv.qty += 1;
     else user.items.push({ itemId: fish.id, qty: 1 });
-    await user.save();
 
     await this.container.db.item.updateOne(
       { itemId: fish.id },
@@ -93,31 +92,20 @@ export class FishCommand extends Command {
     let levelUpText = '';
     const levelData = checkLevelUp(user);
     if (levelData) {
-      await this.container.db.user.updateOne(
-        { discordId: interaction.user.id },
-        {
-          $set: {
-            level: levelData.level,
-            exp: levelData.expLeft,
-            maxHp: levelData.maxHp,
-            hp: levelData.hp,
-            attack: levelData.attack,
-            maxStamina: levelData.maxStamina,
-            stamina: levelData.stamina,
-          },
-        },
-      );
-      levelUpText = `\n🎉 **LEVEL UP!** Lv.${levelData.level}`;
+      Object.assign(user, levelData);
+      levelUpText = `\n🎉 **LEVEL UP! → Lv.${levelData.level}**`;
     }
 
+    await user.save();
+
     const embed = new EmbedBuilder()
-      .setColor(RARITY_COLOR[fish.rarity])
-      .setAuthor({
+    .setColor(RARITY_COLOR[fish.rarity])
+    .setAuthor({
         name: `${interaction.user.username} memancing`,
         iconURL: interaction.user.displayAvatarURL(),
       })
-      .setDescription(`**${fish.emoji} ${fish.name}** tertangkap!\n*${fish.rarity}*${levelUpText}`)
-      .addFields(
+    .setDescription(`**${fish.emoji} ${fish.name}** tertangkap!\n*${fish.rarity}*${levelUpText}`)
+    .addFields(
         { name: '💰 Jual', value: `${fish.sell} koin`, inline: true },
         { name: '🍳 Masak', value: 'Bisa untuk Fish Soup', inline: true },
         { name: '✨ EXP', value: `+${fish.xp}`, inline: true },
@@ -127,7 +115,7 @@ export class FishCommand extends Command {
           inline: true,
         },
       )
-      .setFooter({ text: 'Gunakan /cook untuk heal sebelum hunt' });
+    .setFooter({ text: 'Gunakan /cook untuk heal sebelum hunt' });
 
     return interaction.editReply({ embeds: [embed] });
   }

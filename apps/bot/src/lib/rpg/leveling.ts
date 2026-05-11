@@ -9,7 +9,7 @@ export function checkLevelUp(user: IUser) {
   const staGain = 10;
 
   let leveled = false;
-  let expNeeded = level * 100;
+  let expNeeded = getExpNeeded(level);
 
   // loop biar bisa naik lebih dari 1 level sekaligus
   while (exp >= expNeeded) {
@@ -18,7 +18,7 @@ export function checkLevelUp(user: IUser) {
     maxHp += hpGain;
     attack += atkGain;
     maxStamina += staGain;
-    expNeeded = level * 100;
+    expNeeded = getExpNeeded(level);
     leveled = true;
   }
 
@@ -26,7 +26,7 @@ export function checkLevelUp(user: IUser) {
 
   return {
     level,
-    expLeft: exp,
+    exp,
     maxHp,
     attack,
     maxStamina,
