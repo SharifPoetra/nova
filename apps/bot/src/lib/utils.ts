@@ -1,3 +1,13 @@
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export const bar = (cur: number, max: number, size = 10) => {
+  const p = Math.max(0, Math.min(1, cur / max));
+  const f = Math.round(p * size);
+  return '▰'.repeat(f) + '▱'.repeat(size - f);
+};
+
+export const formatNumber = (n: number) => n.toLocaleString('id-ID');
+
 export const RARITY_COLOR = {
   Common: 0x95a5a6,
   Uncommon: 0x2ecc71,

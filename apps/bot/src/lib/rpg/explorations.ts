@@ -1,4 +1,4 @@
-import type { Rarity } from '../constants';
+import type { Rarity } from '../utils';
 
 export interface ExploreItem {
   id: string;

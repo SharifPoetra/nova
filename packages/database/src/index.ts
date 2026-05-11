@@ -2,10 +2,10 @@ import mongoose from 'mongoose';
 
 export { User } from './models/User.js';
 export { Item } from './models/Item.js';
-export { Dungeon } from './models/Dungeon.js'
+export { Dungeon } from './models/Dungeon.js';
 export type { IUser } from './models/User.js';
 export type { IItem } from './models/Item.js';
-export type { IDungeon } from './models/Dungeon.js'
+export type { IDungeon } from './models/Dungeon.js';
 
 export const createDatabase = async (connectionString: string) => {
   try {

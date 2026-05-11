@@ -2,7 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { RARITY_COLOR } from '../../lib/constants';
+import { RARITY_COLOR } from '../../lib/utils';
 
 const RARITY_ORDER = ['Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'];
 

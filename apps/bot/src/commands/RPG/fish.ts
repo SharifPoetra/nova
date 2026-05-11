@@ -3,7 +3,7 @@ import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/constants';
+import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { catchFish, FISHES } from '../../lib/rpg/fishes';
 import { ACTION_COST } from '../../lib/rpg/actions';
 

@@ -1,18 +1,12 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
+import { sleep, bar } from '../../lib/utils'
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
 import { getScaledMonster } from '../../lib/rpg/monsters';
 import { ACTION_COST } from '../../lib/rpg/actions';
-import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/constants';
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const bar = (cur: number, max: number) => {
-  const p = Math.max(0, Math.min(1, cur / max));
-  const f = Math.round(p * 10);
-  return '▰'.repeat(f) + '▱'.repeat(10 - f);
-};
+import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 
 @ApplyOptions<Command.Options>({
   name: 'hunt',
