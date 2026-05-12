@@ -8,6 +8,7 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 import {
   getMonster,
   getFloorLore,
+  BOSS_DROPS,
   DUNGEON_DROPS,
   DUNGEON_MONSTERS,
   BOSSES,
@@ -444,7 +445,9 @@ export class DungeonCommand extends Command {
         if (currentFloor > dungeonData.highestFloor) dungeonData.highestFloor = currentFloor;
 
         // Drop item
-        const pool = DUNGEON_DROPS[floorMonster.base] ?? DUNGEON_DROPS.slime;
+        const pool = isBossFloor
+          ? (BOSS_DROPS[floorMonster.base] ?? BOSS_DROPS.guardian)
+          : (DUNGEON_DROPS[floorMonster.base] ?? DUNGEON_DROPS.slime);
         if (Math.random() < (isBossFloor ? 1 : 0.7)) {
           const drop = pool[Math.floor(Math.random() * pool.length)];
           const safeDrop = {
