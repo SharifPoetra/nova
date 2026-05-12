@@ -6,7 +6,8 @@ export interface IItem extends Document {
   emoji: string;
   description: string;
   type: 'consumable' | 'material' | 'equipment';
-  rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary', 'Mythic';
+  rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+  Mythic;
   sellPrice: number;
   effect?: { stamina?: number; hp?: number };
 }
