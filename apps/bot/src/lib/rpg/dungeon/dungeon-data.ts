@@ -8,6 +8,8 @@ export type DropItem = {
   sellPrice: number;
   type: 'material' | 'equipment' | 'consumable';
   description: string;
+  effect?: 'heal' | 'stamina' | 'mana' | 'buff' | null;
+  effectValue?: number;
 };
 
 export const FLOOR_LORE: Record<number, string> = {
