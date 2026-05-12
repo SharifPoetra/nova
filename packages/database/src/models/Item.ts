@@ -6,7 +6,7 @@ export interface IItem extends Document {
   emoji: string;
   description: string;
   type: 'consumable' | 'material' | 'equipment';
-  rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+  rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary', 'Mythic';
   sellPrice: number;
   effect?: { stamina?: number; hp?: number };
 }
@@ -19,7 +19,7 @@ const ItemSchema = new Schema<IItem>({
   type: { type: String, enum: ['consumable', 'material', 'equipment'], required: true },
   rarity: {
     type: String,
-    enum: ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'],
+    enum: ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic'],
     default: 'Common',
   },
   sellPrice: { type: Number, default: 10 },
