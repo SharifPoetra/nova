@@ -26,6 +26,7 @@ yarn-debug.log*
 Thumbs.db
 
 # Termux/Local Specifics
+*.bak
 .bash_history
 .termux/
 deploy.sh

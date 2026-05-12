@@ -1,8 +1,27 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { EmbedBuilder, MessageFlags } from 'discord.js';
-
-type Rarity = 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+import { ComponentType, EmbedBuilder, MessageFlags } from 'discord.js';
+import { bar } from '../../lib/utils';
+import { applyPassiveRegen } from '../../lib/rpg/buffs';
+import { checkLevelUp } from '../../lib/rpg/leveling';
+import {
+  getMonster,
+  getFloorLore,
+  DUNGEON_DROPS,
+  DUNGEON_MONSTERS,
+  BOSSES,
+} from '../../lib/rpg/dungeon/dungeon-data';
+import { rollEvent, getZone, type DungeonEvent } from '../../lib/rpg/dungeon/dungeon-events';
+import { createRunState, getCheckpoint, RunState } from '../../lib/rpg/dungeon/dungeon-state';
+import {
+  buildMainEmbed,
+  buildMapEmbed,
+  buildFleeEmbed,
+  buildRestEmbed,
+  getMainButtons,
+  getContinueButtons,
+} from '../../lib/rpg/dungeon/dungeon-ui';
+import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle';
 
 @ApplyOptions<Command.Options>({
   name: 'dungeon',
@@ -13,168 +32,362 @@ export class DungeonCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((builder) =>
       builder
-     .setName(this.name)
-     .setDescription(this.description)
-     .addSubcommand((s) => s.setName('enter').setDescription('Masuk lantai berikutnya'))
-     .addSubcommand((s) => s.setName('status').setDescription('Lihat progress'))
-     .addSubcommand((s) => s.setName('leave').setDescription('Keluar dungeon')),
+        .setName(this.name)
+        .setDescription(this.description)
+        .addStringOption((option) =>
+          option
+            .setName('action')
+            .setDescription('Pilih')
+            .setRequired(true)
+            .addChoices(
+              { name: 'Enter', value: 'enter' },
+              { name: 'Status', value: 'status' },
+              { name: 'Leave', value: 'leave' },
+            ),
+        ),
     );
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-    const { user, item, dungeon } = this.container.db;
-    const sub = interaction.options.getSubcommand();
+    const { user: userModel, item: itemModel, dungeon: dungeonModel } = this.container.db;
+    const action = interaction.options.getString('action', true) as 'enter' | 'status' | 'leave';
 
-    const userData = await user.findOne({ discordId: interaction.user.id });
-    if (!userData) {
+    // Ambil data player
+    const player = await userModel.findOne({ discordId: interaction.user.id });
+    if (!player)
+      return interaction.reply({ content: 'Gunakan /start', flags: MessageFlags.Ephemeral });
+
+    applyPassiveRegen(player);
+
+    const dungeonData =
+      (await dungeonModel.findOne({ discordId: player.discordId })) ??
+      (await dungeonModel.create({ discordId: player.discordId }));
+
+    // --- STATUS ---
+    if (action === 'status') {
+      await player.save();
+      const lore = getFloorLore(dungeonData.currentFloor);
+      const zone = getZone(dungeonData.currentFloor);
+      const checkpoint = getCheckpoint(dungeonData.currentFloor);
+
       return interaction.reply({
-        content: 'Gunakan /start dulu',
-        flags: MessageFlags.Ephemeral,
+        embeds: [
+          new EmbedBuilder()
+            .setTitle('🗼 Tower of Stars')
+            .setDescription(
+              `**Lantai ${dungeonData.currentFloor}** • ${zone}\n*${lore}*\n\n` +
+                `Highest: ${dungeonData.highestFloor}/100\nCheckpoint: ${checkpoint}\n` +
+                `HP ${bar(player.hp, player.maxHp)} ${player.hp}/${player.maxHp}\n` +
+                `Stamina ${bar(player.stamina, player.maxStamina)} ${player.stamina}/${player.maxStamina}\n` +
+                `${dungeonData.inRun ? '⚠️ Sedang dalam run!' : ''}`,
+            )
+            .setColor(0x9b59b6),
+        ],
       });
     }
 
-    let dungeonData = await dungeon.findOne({ discordId: userData.discordId });
-    if (!dungeonData) dungeonData = await dungeon.create({ discordId: userData.discordId });
-
-    if (sub === 'status') {
-      const embed = new EmbedBuilder()
-     .setTitle('🗼 Tower of Stars')
-     .setDescription(
-          `Highest: **${dungeonData.highestFloor}/100**\n` +
-            `Current: **${dungeonData.currentFloor}**\n` +
-            `HP: ${userData.hp}/${userData.maxHp}\n` +
-            `Stamina: ${userData.stamina}/${userData.maxStamina}`,
-        )
-     .setColor(0x9b59b6);
-      return interaction.reply({ embeds: [embed] });
-    }
-
-    if (sub === 'enter') {
-      if (userData.stamina < 10) {
-        return interaction.reply({
-          content: 'Stamina kurang (butuh 10)',
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-      if (userData.hp <= 0) {
-        return interaction.reply({
-          content: 'HP 0, pakai hp potion dulu',
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-
-      const floor = dungeonData.currentFloor;
-      const isBoss = floor % 10 === 0;
-
-      const baseHp = 50 + floor * 8;
-      const baseAtk = 8 + floor * 1.5;
-      const monsterMaxHp = Math.floor(isBoss? baseHp * 3 : baseHp);
-      const monsterAtk = Math.floor(isBoss? baseAtk * 2 : baseAtk);
-
-      userData.stamina -= 10;
-
-      // === COMBAT BARU ===
-      let monsterHp = monsterMaxHp;
-      let playerHp = userData.hp;
-      let totalPlayerDmg = 0;
-      let totalMonsterDmg = 0;
-      let turns = 0;
-
-      while (playerHp > 0 && monsterHp > 0 && turns < 20) {
-        turns++;
-        // player hit
-        const pDmg = Math.max(1, userData.attack + Math.floor(Math.random() * 6) - 1);
-        monsterHp -= pDmg;
-        totalPlayerDmg += pDmg;
-        if (monsterHp <= 0) break;
-
-        // monster hit
-        const mDmg = Math.max(1, monsterAtk + Math.floor(Math.random() * 4) - 1);
-        playerHp -= mDmg;
-        totalMonsterDmg += mDmg;
-      }
-
-      userData.hp = Math.max(0, playerHp);
-      const won = monsterHp <= 0;
-      // === END COMBAT ===
-
-      let result = '';
-
-      if (won) {
-        const gold = 50 + floor * 5 + (isBoss? 200 : 0);
-        const exp = 20 + floor * 2;
-        userData.balance += gold;
-        userData.exp += exp;
-
-        while (userData.exp >= userData.level * 100) {
-          userData.exp -= userData.level * 100;
-          userData.level += 1;
-          userData.maxHp += 10;
-          userData.attack += 2;
-          userData.hp = userData.maxHp;
-        }
-
-        dungeonData.currentFloor += 1;
-        if (dungeonData.currentFloor - 1 > dungeonData.highestFloor) {
-          dungeonData.highestFloor = dungeonData.currentFloor - 1;
-        }
-
-        if (floor % 25 === 0) {
-          result += `✅ Checkpoint lantai ${floor} disimpan!\n`;
-        }
-
-        const rarities: Rarity[] = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
-        const weights = isBoss? [20, 30, 30, 15, 5] : [60, 25, 10, 4, 1];
-        const roll = Math.random() * 100;
-        let cum = 0;
-        let rarity: Rarity = 'Common';
-        for (let i = 0; i < weights.length; i++) {
-          cum += weights[i];
-          if (roll < cum) {
-            rarity = rarities[i];
-            break;
-          }
-        }
-
-        const drops = await item.find({ rarity: rarity });
-        if (drops.length) {
-          const drop = drops[Math.floor(Math.random() * drops.length)];
-          const invItem = userData.items.find((i) => i.itemId === drop.itemId);
-          if (invItem) invItem.qty += 1;
-          else userData.items.push({ itemId: drop.itemId, qty: 1 });
-          result += `Drop: ${drop.emoji} ${drop.name} (${rarity})\n`;
-        }
-
-        result = `**LANTAI ${floor} ${isBoss? '👑 BOSS' : ''} - MENANG**\n` +
-          `Monster HP: ${monsterMaxHp} | Kamu hit total ${totalPlayerDmg} (${turns} turn)\n` +
-          `Kena damage ${totalMonsterDmg}\n` +
-          `${result}+${gold}g | +${exp}xp`;
-      } else {
-        const checkpoint = Math.floor((floor - 1) / 25) * 25;
-        dungeonData.currentFloor = checkpoint === 0? 1 : checkpoint;
-        result = `**LANTAI ${floor} - KALAH**\n` +
-          `Monster sisa HP: ${Math.max(0, monsterHp)}/${monsterMaxHp}\n` +
-          `Kamu kena total ${totalMonsterDmg} damage (${turns} turn)\n` +
-          `Respawn di lantai ${dungeonData.currentFloor}`;
-      }
-
-      dungeonData.lastRun = new Date();
-      await userData.save();
-      await dungeonData.save();
-
-      const embed = new EmbedBuilder()
-     .setTitle(`🗼 Lantai ${floor}`)
-     .setDescription(result)
-     .setColor(won? 0x2ecc71 : 0xe74c3c)
-     .setFooter({ text: `HP: ${userData.hp}/${userData.maxHp} | Stamina: ${userData.stamina}` });
-
-      return interaction.reply({ embeds: [embed] });
-    }
-
-    if (sub === 'leave') {
+    // --- LEAVE ---
+    if (action === 'leave') {
       dungeonData.inRun = false;
+      dungeonData.floorState = null;
       await dungeonData.save();
-      return interaction.reply('Kamu keluar dari tower. Progress disimpan.');
+      return interaction.reply('Keluar tower. Run dibatalkan.');
     }
+
+    // --- ENTER DUNGEON ---
+    let currentFloor = dungeonData.currentFloor;
+
+    if (player.stamina < 3)
+      return interaction.reply({ content: '⚡ Stamina <3', flags: MessageFlags.Ephemeral });
+    if (player.hp <= 0)
+      return interaction.reply({ content: '❤️ HP 0', flags: MessageFlags.Ephemeral });
+
+    // Buat run baru jika belum ada
+    if (!dungeonData.inRun) {
+      dungeonData.inRun = true;
+      dungeonData.floorState = createRunState(currentFloor);
+      await dungeonData.save();
+    }
+
+    let runState = dungeonData.floorState as RunState;
+    let zone = getZone(currentFloor);
+    let lore = getFloorLore(currentFloor);
+    let floorMonster = getMonster(currentFloor);
+    let isBossFloor = floorMonster.isBoss;
+
+    // Helper untuk build embed utama
+    const buildEmbed = () =>
+      buildMainEmbed({
+        floor: currentFloor,
+        state: runState,
+        zone,
+        lore,
+        playerHp: player.hp,
+        playerMaxHp: player.maxHp,
+        playerStamina: player.stamina,
+        playerMaxStamina: player.maxStamina,
+        highestFloor: dungeonData.highestFloor,
+        isBoss: isBossFloor,
+      });
+
+    const response = await interaction.reply({
+      embeds: [buildEmbed()],
+      components: [getMainButtons()],
+      withResponse: true,
+    });
+    const message = response.resource!.message!;
+
+    // Collector hanya untuk tombol navigasi (bukan battle)
+    const collector = message.createMessageComponentCollector({
+      componentType: ComponentType.Button,
+      time: 300_000,
+      filter: (btn) =>
+        btn.user.id === interaction.user.id &&
+        ['next', 'map', 'flee', 'continue', 'stop'].includes(btn.customId),
+    });
+
+    collector.on('collect', async (button) => {
+      await button.deferUpdate();
+
+      // --- FLEE ---
+      if (button.customId === 'flee') {
+        const checkpoint = getCheckpoint(currentFloor);
+        dungeonData.inRun = false;
+        dungeonData.floorState = null;
+        await dungeonData.save();
+        await player.save();
+        collector.stop();
+
+        const fleeEmbed = buildFleeEmbed({
+          lore,
+          floor: currentFloor,
+          state: runState,
+          zone,
+          checkpoint,
+          playerHp: player.hp,
+          playerMaxHp: player.maxHp,
+          playerStamina: player.stamina,
+          playerMaxStamina: player.maxStamina,
+        });
+        return button.editReply({ embeds: [fleeEmbed], components: [] });
+      }
+
+      // --- MAP ---
+      if (button.customId === 'map') {
+        const mapEmbed = buildMapEmbed({
+          floor: currentFloor,
+          state: runState,
+          zone,
+          lore,
+          isBoss: isBossFloor,
+          playerHp: player.hp,
+          playerMaxHp: player.maxHp,
+        });
+        return button.editReply({ embeds: [mapEmbed], components: [getMainButtons()] });
+      }
+
+      // --- CONTINUE ---
+      if (button.customId === 'continue') {
+        if (player.stamina < 3)
+          return button.editReply({ content: '⚡ Stamina <3!', embeds: [], components: [] });
+
+        currentFloor = dungeonData.currentFloor;
+        floorMonster = getMonster(currentFloor);
+        isBossFloor = floorMonster.isBoss;
+        zone = getZone(currentFloor);
+        lore = getFloorLore(currentFloor);
+        dungeonData.inRun = true;
+        dungeonData.floorState = createRunState(currentFloor);
+        await dungeonData.save();
+        runState = dungeonData.floorState as RunState;
+        return button.editReply({ embeds: [buildEmbed()], components: [getMainButtons()] });
+      }
+
+      // --- STOP (Istirahat) ---
+      if (button.customId === 'stop') {
+        collector.stop();
+
+        const restEmbed = buildRestEmbed({
+          floor: currentFloor,
+          state: runState,
+          nextFloor: dungeonData.currentFloor,
+          highestFloor: dungeonData.highestFloor,
+        });
+
+        return button.editReply({ embeds: [restEmbed], components: [] });
+      }
+
+      // --- NEXT ROOM ---
+      if (player.stamina < 3) {
+        runState.log.push('⚡ Stamina habis!');
+        dungeonData.inRun = false;
+        dungeonData.floorState = null;
+        await dungeonData.save();
+        collector.stop();
+        return button.editReply({
+          content: 'Stamina habis!',
+          embeds: [buildEmbed()],
+          components: [],
+        });
+      }
+
+      player.stamina -= 3;
+      runState.current++;
+      const isLastRoom = runState.current === runState.rooms;
+
+      // Tentukan event
+      let event: DungeonEvent;
+      if (isLastRoom && isBossFloor) {
+        event = { id: 'boss', type: 'battle', weight: 0, text: `👑 ${floorMonster.name} BOSS!` };
+      } else {
+        const needForcedBattle = !runState.hasBattle && runState.current >= runState.rooms - 1;
+        event = needForcedBattle
+          ? { id: 'forced', type: 'battle', weight: 0, text: 'Musuh menghadang!' }
+          : rollEvent(currentFloor);
+      }
+
+      let currentMonster: any = null;
+      if (event.type === 'battle') {
+        runState.hasBattle = true;
+        if (isLastRoom && isBossFloor) {
+          currentMonster = floorMonster;
+        } else {
+          const base = getMonster(currentFloor).base;
+          const bossNames = Object.values(BOSSES).map((b) => b.name);
+          const pool = DUNGEON_MONSTERS.filter(
+            (m) => m.base === base && !bossNames.includes(m.name),
+          );
+          currentMonster = {
+            ...(pool[Math.floor(Math.random() * pool.length)] ?? getMonster(currentFloor)),
+            isBoss: false,
+          };
+        }
+      }
+
+      runState.log.push(
+        `**R${runState.current}:** ${event.type === 'battle' ? `${currentMonster.emoji} ${currentMonster.name}` : event.text}`,
+      );
+
+      // --- HANDLE BATTLE ---
+      if (event.type === 'battle') {
+        const isElite = !isLastRoom && !isBossFloor && Math.random() < 0.1;
+
+        const battleResult = await runInteractiveBattle({
+          player,
+          monster: currentMonster,
+          floor: currentFloor,
+          lore,
+          isBoss: isLastRoom && isBossFloor,
+          isElite,
+          state: runState,
+          msg: message,
+          username: interaction.user.username,
+        });
+
+        // Jika kalah
+        if (!battleResult.victory) {
+          runState.log.push(`💀 Dikalahkan ${currentMonster.name}!`);
+          dungeonData.inRun = false;
+          dungeonData.floorState = null;
+          const checkpoint = getCheckpoint(currentFloor);
+          dungeonData.currentFloor = checkpoint;
+          await dungeonData.save();
+          await player.save();
+          collector.stop();
+
+          return button.editReply({
+            embeds: [buildEmbed().setTitle(`💀 Kalah Lantai ${currentFloor}`).setColor(0xe74c3c)],
+            components: [],
+          });
+        }
+
+        // Reward battle (FIX BUG: ini yang hilang kemarin)
+        runState.log.push(`✅ ${currentMonster.emoji} kalah`);
+        const roomGold = 15 + currentFloor * 2 + (isElite ? 25 : 0);
+        const roomExp = 5 + currentFloor;
+        runState.gold += roomGold;
+        runState.exp += roomExp;
+        player.balance += roomGold;
+        player.exp += roomExp;
+      } else if (event.type === 'treasure') {
+        const gold = event.effect?.gold ?? 50 + currentFloor * 3;
+        runState.gold += gold;
+        player.balance += gold;
+        runState.log.push(`💰 Chest +${gold}g`);
+      } else if (event.type === 'trap') {
+        const damage = Math.abs(event.effect?.hp ?? 15 + currentFloor);
+        player.hp = Math.max(1, player.hp - damage);
+        runState.taken += damage;
+        runState.log.push(`🪤 Trap -${damage} HP`);
+      } else if (event.type === 'heal') {
+        const heal = event.effect?.hp ?? 30;
+        player.hp = Math.min(player.maxHp, player.hp + heal);
+        runState.log.push(`💚 Heal +${heal} HP`);
+      } else if (event.type === 'puzzle') {
+        const gold = 100 + currentFloor * 2;
+        runState.gold += gold;
+        player.balance += gold;
+        runState.log.push(`🧩 Puzzle +${gold}g`);
+      }
+
+      await player.save();
+      await dungeonData.save();
+
+      // --- FLOOR CLEAR ---
+      if (runState.current >= runState.rooms) {
+        const floorGold = 50 + currentFloor * 5 + (isBossFloor ? 300 : 0);
+        const floorExp = 20 + currentFloor * 2;
+        runState.gold += floorGold;
+        runState.exp += floorExp;
+        player.balance += floorGold;
+        player.exp += floorExp;
+
+        dungeonData.currentFloor++;
+        if (currentFloor > dungeonData.highestFloor) dungeonData.highestFloor = currentFloor;
+
+        // Drop item
+        const pool = DUNGEON_DROPS[floorMonster.base] ?? DUNGEON_DROPS.slime;
+        if (Math.random() < (isBossFloor ? 1 : 0.7)) {
+          const drop = pool[Math.floor(Math.random() * pool.length)];
+          await itemModel.updateOne({ itemId: drop.id }, { $set: drop }, { upsert: true });
+          const inv = player.items.find((x) => x.itemId === drop.id);
+          if (inv) inv.qty++;
+          else player.items.push({ itemId: drop.id, qty: 1 });
+          runState.log.push(`🎁 ${drop.emoji} ${drop.name}`);
+        }
+
+        const levelUp = checkLevelUp(player);
+        if (levelUp) {
+          Object.assign(player, levelUp);
+          runState.log.push(`🎉 LEVEL UP ${levelUp.level}!`);
+        }
+
+        dungeonData.inRun = false;
+        dungeonData.floorState = null;
+        dungeonData.lastRun = new Date();
+        await player.save();
+        await dungeonData.save();
+
+        const clearEmbed = buildEmbed()
+          .setTitle(`✅ Lantai ${currentFloor} Clear!`)
+          .setColor(0x2ecc71)
+          .setDescription(
+            runState.log.join('\n') +
+              `\n\n**Reward: +${runState.gold} gold • +${runState.exp} exp**\n\n**Mau lanjut?**`,
+          );
+
+        return button.editReply({
+          embeds: [clearEmbed],
+          components: [getContinueButtons(dungeonData.currentFloor)],
+        });
+      }
+
+      await button.editReply({ embeds: [buildEmbed()], components: [getMainButtons()] });
+    });
+
+    collector.on('end', async () => {
+      await player.save();
+      await dungeonData.save();
+    });
   }
 }
