@@ -1,3 +1,5 @@
+import type { IItem } from '@nova/db';
+
 export type DungeonEvent = {
   id: string;
   type: 'battle' | 'treasure' | 'trap' | 'heal' | 'merchant' | 'lore' | 'puzzle';
@@ -6,8 +8,42 @@ export type DungeonEvent = {
   effect?: { hp?: number; gold?: number; stamina?: number; item?: string };
 };
 
+export const EVENT_ITEM_DEFS: Record<string, Partial<IItem>> = {
+  crystal_shard: {
+    name: 'Crystal Shard',
+    emoji: '🔷',
+    description: 'Pecahan kristal dari Tambang Kristal',
+    type: 'material',
+    rarity: 'Uncommon',
+    sellPrice: 25,
+  },
+  arcane_page: {
+    name: 'Arcane Page',
+    emoji: '📜',
+    description: 'Halaman kitab terlarang',
+    type: 'material',
+    rarity: 'Rare',
+    sellPrice: 50,
+  },
+  sky_feather: {
+    name: 'Sky Feather',
+    emoji: '🪶',
+    description: 'Bulu dari penjaga kuil',
+    type: 'material',
+    rarity: 'Rare',
+    sellPrice: 75,
+  },
+  star_fragment: {
+    name: 'Star Fragment',
+    emoji: '🌟',
+    description: 'Pecahan bintang dari puncak',
+    type: 'material',
+    rarity: 'Epic',
+    sellPrice: 150,
+  },
+};
+
 export const DUNGEON_EVENTS: Record<string, DungeonEvent[]> = {
-  // ZONA 1: Lantai 1-20 - Reruntuhan Bawah Tanah
   ruins: [
     {
       id: 'goblin_ambush',
@@ -51,7 +87,6 @@ export const DUNGEON_EVENTS: Record<string, DungeonEvent[]> = {
     },
   ],
 
-  // ZONA 2: Lantai 21-40 - Tambang Kristal
   mines: [
     {
       id: 'crystal_crawler',
@@ -93,9 +128,15 @@ export const DUNGEON_EVENTS: Record<string, DungeonEvent[]> = {
       weight: 2,
       text: 'Hantu mandor: "Mereka menggali terlalu dalam"',
     },
+    {
+      id: 'dwarf_trader',
+      type: 'merchant',
+      weight: 4,
+      text: 'Pedagang kurcaci menawarkan ramuan',
+      effect: { gold: -120 },
+    },
   ],
 
-  // ZONA 3: Lantai 41-60 - Perpustakaan Terlarang
   library: [
     { id: 'living_book', type: 'battle', weight: 45, text: 'Buku hidup menyerang!' },
     {
@@ -117,13 +158,12 @@ export const DUNGEON_EVENTS: Record<string, DungeonEvent[]> = {
       id: 'librarian',
       type: 'merchant',
       weight: 5,
-      text: 'Pustakawan menjual scroll',
+      text: 'Pustakawan menawarkan ramuan',
       effect: { gold: -150 },
     },
     { id: 'star_map', type: 'lore', weight: 3, text: 'Peta menunjukkan lantai 100 adalah...' },
   ],
 
-  // ZONA 4: Lantai 61-80 - Kuil Langit
   temple: [
     { id: 'temple_guardian', type: 'battle', weight: 50, text: 'Penjaga kuil bangkit!' },
     {
@@ -149,9 +189,15 @@ export const DUNGEON_EVENTS: Record<string, DungeonEvent[]> = {
       effect: { hp: 60, stamina: 10 },
     },
     { id: 'prophecy', type: 'lore', weight: 2, text: '"Bintang keseratus akan jatuh"' },
+    {
+      id: 'shrine_maiden',
+      type: 'merchant',
+      weight: 4,
+      text: 'Miko menjual air suci',
+      effect: { gold: -200 },
+    },
   ],
 
-  // ZONA 5: Lantai 81-100 - Puncak Bintang
   summit: [
     { id: 'void_spawn', type: 'battle', weight: 55, text: 'Makhluk void muncul!' },
     {
@@ -177,6 +223,13 @@ export const DUNGEON_EVENTS: Record<string, DungeonEvent[]> = {
       effect: { hp: 100 },
     },
     { id: 'astral_memory', type: 'lore', weight: 2, text: 'Kamu melihat asal-usul tower...' },
+    {
+      id: 'star_merchant',
+      type: 'merchant',
+      weight: 3,
+      text: 'Pedagang astral menawarkan cahaya',
+      effect: { gold: -300 },
+    },
   ],
 };
 
