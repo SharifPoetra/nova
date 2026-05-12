@@ -4,6 +4,7 @@ import { ComponentType, EmbedBuilder, MessageFlags } from 'discord.js';
 import { bar } from '../../lib/utils';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { checkLevelUp } from '../../lib/rpg/leveling';
+import { ACTION_COST } from '../../lib/rpg/actions';
 import {
   getMonster,
   getFloorLore,
@@ -52,6 +53,8 @@ export class DungeonCommand extends Command {
     const { user: userModel, item: itemModel, dungeon: dungeonModel } = this.container.db;
     const action = interaction.options.getString('action', true) as 'enter' | 'status' | 'leave';
 
+    const DUNGEON_COST = ACTION_COST.dungeon;
+
     // Ambil data player
     const player = await userModel.findOne({ discordId: interaction.user.id });
     if (!player)
@@ -97,8 +100,11 @@ export class DungeonCommand extends Command {
     // --- ENTER DUNGEON ---
     let currentFloor = dungeonData.currentFloor;
 
-    if (player.stamina < 3)
-      return interaction.reply({ content: '⚡ Stamina <3', flags: MessageFlags.Ephemeral });
+    if (player.stamina < DUNGEON_COST)
+      return interaction.reply({
+        content: `⚡ Stamina <${DUNGEON_COST}`,
+        flags: MessageFlags.Ephemeral,
+      });
     if (player.hp <= 0)
       return interaction.reply({ content: '❤️ HP 0', flags: MessageFlags.Ephemeral });
 
@@ -188,8 +194,12 @@ export class DungeonCommand extends Command {
 
       // --- CONTINUE ---
       if (button.customId === 'continue') {
-        if (player.stamina < 3)
-          return button.editReply({ content: '⚡ Stamina <3!', embeds: [], components: [] });
+        if (player.stamina < DUNGEON_COST)
+          return button.editReply({
+            content: `⚡ Stamina <${DUNGEON_COST}!`,
+            embeds: [],
+            components: [],
+          });
 
         currentFloor = dungeonData.currentFloor;
         floorMonster = getMonster(currentFloor);
@@ -218,7 +228,7 @@ export class DungeonCommand extends Command {
       }
 
       // --- NEXT ROOM ---
-      if (player.stamina < 3) {
+      if (player.stamina < DUNGEON_COST) {
         runState.log.push('⚡ Stamina habis!');
         dungeonData.inRun = false;
         dungeonData.floorState = null;
@@ -231,7 +241,7 @@ export class DungeonCommand extends Command {
         });
       }
 
-      player.stamina -= 3;
+      player.stamina -= DUNGEON_COST;
       runState.current++;
       const isLastRoom = runState.current === runState.rooms;
 
