@@ -448,8 +448,11 @@ export class DungeonCommand extends Command {
         const pool = isBossFloor
           ? (BOSS_DROPS[floorMonster.base] ?? BOSS_DROPS.guardian)
           : (DUNGEON_DROPS[floorMonster.base] ?? DUNGEON_DROPS.slime);
-        if (Math.random() < (isBossFloor ? 1 : 0.7)) {
-          const drop = pool[Math.floor(Math.random() * pool.length)];
+
+        if (Math.random() < (isBossFloor ? 1 : 0.35)) {
+          const weights = { Common: 60, Uncommon: 25, Rare: 10, Epic: 4, Legendary: 1 };
+          const weighted = pool.flatMap((d) => Array(weights[d.rarity] || 1).fill(d));
+          const drop = weighted[Math.floor(Math.random() * weighted.length)];
           const safeDrop = {
             itemId: drop.id,
             name: drop.name,
