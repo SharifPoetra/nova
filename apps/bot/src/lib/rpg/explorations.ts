@@ -6,7 +6,9 @@ export interface ExploreItem {
   emoji: string;
   qty: number;
   rarity: Rarity;
-  sell: number;
+  sellPrice: number;
+  type: 'material' | 'consumable';
+  description: string;
 }
 
 export interface ExploreOutcome {
@@ -20,7 +22,7 @@ export interface ExploreOutcome {
 }
 
 export const EXPLORES: ExploreOutcome[] = [
-  // COMMON - total 55%
+  // COMMON
   {
     text: 'Kabut tebal, kamu hanya dapat pengalaman.',
     coins: 30,
@@ -44,7 +46,16 @@ export const EXPLORES: ExploreOutcome[] = [
     emoji: '🍄',
     rarity: 'Common',
     chance: 10,
-    item: { id: 'mushroom', name: 'Jamur Hutan', emoji: '🍄', qty: 3, rarity: 'Common', sell: 8 },
+    item: {
+      id: 'mushroom',
+      name: 'Jamur Hutan',
+      emoji: '🍄',
+      qty: 3,
+      rarity: 'Common',
+      sellPrice: 8,
+      type: 'material',
+      description: 'Jamur liar, bahan dasar sup jamur',
+    },
   },
   {
     text: 'Semak cabai liar ditemukan!',
@@ -53,10 +64,19 @@ export const EXPLORES: ExploreOutcome[] = [
     emoji: '🌶️',
     rarity: 'Common',
     chance: 10,
-    item: { id: 'chili', name: 'Cabai Liar', emoji: '🌶️', qty: 2, rarity: 'Common', sell: 15 },
+    item: {
+      id: 'chili',
+      name: 'Cabai Liar',
+      emoji: '🌶️',
+      qty: 2,
+      rarity: 'Common',
+      sellPrice: 15,
+      type: 'material',
+      description: 'Pedas menyengat, untuk spicy stew',
+    },
   },
 
-  // UNCOMMON - total 25%
+  // UNCOMMON
   {
     text: 'Slime hutan kamu tebas!',
     coins: 200,
@@ -72,7 +92,16 @@ export const EXPLORES: ExploreOutcome[] = [
     emoji: '🐝',
     rarity: 'Uncommon',
     chance: 7,
-    item: { id: 'honey', name: 'Madu Liar', emoji: '🍯', qty: 1, rarity: 'Common', sell: 30 },
+    item: {
+      id: 'honey',
+      name: 'Madu Liar',
+      emoji: '🍯',
+      qty: 1,
+      rarity: 'Uncommon',
+      sellPrice: 30,
+      type: 'consumable',
+      description: 'Madu hutan manis, bisa langsung diminum +15 HP',
+    },
   },
   {
     text: 'Daun herbal berkilau di rawa.',
@@ -81,7 +110,16 @@ export const EXPLORES: ExploreOutcome[] = [
     emoji: '🌿',
     rarity: 'Uncommon',
     chance: 5,
-    item: { id: 'herb', name: 'Daun Herbal', emoji: '🌿', qty: 1, rarity: 'Uncommon', sell: 25 },
+    item: {
+      id: 'herb',
+      name: 'Daun Herbal',
+      emoji: '🌿',
+      qty: 1,
+      rarity: 'Uncommon',
+      sellPrice: 25,
+      type: 'material',
+      description: 'Daun obat, bahan herbal tea',
+    },
   },
   {
     text: 'Kulit kayu kuno untuk ramuan.',
@@ -90,10 +128,19 @@ export const EXPLORES: ExploreOutcome[] = [
     emoji: '🪵',
     rarity: 'Uncommon',
     chance: 3,
-    item: { id: 'bark', name: 'Kulit Kayu', emoji: '🪵', qty: 2, rarity: 'Uncommon', sell: 18 },
+    item: {
+      id: 'bark',
+      name: 'Kulit Kayu',
+      emoji: '🪵',
+      qty: 2,
+      rarity: 'Uncommon',
+      sellPrice: 18,
+      type: 'material',
+      description: 'Kulit pohon tua untuk ramuan mana',
+    },
   },
 
-  // RARE - total 13%
+  // RARE
   {
     text: 'Peti kuno berdebu terbuka!',
     coins: 500,
@@ -114,8 +161,10 @@ export const EXPLORES: ExploreOutcome[] = [
       name: 'Kristal Mana',
       emoji: '🔷',
       qty: 1,
-      rarity: 'Uncommon',
-      sell: 45,
+      rarity: 'Rare',
+      sellPrice: 45,
+      type: 'material',
+      description: 'Kristal biru berisi energi sihir',
     },
   },
   {
@@ -125,7 +174,16 @@ export const EXPLORES: ExploreOutcome[] = [
     emoji: '🌸',
     rarity: 'Rare',
     chance: 2,
-    item: { id: 'moonflower', name: 'Moonflower', emoji: '🌸', qty: 1, rarity: 'Rare', sell: 80 },
+    item: {
+      id: 'moonflower',
+      name: 'Moonflower',
+      emoji: '🌸',
+      qty: 1,
+      rarity: 'Rare',
+      sellPrice: 80,
+      type: 'material',
+      description: 'Bunga yang mekar hanya saat bulan purnama',
+    },
   },
   {
     text: 'Telur monster kecil masih hangat.',
@@ -140,11 +198,13 @@ export const EXPLORES: ExploreOutcome[] = [
       emoji: '🥚',
       qty: 1,
       rarity: 'Rare',
-      sell: 120,
+      sellPrice: 120,
+      type: 'material',
+      description: 'Telur langka untuk golden omelette',
     },
   },
 
-  // EPIC - total 5%
+  // EPIC
   {
     text: 'DUNGEON! Peti berisi madu hutan.',
     coins: 300,
@@ -152,7 +212,16 @@ export const EXPLORES: ExploreOutcome[] = [
     emoji: '🏰',
     rarity: 'Epic',
     chance: 3,
-    item: { id: 'honey', name: 'Madu Liar', emoji: '🍯', qty: 2, rarity: 'Uncommon', sell: 30 },
+    item: {
+      id: 'honey',
+      name: 'Madu Liar',
+      emoji: '🍯',
+      qty: 2,
+      rarity: 'Uncommon',
+      sellPrice: 30,
+      type: 'consumable',
+      description: 'Madu hutan manis, bisa langsung diminum +15 HP',
+    },
   },
   {
     text: 'HARTA KARUN! Peti emas terkubur!',
@@ -167,11 +236,13 @@ export const EXPLORES: ExploreOutcome[] = [
       emoji: '💎',
       qty: 1,
       rarity: 'Epic',
-      sell: 300,
+      sellPrice: 300,
+      type: 'material',
+      description: 'Emas murni untuk craft tingkat tinggi',
     },
   },
 
-  // LEGENDARY - total 2%
+  // LEGENDARY
   {
     text: 'Kamu menemukan reruntuhan kuno dewa!',
     coins: 1500,
@@ -185,7 +256,9 @@ export const EXPLORES: ExploreOutcome[] = [
       emoji: '👑',
       qty: 1,
       rarity: 'Legendary',
-      sell: 1000,
+      sellPrice: 1000,
+      type: 'material',
+      description: 'Artefak dewa yang hilang',
     },
   },
 ];
@@ -197,5 +270,5 @@ export function rollExplore(): ExploreOutcome {
     cum += e.chance;
     if (roll < cum) return e;
   }
-  return EXPLORES[0]; // fallback
+  return EXPLORES[0];
 }

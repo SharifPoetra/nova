@@ -15,22 +15,23 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 Cost ${ACTION_COST.cook} stamina • cooldown tidak ada.
 
 **Cara kerja:**
-1. Pilih resep dari menu (maks 25)
+1. Pilih resep dari menu
 2. Bahan otomatis terpakai
-3. HP pulih + buff aktif 30 menit
+3. HP pulih + buff aktif 30-120 menit
 
-**Resep umum:**
-🍖 Grilled Meat — +30 HP (butuh meat)
-🍲 Stew — +50 HP (meat + herb)
-🐟 Fish Soup — +40 HP (fish + herb)
-🌶️ Spicy Curry — +35 HP + ATK+5 (meat + chili)
-🧪 Elixir — +20 HP + regen 5 HP/5m
+**Resep 1-bahan (dari hunt/fish):**
+🥩 Steak Daging +30 • 🍖 Steak Serigala +35 • 🥩 Bear Steak +70
+🐟 Sarden Bakar +20 • Kembung +25 • Nila +30 • Tuna +40 • Salmon +45
+🍯 Madu Hangat +40
 
-Buff tidak stack — masakan baru akan ganti buff lama.
-Gunakan sebelum /hunt untuk hasil maksimal.
+**Resep explore (cari bahan di /explore):**
+🌶️ Spicy Stew +40 HP + ATK+5 (2 meat + 1 chili)
+🍵 Herbal Tea +25 HP + regen (1 herb + 1 honey)
+🍄 Sup Jamur +35 HP (3 mushroom + 1 root)
+🌱 Ginseng Brew +50 HP + regen (2 root + 1 honey)
 
-Dapatkan bahan dari /fish, /hunt, /explore.
-    `.trim(),
+Buff tidak stack. Masak sebelum /hunt.
+`.trim(),
   },
   fullCategory: ['RPG'],
 })
