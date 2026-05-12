@@ -1,7 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { ComponentType, EmbedBuilder, MessageFlags } from 'discord.js';
-import { bar } from '../../lib/utils';
+import { sleep, bar } from '../../lib/utils';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { ACTION_COST } from '../../lib/rpg/actions';
@@ -19,8 +19,10 @@ import {
   buildMapEmbed,
   buildFleeEmbed,
   buildRestEmbed,
+  buildMerchantEmbed,
   getMainButtons,
   getContinueButtons,
+  getMerchantButtons,
 } from '../../lib/rpg/dungeon/dungeon-ui';
 import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle';
 
@@ -311,7 +313,7 @@ export class DungeonCommand extends Command {
           });
         }
 
-        // Reward battle (FIX BUG: ini yang hilang kemarin)
+        // Reward battle
         runState.log.push(`✅ ${currentMonster.emoji} kalah`);
         const roomGold = 15 + currentFloor * 2 + (isElite ? 25 : 0);
         const roomExp = 5 + currentFloor;
@@ -338,6 +340,59 @@ export class DungeonCommand extends Command {
         runState.gold += gold;
         player.balance += gold;
         runState.log.push(`🧩 Puzzle +${gold}g`);
+      } else if (event.type === 'lore') {
+        // refund stamina biar lore = free room
+        player.stamina = Math.min(player.maxStamina, player.stamina + DUNGEON_COST);
+        const loreExp = 3 + Math.floor(currentFloor / 5);
+        player.exp += loreExp;
+        runState.exp += loreExp;
+        runState.log.push(`📜 ${event.text} (+${loreExp} exp)`);
+      } else if (event.type === 'merchant') {
+        // --- SCALING ---
+        const baseCost = Math.abs(event.effect?.gold ?? 100);
+        const cost = baseCost + Math.floor(currentFloor * 2.5); // ruins ~105, summit ~350
+        const heal = 30 + Math.floor(currentFloor * 1.5); // ruins ~32, summit ~180
+        const canAfford = player.balance >= cost;
+
+        // tampilkan merchant
+        const merchantEmbed = buildMerchantEmbed({
+          text: event.text,
+          cost,
+          heal,
+          floor: currentFloor,
+          playerGold: player.balance,
+        });
+
+        await button.editReply({
+          embeds: [merchantEmbed],
+          components: [getMerchantButtons(cost, canAfford)],
+        });
+
+        // tunggu pilihan player (20 detik)
+        const choice = await message
+          .awaitMessageComponent({
+            filter: (i) => i.user.id === player.discordId && ['buy', 'skip'].includes(i.customId),
+            time: 20_000,
+            componentType: ComponentType.Button,
+          })
+          .catch(() => null);
+
+        if (choice) await choice.deferUpdate();
+
+        if (choice?.customId === 'buy' && canAfford) {
+          player.balance -= cost;
+          // jangan potong runState.gold, biar gold run tetap buat reward akhir
+          player.hp = Math.min(player.maxHp, player.hp + heal);
+          runState.log.push(`🛒 Beli ramuan -${cost}g +${heal} HP`);
+          await choice.editReply({
+            embeds: [merchantEmbed.setFooter({ text: `✅ Terbeli! +${heal} HP` })],
+            components: [],
+          });
+          await sleep(800);
+        } else {
+          runState.log.push(`🛒 ${event.text} (dilewati)`);
+        }
+        // lanjut, tombol balik ke main
       }
 
       await player.save();

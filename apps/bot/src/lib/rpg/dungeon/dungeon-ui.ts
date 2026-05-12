@@ -170,6 +170,37 @@ export function buildBattleEmbed(params: {
     });
 }
 
+export function buildMerchantEmbed(params: {
+  text: string;
+  cost: number;
+  heal: number;
+  floor: number;
+  playerGold: number;
+}) {
+  return new EmbedBuilder()
+    .setTitle('🛒 Pedagang Misterius')
+    .setDescription(
+      `*${params.text}*\n\n` +
+        `Menawarkan **Ramuan Penyembuh**\n` +
+        `💚 Heal: +${params.heal} HP\n` +
+        `💰 Harga: ${params.cost} gold\n\n` +
+        `Gold kamu: ${params.playerGold}`,
+    )
+    .setColor(0xf1c40f)
+    .setFooter({ text: `Lantai ${params.floor} • Pilih dalam 20 detik` });
+}
+
+export function getMerchantButtons(cost: number, canAfford: boolean) {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId('buy')
+      .setLabel(`Beli (${cost}g)`)
+      .setStyle(ButtonStyle.Success)
+      .setDisabled(!canAfford),
+    new ButtonBuilder().setCustomId('skip').setLabel('Lewati').setStyle(ButtonStyle.Secondary),
+  );
+}
+
 export function getMainButtons() {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder().setCustomId('next').setLabel('➡️ Masuk Room').setStyle(ButtonStyle.Primary),
