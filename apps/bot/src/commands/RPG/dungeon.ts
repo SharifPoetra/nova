@@ -457,7 +457,7 @@ export class DungeonCommand extends Command {
             description: drop.description,
             type: drop.type,
             rarity: drop.rarity,
-            sellPrice: drop.sell,
+            sellPrice: drop.sellPrice,
           };
           await itemModel.updateOne(
             { itemId: safeDrop.itemId },

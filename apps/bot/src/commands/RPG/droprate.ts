@@ -127,7 +127,7 @@ export class DroprateCommand extends Command {
       const total = FISHES.reduce((a, f) => a + f.chance, 0);
       const desc = FISHES.map(
         (f) =>
-          `${f.emoji} **${f.name}** ${RARITY_EMOJI[f.rarity]}\n> Chance: \`${f.chance}%\` • Jual: \`${f.sell}💰\` • XP: \`${f.xp}\``,
+          `${f.emoji} **${f.name}** ${RARITY_EMOJI[f.rarity]}\n> Chance: \`${f.chance}%\` • Jual: \`${f.sellPrice}💰\` • XP: \`${f.xp}\``,
       ).join('\n\n');
 
       const byRarity = groupByRarity(FISHES);
@@ -138,7 +138,7 @@ export class DroprateCommand extends Command {
         )
         .join(' • ');
 
-      const ev = Math.round(FISHES.reduce((a, f) => a + f.sell * (f.chance / 100), 0));
+      const ev = Math.round(FISHES.reduce((a, f) => a + f.sellPrice * (f.chance / 100), 0));
       return interaction.reply({
         embeds: [
           new EmbedBuilder()
@@ -187,7 +187,7 @@ export class DroprateCommand extends Command {
         const drops = m.drops
           .map(
             (d) =>
-              `${d.emoji} **${d.name}** — \`${d.chance}%\` • ${d.sell}💰 ${RARITY_EMOJI[d.rarity as keyof typeof RARITY_EMOJI]}`,
+              `${d.emoji} **${d.name}** — \`${d.chance}%\` • ${d.sellPrice}💰 ${RARITY_EMOJI[d.rarity as keyof typeof RARITY_EMOJI]}`,
           )
           .join('\n> ');
         return `${m.emoji} **${m.name}** (Lv.${m.minLevel}+)\n> HP ${m.hp} • DMG ${m.dmg[0]}-${m.dmg[1]} • XP ${m.xp}\n> ${drops}`;
