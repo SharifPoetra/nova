@@ -1,5 +1,15 @@
 export type Rarity = 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
 
+export type DropItem = {
+  id: string;
+  name: string;
+  emoji: string;
+  rarity: Rarity;
+  sell: number;
+  type: 'material' | 'equipment' | 'consumable';
+  description: string;
+};
+
 export const FLOOR_LORE: Record<number, string> = {
   1: 'Dasar menara. Udara lembab dan dipenuhi aroma lendir. Langkah pertamamu dimulai.',
   10: 'Ruangan bergetar. Tahta lendir raksasa menghalangi jalanmu naik.',
@@ -133,18 +143,7 @@ export const BOSSES: Record<number, { name: string; emoji: string; title: string
   100: { name: 'Nova Prime', emoji: '🌟', title: 'Puncak Menara' },
 };
 
-export const DUNGEON_DROPS: Record<
-  string,
-  {
-    id: string;
-    name: string;
-    emoji: string;
-    rarity: Rarity;
-    sell: number;
-    type: 'material' | 'equipment' | 'consumable';
-    description: string;
-  }[]
-> = {
+export const DUNGEON_DROPS: Record<string, DropItem[]> = {
   slime: [
     {
       id: 'star_dust',
@@ -165,13 +164,22 @@ export const DUNGEON_DROPS: Record<
       description: 'Inti berlendir sumber kehidupan slime',
     },
     {
-      id: 'slime_crown',
-      name: 'Slime Crown',
-      emoji: '👑',
-      rarity: 'Rare',
-      sell: 150,
-      type: 'equipment',
-      description: 'Mahkota lendir raja slime',
+      id: 'cracked_crown',
+      name: 'Cracked Crown',
+      emoji: '👑💔',
+      rarity: 'Common',
+      sell: 25,
+      type: 'material',
+      description: 'Mahkota imitasi, retak di tengah',
+    },
+    {
+      id: 'gooey_jelly',
+      name: 'Gooey Jelly',
+      emoji: '🟢',
+      rarity: 'Common',
+      sell: 10,
+      type: 'consumable',
+      description: 'Jeli lengket, pulihkan 5 HP',
     },
   ],
   golem: [
@@ -185,6 +193,15 @@ export const DUNGEON_DROPS: Record<
       description: 'Pecahan kristal dari tubuh golem',
     },
     {
+      id: 'stone_fragment',
+      name: 'Stone Fragment',
+      emoji: '🪨',
+      rarity: 'Common',
+      sell: 20,
+      type: 'material',
+      description: 'Pecahan batu biasa',
+    },
+    {
       id: 'golem_heart',
       name: 'Golem Heart',
       emoji: '🗿',
@@ -192,15 +209,6 @@ export const DUNGEON_DROPS: Record<
       sell: 120,
       type: 'material',
       description: 'Jantung batu yang masih berdenyut',
-    },
-    {
-      id: 'obsidian_plate',
-      name: 'Obsidian Plate',
-      emoji: '⬛',
-      rarity: 'Epic',
-      sell: 280,
-      type: 'equipment',
-      description: 'Pelat obsidian super keras',
     },
   ],
   specter: [
@@ -214,6 +222,15 @@ export const DUNGEON_DROPS: Record<
       description: 'Esensi kehampaan dari specter',
     },
     {
+      id: 'ectoplasm',
+      name: 'Ectoplasm',
+      emoji: '🟢👻',
+      rarity: 'Uncommon',
+      sell: 60,
+      type: 'material',
+      description: 'Lendir hantu',
+    },
+    {
       id: 'soul_wisp',
       name: 'Soul Wisp',
       emoji: '👻',
@@ -221,15 +238,6 @@ export const DUNGEON_DROPS: Record<
       sell: 300,
       type: 'material',
       description: 'Gumpalan jiwa yang bergentayangan',
-    },
-    {
-      id: 'reaper_scythe',
-      name: 'Reaper Scythe',
-      emoji: '☠️',
-      rarity: 'Epic',
-      sell: 450,
-      type: 'equipment',
-      description: 'Sabit pencabut nyawa',
     },
   ],
   drake: [
@@ -242,6 +250,147 @@ export const DUNGEON_DROPS: Record<
       type: 'material',
       description: 'Sisik drake tahan api',
     },
+    {
+      id: 'charred_bone',
+      name: 'Charred Bone',
+      emoji: '🦴🔥',
+      rarity: 'Uncommon',
+      sell: 70,
+      type: 'material',
+      description: 'Tulang hangus',
+    },
+    {
+      id: 'drake_claw',
+      name: 'Drake Claw',
+      emoji: '🦖',
+      rarity: 'Rare',
+      sell: 200,
+      type: 'material',
+      description: 'Cakar tajam',
+    },
+  ],
+  warden: [
+    {
+      id: 'frost_crystal',
+      name: 'Frost Crystal',
+      emoji: '❄️',
+      rarity: 'Epic',
+      sell: 400,
+      type: 'material',
+      description: 'Kristal es abadi',
+    },
+    {
+      id: 'ice_shard',
+      name: 'Ice Shard',
+      emoji: '🧊',
+      rarity: 'Uncommon',
+      sell: 90,
+      type: 'material',
+      description: 'Pecahan es',
+    },
+    {
+      id: 'frozen_chain',
+      name: 'Frozen Chain',
+      emoji: '⛓️❄️',
+      rarity: 'Rare',
+      sell: 250,
+      type: 'material',
+      description: 'Rantai beku',
+    },
+  ],
+  guardian: [
+    {
+      id: 'astral_fragment',
+      name: 'Astral Fragment',
+      emoji: '💫',
+      rarity: 'Epic',
+      sell: 500,
+      type: 'material',
+      description: 'Fragmen dari bintang jatuh',
+    },
+    {
+      id: 'stardust',
+      name: 'Stardust',
+      emoji: '✨',
+      rarity: 'Rare',
+      sell: 300,
+      type: 'material',
+      description: 'Debu bintang murni',
+    },
+    {
+      id: 'cosmic_dust',
+      name: 'Cosmic Dust',
+      emoji: '🌌',
+      rarity: 'Epic',
+      sell: 600,
+      type: 'material',
+      description: 'Debu kosmik',
+    },
+  ],
+};
+
+export const BOSS_DROPS: Record<string, DropItem[]> = {
+  slime: [
+    {
+      id: 'slime_crown',
+      name: 'Slime Crown',
+      emoji: '👑',
+      rarity: 'Rare',
+      sell: 150,
+      type: 'equipment',
+      description: 'Mahkota asli Raja Slime',
+    },
+    {
+      id: 'royal_jelly',
+      name: 'Royal Jelly',
+      emoji: '🍯👑',
+      rarity: 'Epic',
+      sell: 300,
+      type: 'consumable',
+      description: 'Jeli kerajaan, heal 100 HP',
+    },
+  ],
+  golem: [
+    {
+      id: 'obsidian_plate',
+      name: 'Obsidian Plate',
+      emoji: '⬛',
+      rarity: 'Epic',
+      sell: 280,
+      type: 'equipment',
+      description: 'Pelat obsidian super keras',
+    },
+    {
+      id: 'heart_of_crystal',
+      name: 'Heart of Crystal',
+      emoji: '💎❤️',
+      rarity: 'Legendary',
+      sell: 600,
+      type: 'material',
+      description: 'Jantung kristal murni',
+    },
+  ],
+  specter: [
+    {
+      id: 'reaper_scythe',
+      name: 'Reaper Scythe',
+      emoji: '☠️',
+      rarity: 'Epic',
+      sell: 450,
+      type: 'equipment',
+      description: 'Sabit pencabut nyawa',
+    },
+    {
+      id: 'void_crown',
+      name: 'Void Crown',
+      emoji: '👑🌫️',
+      rarity: 'Legendary',
+      sell: 800,
+      type: 'equipment',
+      description: 'Mahkota kehampaan',
+    },
+  ],
+  drake: [
     {
       id: 'inferno_fang',
       name: 'Inferno Fang',
@@ -263,15 +412,6 @@ export const DUNGEON_DROPS: Record<
   ],
   warden: [
     {
-      id: 'frost_crystal',
-      name: 'Frost Crystal',
-      emoji: '❄️',
-      rarity: 'Epic',
-      sell: 400,
-      type: 'material',
-      description: 'Kristal es abadi',
-    },
-    {
       id: 'warden_chain',
       name: 'Warden Chain',
       emoji: '⛓️',
@@ -291,15 +431,6 @@ export const DUNGEON_DROPS: Record<
     },
   ],
   guardian: [
-    {
-      id: 'astral_fragment',
-      name: 'Astral Fragment',
-      emoji: '💫',
-      rarity: 'Epic',
-      sell: 500,
-      type: 'material',
-      description: 'Fragmen dari bintang jatuh',
-    },
     {
       id: 'star_core',
       name: 'Star Core',
