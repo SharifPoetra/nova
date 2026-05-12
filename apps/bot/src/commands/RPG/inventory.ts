@@ -1,40 +1,25 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { EmbedBuilder } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+  StringSelectMenuBuilder,
+} from 'discord.js';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR } from '../../lib/utils';
 
 const RARITY_ORDER = ['Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'] as const;
+const ITEMS_PER_PAGE = 10;
 
-type GroupedItem = {
-  text: string;
-  sub: string;
-  value: number;
-};
+type GroupedItem = { id: string; text: string; sub: string; value: number; rarity: string };
+
+const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
 
 @ApplyOptions<Command.Options>({
   name: 'inventory',
   description: 'Lihat semua item kamu',
-  detailedDescription: {
-    usage: '/inventory',
-    examples: ['/inventory'],
-    extendedHelp: `
-Lihat semua bahan dan drop yang kamu punya.
-
-**Fitur:**
-- Item dikelompokkan berdasarkan rarity (Legendary → Common)
-- Menampilkan jumlah, nilai jual, dan deskripsi
-- Warna embed otomatis ikut rarity tertinggi
-- Update stamina pasif saat buka
-
-**Gunakan untuk:**
-- Cek bahan sebelum /cook
-- Hitung total aset sebelum /sell
-- Pastikan stok ikan/daging/herb cukup
-
-Tip: item dari /fish, /hunt, dan /explore otomatis masuk ke sini.
-    `.trim(),
-  },
   fullCategory: ['RPG'],
 })
 export class InventoryCommand extends Command {
@@ -59,27 +44,32 @@ export class InventoryCommand extends Command {
     const itemMap = new Map(itemsData.map((i) => [i.itemId, i]));
 
     let totalValue = 0;
-    const grouped: Record<string, GroupedItem[]> = {};
+    const allItems: GroupedItem[] = [];
 
     for (const inv of user.items) {
       const data = itemMap.get(inv.itemId);
       if (!data) continue;
-
-      const rarity = data.rarity || 'Common';
-      const sellPrice = data.sellPrice ?? 0;
-      const value = sellPrice * inv.qty;
+      const value = (data.sellPrice ?? 0) * inv.qty;
       totalValue += value;
-
-      if (!grouped[rarity]) grouped[rarity] = [];
-
-      grouped[rarity].push({
+      allItems.push({
+        id: inv.itemId,
         text: `${data.emoji} **${data.name}** x${inv.qty}`,
-        sub: `> ${value.toLocaleString('id-ID')} 💰 • ${data.description || 'Tidak ada deskripsi'}`,
+        sub: `> ${value.toLocaleString('id-ID')} 💰 • ${data.description || '-'}`,
         value,
+        rarity: data.rarity || 'Common',
       });
     }
 
-    const topRarity = RARITY_ORDER.find((r) => grouped[r]?.length) || 'Common';
+    allItems.sort((a, b) => {
+      const ra = RARITY_ORDER.indexOf(a.rarity as any);
+      const rb = RARITY_ORDER.indexOf(b.rarity as any);
+      return ra !== rb ? ra - rb : b.value - a.value;
+    });
+
+    const totalPages = Math.max(1, Math.ceil(allItems.length / ITEMS_PER_PAGE));
+    const page = 0;
+    const pageItems = allItems.slice(0, ITEMS_PER_PAGE);
+    const topRarity = pageItems[0]?.rarity || 'Common';
 
     const embed = new EmbedBuilder()
       .setAuthor({
@@ -87,29 +77,64 @@ export class InventoryCommand extends Command {
         iconURL: interaction.user.displayAvatarURL(),
       })
       .setColor(RARITY_COLOR[topRarity as keyof typeof RARITY_COLOR])
-      .setDescription(`⚡ Stamina: ${user.stamina}/${user.maxStamina}`)
+      .setDescription(
+        `⚡ Stamina: ${user.stamina}/${user.maxStamina}\n📦 ${allItems.length} jenis item`,
+      )
       .setFooter({
-        text: `Total nilai jual: ${totalValue.toLocaleString('id-ID')} koin | /sell untuk jual`,
+        text: `Total nilai: ${totalValue.toLocaleString('id-ID')} koin | Hal ${page + 1}/${totalPages}`,
       });
 
-    for (const rarity of RARITY_ORDER) {
-      const items = grouped[rarity];
-      if (!items?.length) continue;
+    for (const it of pageItems) embed.addFields({ name: it.text, value: it.sub });
 
-      items.sort((a, b) => b.value - a.value);
-
-      const value = items
-        .map((i) => `${i.text}\n${i.sub}`)
-        .join('\n')
-        .slice(0, 1024);
-
-      embed.addFields({
-        name: `${rarity} (${items.length})`,
-        value,
-        inline: false,
-      });
+    const components: ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[] = [];
+    if (totalPages > 1) {
+      components.push(
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId(`inv_prev_${page}_${interaction.user.id}`)
+            .setLabel('◀')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(true),
+          new ButtonBuilder()
+            .setCustomId(`inv_next_${page}_${interaction.user.id}`)
+            .setLabel('▶')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(totalPages <= 1),
+        ),
+      );
     }
 
-    return interaction.editReply({ embeds: [embed] });
+    const consumables = user.items
+      .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
+      .slice(0, 25);
+    if (consumables.length) {
+      components.push(
+        new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+          new StringSelectMenuBuilder()
+            .setCustomId(`inv_use_${interaction.user.id}`)
+            .setPlaceholder('Gunakan consumable...')
+            .addOptions(
+              consumables.map((c) => {
+                const d = itemMap.get(c.itemId)!;
+                return {
+                  label: `${d.name} x${c.qty}`,
+                  value: c.itemId,
+                  description: d.description?.slice(0, 50) || '',
+                  emoji: sanitizeEmoji(d.emoji),
+                };
+              }),
+            ),
+        ),
+      );
+    }
+
+    const msg = await interaction.editReply({ embeds: [embed], components });
+    this.container.invCache ??= new Map();
+    this.container.invCache.set(msg.id, {
+      allItems,
+      totalValue,
+      userId: interaction.user.id,
+      t: Date.now(),
+    });
   }
 }
