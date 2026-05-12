@@ -1,10 +1,14 @@
+import type { Rarity } from '../utils';
+
 export interface Drop {
   id: string;
   name: string;
   emoji: string;
-  rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+  rarity: Rarity;
   chance: number;
-  sell: number;
+  sellPrice: number;
+  type: 'material' | 'equipment' | 'consumable';
+  description: string;
 }
 
 export interface BaseMonster {
@@ -26,9 +30,36 @@ export const BASE_MONSTERS: BaseMonster[] = [
     minLevel: 1,
     xp: 18,
     drops: [
-      { id: 'meat', name: 'Daging Babi', emoji: '🥩', rarity: 'Common', chance: 60, sell: 12 },
-      { id: 'fang', name: 'Taring Babi', emoji: '🦷', rarity: 'Uncommon', chance: 30, sell: 28 },
-      { id: 'boar_heart', name: 'Jantung Babi', emoji: '❤️', rarity: 'Rare', chance: 10, sell: 75 },
+      {
+        id: 'meat',
+        name: 'Daging Babi',
+        emoji: '🥩',
+        rarity: 'Common',
+        chance: 60,
+        sellPrice: 12,
+        type: 'material',
+        description: 'Daging merah, bahan dasar steak',
+      },
+      {
+        id: 'fang',
+        name: 'Taring Babi',
+        emoji: '🦷',
+        rarity: 'Uncommon',
+        chance: 30,
+        sellPrice: 28,
+        type: 'material',
+        description: 'Taring tajam untuk kerajinan',
+      },
+      {
+        id: 'boar_heart',
+        name: 'Jantung Babi',
+        emoji: '❤️',
+        rarity: 'Rare',
+        chance: 10,
+        sellPrice: 75,
+        type: 'material',
+        description: 'Jantung berotot, dipercaya tambah stamina',
+      },
     ],
   },
   {
@@ -45,16 +76,29 @@ export const BASE_MONSTERS: BaseMonster[] = [
         emoji: '👂',
         rarity: 'Common',
         chance: 55,
-        sell: 10,
+        sellPrice: 10,
+        type: 'material',
+        description: 'Bukti buruan goblin',
       },
-      { id: 'hide', name: 'Kulit Goblin', emoji: '🦌', rarity: 'Common', chance: 30, sell: 12 },
+      {
+        id: 'hide',
+        name: 'Kulit Goblin',
+        emoji: '🦌',
+        rarity: 'Common',
+        chance: 30,
+        sellPrice: 12,
+        type: 'material',
+        description: 'Kulit kasar, bisa untuk sup',
+      },
       {
         id: 'goblin_dagger',
         name: 'Belati Karat',
         emoji: '🗡️',
         rarity: 'Uncommon',
         chance: 15,
-        sell: 40,
+        sellPrice: 40,
+        type: 'equipment',
+        description: 'Belati curian, masih bisa dipakai',
       },
     ],
   },
@@ -72,7 +116,9 @@ export const BASE_MONSTERS: BaseMonster[] = [
         emoji: '🍗',
         rarity: 'Common',
         chance: 60,
-        sell: 14,
+        sellPrice: 14,
+        type: 'material',
+        description: 'Daging rawa, cocok disate',
       },
       {
         id: 'lizard_tail',
@@ -80,9 +126,20 @@ export const BASE_MONSTERS: BaseMonster[] = [
         emoji: '🦎',
         rarity: 'Uncommon',
         chance: 30,
-        sell: 26,
+        sellPrice: 26,
+        type: 'material',
+        description: 'Ekor yang bisa tumbuh lagi',
       },
-      { id: 'scale', name: 'Sisik Hijau', emoji: '🟢', rarity: 'Rare', chance: 10, sell: 60 },
+      {
+        id: 'scale',
+        name: 'Sisik Hijau',
+        emoji: '🟢',
+        rarity: 'Rare',
+        chance: 10,
+        sellPrice: 60,
+        type: 'material',
+        description: 'Sisik mengkilap dari rawa',
+      },
     ],
   },
   {
@@ -99,11 +156,40 @@ export const BASE_MONSTERS: BaseMonster[] = [
         emoji: '🍖',
         rarity: 'Common',
         chance: 50,
-        sell: 15,
+        sellPrice: 15,
+        type: 'material',
+        description: 'Daging liar berotot',
       },
-      { id: 'claw', name: 'Cakar Serigala', emoji: '🐾', rarity: 'Uncommon', chance: 35, sell: 25 },
-      { id: 'pelt', name: 'Bulu Alpha', emoji: '🧶', rarity: 'Rare', chance: 5, sell: 55 },
-      { id: 'eye_wolf', name: 'Mata Serigala', emoji: '👁️', rarity: 'Epic', chance: 10, sell: 180 },
+      {
+        id: 'claw',
+        name: 'Cakar Serigala',
+        emoji: '🐾',
+        rarity: 'Uncommon',
+        chance: 35,
+        sellPrice: 25,
+        type: 'material',
+        description: 'Cakar tajam untuk kerajinan',
+      },
+      {
+        id: 'pelt',
+        name: 'Bulu Alpha',
+        emoji: '🧶',
+        rarity: 'Rare',
+        chance: 5,
+        sellPrice: 55,
+        type: 'material',
+        description: 'Bulu tebal pemimpin kawanan',
+      },
+      {
+        id: 'eye_wolf',
+        name: 'Mata Serigala',
+        emoji: '👁️',
+        rarity: 'Epic',
+        chance: 10,
+        sellPrice: 180,
+        type: 'material',
+        description: 'Mata yang masih menyala dalam gelap',
+      },
     ],
   },
   {
@@ -120,17 +206,39 @@ export const BASE_MONSTERS: BaseMonster[] = [
         emoji: '🥩',
         rarity: 'Uncommon',
         chance: 50,
-        sell: 35,
+        sellPrice: 35,
+        type: 'material',
+        description: 'Daging berlemak dari gua',
       },
-      { id: 'honey', name: 'Madu Liar', emoji: '🍯', rarity: 'Uncommon', chance: 15, sell: 30 },
-      { id: 'bear_claw', name: 'Cakar Beruang', emoji: '🐾', rarity: 'Rare', chance: 30, sell: 80 },
+      {
+        id: 'honey',
+        name: 'Madu Liar',
+        emoji: '🍯',
+        rarity: 'Uncommon',
+        chance: 15,
+        sellPrice: 30,
+        type: 'consumable',
+        description: 'Madu manis curian beruang',
+      },
+      {
+        id: 'bear_claw',
+        name: 'Cakar Beruang',
+        emoji: '🐾',
+        rarity: 'Rare',
+        chance: 30,
+        sellPrice: 80,
+        type: 'material',
+        description: 'Cakar besar penghancur',
+      },
       {
         id: 'heart_alpha',
         name: 'Jantung Alpha',
         emoji: '❤️‍🔥',
         rarity: 'Legendary',
         chance: 5,
-        sell: 400,
+        sellPrice: 400,
+        type: 'material',
+        description: 'Jantung beruang alpha, sangat langka',
       },
     ],
   },
@@ -139,11 +247,9 @@ export const BASE_MONSTERS: BaseMonster[] = [
 export function getScaledMonster(userLevel: number) {
   const available = BASE_MONSTERS.filter((m) => userLevel >= m.minLevel);
   const base = available[Math.floor(Math.random() * available.length)];
-
   const diff = userLevel - base.minLevel;
   const hpScale = 1 + diff * 0.12;
   const dmgScale = 1 + diff * 0.08;
-
   return {
     ...base,
     hp: Math.floor(base.hp * hpScale),

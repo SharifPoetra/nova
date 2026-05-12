@@ -36,7 +36,7 @@ Cooldown 30 detik • cost ${ACTION_COST.fish} stamina.
 **Drop:** 13 jenis ikan dari Common sampai Legendary
 **Rarity:** ${raritySummary}
 
-Tips: ikan Rare+ jangan langsung dijual, simpan untuk masak sebelum /hunt. Rata-rata jual ~${Math.round(FISHES.reduce((a, f) => a + f.sell * (f.chance / 100), 0))}💰.
+Tips: ikan Rare+ jangan langsung dijual, simpan untuk masak sebelum /hunt. Rata-rata jual ~${Math.round(FISHES.reduce((a, f) => a + f.sellPrice * (f.chance / 100), 0))}💰.
 Lihat tabel: /droprate tipe:fish
     `.trim(),
   },
@@ -81,9 +81,10 @@ export class FishCommand extends Command {
         $set: {
           name: fish.name,
           emoji: fish.emoji,
-          type: 'material',
+          type: fish.type,
           rarity: fish.rarity,
-          sellPrice: fish.sell,
+          sellPrice: fish.sellPrice,
+          description: fish.description,
         },
       },
       { upsert: true },
@@ -106,7 +107,7 @@ export class FishCommand extends Command {
       })
       .setDescription(`**${fish.emoji} ${fish.name}** tertangkap!\n*${fish.rarity}*${levelUpText}`)
       .addFields(
-        { name: '💰 Jual', value: `${fish.sell} koin`, inline: true },
+        { name: '💰 Jual', value: `${fish.sellPrice} koin`, inline: true },
         { name: '🍳 Masak', value: 'Bisa untuk Fish Soup', inline: true },
         { name: '✨ EXP', value: `+${fish.xp}`, inline: true },
         {

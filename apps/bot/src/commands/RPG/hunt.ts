@@ -176,9 +176,10 @@ export class HuntCommand extends Command {
         $set: {
           name: drop.name,
           emoji: drop.emoji,
-          type: 'material',
+          type: drop.type,
           rarity: drop.rarity,
-          sellPrice: drop.sell,
+          sellPrice: drop.sellPrice,
+          description: drop.description,
         },
       },
       { upsert: true },

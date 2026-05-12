@@ -6,33 +6,56 @@ export interface Fish {
   emoji: string;
   rarity: Rarity;
   chance: number;
-  sell: number;
+  sellPrice: number;
   xp: number;
+  type: 'material' | 'consumable';
+  description: string;
 }
 
 export const FISHES: Fish[] = [
-  // COMMON 55%
-  { id: 'fish_sardine', name: 'Sarden', emoji: '🐟', rarity: 'Common', chance: 25, sell: 5, xp: 8 },
+  {
+    id: 'fish_sardine',
+    name: 'Sarden',
+    emoji: '🐟',
+    rarity: 'Common',
+    chance: 25,
+    sellPrice: 5,
+    xp: 8,
+    type: 'material',
+    description: 'Ikan kecil berminyak, cepat matang',
+  },
   {
     id: 'fish_mackerel',
     name: 'Kembung',
     emoji: '🐟',
     rarity: 'Common',
     chance: 20,
-    sell: 7,
+    sellPrice: 7,
     xp: 9,
+    type: 'material',
+    description: 'Kembung segar dari laut dangkal',
   },
-  { id: 'fish_tilapia', name: 'Nila', emoji: '🐠', rarity: 'Common', chance: 10, sell: 8, xp: 10 },
-
-  // UNCOMMON 25%
+  {
+    id: 'fish_tilapia',
+    name: 'Nila',
+    emoji: '🐠',
+    rarity: 'Common',
+    chance: 10,
+    sellPrice: 8,
+    xp: 10,
+    type: 'material',
+    description: 'Nila air tawar, daging lembut',
+  },
   {
     id: 'fish_catfish',
     name: 'Lele Jumbo',
     emoji: '🐡',
     rarity: 'Uncommon',
     chance: 12,
-    sell: 15,
+    sellPrice: 15,
     xp: 14,
+    type: 'material',
+    description: 'Lele berlumpur ukuran besar',
   },
   {
     id: 'fish_tuna',
@@ -40,8 +63,10 @@ export const FISHES: Fish[] = [
     emoji: '🐟',
     rarity: 'Uncommon',
     chance: 8,
-    sell: 18,
+    sellPrice: 18,
     xp: 16,
+    type: 'material',
+    description: 'Tuna muda kaya protein',
   },
   {
     id: 'fish_salmon',
@@ -49,19 +74,21 @@ export const FISHES: Fish[] = [
     emoji: '🍣',
     rarity: 'Uncommon',
     chance: 5,
-    sell: 22,
+    sellPrice: 22,
     xp: 18,
+    type: 'material',
+    description: 'Salmon oranye, favorit koki',
   },
-
-  // RARE 13%
   {
     id: 'fish_goldfish',
     name: 'Ikan Mas Koki',
     emoji: '🐠',
     rarity: 'Rare',
     chance: 7,
-    sell: 40,
+    sellPrice: 40,
     xp: 25,
+    type: 'material',
+    description: 'Ikan hias pembawa keberuntungan',
   },
   {
     id: 'fish_puffer',
@@ -69,8 +96,10 @@ export const FISHES: Fish[] = [
     emoji: '🐡',
     rarity: 'Rare',
     chance: 4,
-    sell: 50,
+    sellPrice: 50,
     xp: 28,
+    type: 'material',
+    description: 'Berduri, hati-hati racunnya',
   },
   {
     id: 'fish_eel',
@@ -78,19 +107,21 @@ export const FISHES: Fish[] = [
     emoji: '🦈',
     rarity: 'Rare',
     chance: 2,
-    sell: 65,
+    sellPrice: 65,
     xp: 30,
+    type: 'material',
+    description: 'Belut yang bisa menyetrum',
   },
-
-  // EPIC 5%
   {
     id: 'fish_koi',
     name: 'Koi Legendaris',
     emoji: '🎏',
     rarity: 'Epic',
     chance: 3,
-    sell: 120,
+    sellPrice: 120,
     xp: 45,
+    type: 'material',
+    description: 'Koi sisik berkilau seperti emas',
   },
   {
     id: 'fish_sword',
@@ -98,19 +129,21 @@ export const FISHES: Fish[] = [
     emoji: '🗡️',
     rarity: 'Epic',
     chance: 2,
-    sell: 150,
+    sellPrice: 150,
     xp: 50,
+    type: 'material',
+    description: 'Paruh tajam seperti pedang',
   },
-
-  // LEGENDARY 2%
   {
     id: 'fish_dragon',
     name: 'Ikan Naga',
     emoji: '🐉',
     rarity: 'Legendary',
     chance: 1.5,
-    sell: 300,
+    sellPrice: 300,
     xp: 80,
+    type: 'material',
+    description: 'Sisiknya berkilat seperti api',
   },
   {
     id: 'fish_kraken',
@@ -118,8 +151,10 @@ export const FISHES: Fish[] = [
     emoji: '🦑',
     rarity: 'Legendary',
     chance: 0.5,
-    sell: 500,
+    sellPrice: 500,
     xp: 120,
+    type: 'material',
+    description: 'Bayi kraken bertentakel kecil',
   },
 ];
 
