@@ -87,9 +87,10 @@ export class ExploreCommand extends Command {
           $set: {
             name: outcome.item.name,
             emoji: outcome.item.emoji,
-            type: 'material',
+            type: outcome.item.type,
             rarity: outcome.item.rarity,
-            sellPrice: outcome.item.sell,
+            sellPrice: outcome.item.sellPrice,
+            description: outcome.item.description,
           },
         },
         { upsert: true },
