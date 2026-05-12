@@ -12,7 +12,12 @@ import {
   DUNGEON_MONSTERS,
   BOSSES,
 } from '../../lib/rpg/dungeon/dungeon-data';
-import { rollEvent, getZone, type DungeonEvent } from '../../lib/rpg/dungeon/dungeon-events';
+import {
+  rollEvent,
+  getZone,
+  type DungeonEvent,
+  EVENT_ITEM_DEFS,
+} from '../../lib/rpg/dungeon/dungeon-events';
 import { createRunState, getCheckpoint, RunState } from '../../lib/rpg/dungeon/dungeon-state';
 import {
   buildMainEmbed,
@@ -326,41 +331,73 @@ export class DungeonCommand extends Command {
         runState.gold += gold;
         player.balance += gold;
         runState.log.push(`💰 Chest +${gold}g`);
+
+        if (event.effect?.item) {
+          const itemId = event.effect.item;
+          const def = EVENT_ITEM_DEFS[itemId] ?? {};
+          const itemData = {
+            itemId,
+            name: def.name ?? itemId,
+            emoji: def.emoji ?? '📦',
+            description: def.description ?? `Material dari ${zone}`,
+            type: def.type ?? 'material',
+            rarity: def.rarity ?? 'Common',
+            sellPrice: def.sellPrice ?? 20 + currentFloor,
+          };
+          await itemModel.updateOne({ itemId }, { $setOnInsert: itemData }, { upsert: true });
+          const inv = player.items.find((x) => x.itemId === itemId);
+          if (inv) inv.qty++;
+          else player.items.push({ itemId, qty: 1 });
+          runState.log.push(`📦 Dapat ${itemData.emoji} ${itemData.name}`);
+        }
       } else if (event.type === 'trap') {
         const damage = Math.abs(event.effect?.hp ?? 15 + currentFloor);
         player.hp = Math.max(1, player.hp - damage);
         runState.taken += damage;
-        runState.log.push(`🪤 Trap -${damage} HP`);
+        if (event.effect?.stamina) {
+          player.stamina = Math.max(0, player.stamina + event.effect.stamina);
+          runState.log.push(`🪤 Trap -${damage} HP ${event.effect.stamina} stamina`);
+        } else {
+          runState.log.push(`🪤 Trap -${damage} HP`);
+        }
       } else if (event.type === 'heal') {
         const heal = event.effect?.hp ?? 30;
         player.hp = Math.min(player.maxHp, player.hp + heal);
-        runState.log.push(`💚 Heal +${heal} HP`);
+        if (event.effect?.stamina) {
+          player.stamina = Math.min(player.maxStamina, player.stamina + event.effect.stamina);
+          runState.log.push(`💚 Heal +${heal} HP +${event.effect.stamina} stamina`);
+        } else {
+          runState.log.push(`💚 Heal +${heal} HP`);
+        }
       } else if (event.type === 'puzzle') {
-        const gold = 100 + currentFloor * 2;
-        runState.gold += gold;
-        player.balance += gold;
-        runState.log.push(`🧩 Puzzle +${gold}g`);
+        if (event.effect?.hp) {
+          player.hp = Math.min(player.maxHp, player.hp + event.effect.hp);
+          runState.log.push(`🧩 Puzzle +${event.effect.hp} HP`);
+        } else {
+          const gold = event.effect?.gold ?? 100 + currentFloor * 2;
+          runState.gold += gold;
+          player.balance += gold;
+          runState.log.push(`🧩 Puzzle +${gold}g`);
+        }
       } else if (event.type === 'lore') {
-        // refund stamina biar lore = free room
         player.stamina = Math.min(player.maxStamina, player.stamina + DUNGEON_COST);
         const loreExp = 3 + Math.floor(currentFloor / 5);
         player.exp += loreExp;
         runState.exp += loreExp;
         runState.log.push(`📜 ${event.text} (+${loreExp} exp)`);
       } else if (event.type === 'merchant') {
-        // --- SCALING ---
         const baseCost = Math.abs(event.effect?.gold ?? 100);
-        const cost = baseCost + Math.floor(currentFloor * 2.5); // ruins ~105, summit ~350
-        const heal = 30 + Math.floor(currentFloor * 1.5); // ruins ~32, summit ~180
+        const cost = baseCost + Math.floor(currentFloor * 2.5);
+        const heal = 30 + Math.floor(currentFloor * 1.5);
         const canAfford = player.balance >= cost;
 
-        // tampilkan merchant
         const merchantEmbed = buildMerchantEmbed({
           text: event.text,
           cost,
           heal,
           floor: currentFloor,
           playerGold: player.balance,
+          zone,
         });
 
         await button.editReply({
@@ -368,7 +405,6 @@ export class DungeonCommand extends Command {
           components: [getMerchantButtons(cost, canAfford)],
         });
 
-        // tunggu pilihan player (20 detik)
         const choice = await message
           .awaitMessageComponent({
             filter: (i) => i.user.id === player.discordId && ['buy', 'skip'].includes(i.customId),
@@ -378,10 +414,8 @@ export class DungeonCommand extends Command {
           .catch(() => null);
 
         if (choice) await choice.deferUpdate();
-
-        if (choice?.customId === 'buy' && canAfford) {
+        if (choice?.customId === 'buy' && player.balance >= cost) {
           player.balance -= cost;
-          // jangan potong runState.gold, biar gold run tetap buat reward akhir
           player.hp = Math.min(player.maxHp, player.hp + heal);
           runState.log.push(`🛒 Beli ramuan -${cost}g +${heal} HP`);
           await choice.editReply({
@@ -392,7 +426,6 @@ export class DungeonCommand extends Command {
         } else {
           runState.log.push(`🛒 ${event.text} (dilewati)`);
         }
-        // lanjut, tombol balik ke main
       }
 
       await player.save();
@@ -414,11 +447,24 @@ export class DungeonCommand extends Command {
         const pool = DUNGEON_DROPS[floorMonster.base] ?? DUNGEON_DROPS.slime;
         if (Math.random() < (isBossFloor ? 1 : 0.7)) {
           const drop = pool[Math.floor(Math.random() * pool.length)];
-          await itemModel.updateOne({ itemId: drop.id }, { $set: drop }, { upsert: true });
-          const inv = player.items.find((x) => x.itemId === drop.id);
+          const safeDrop = {
+            itemId: drop.id,
+            name: drop.name,
+            emoji: drop.emoji,
+            description: drop.description,
+            type: drop.type,
+            rarity: drop.rarity,
+            sellPrice: drop.sell,
+          };
+          await itemModel.updateOne(
+            { itemId: safeDrop.itemId },
+            { $set: safeDrop },
+            { upsert: true },
+          );
+          const inv = player.items.find((x) => x.itemId === safeDrop.itemId);
           if (inv) inv.qty++;
-          else player.items.push({ itemId: drop.id, qty: 1 });
-          runState.log.push(`🎁 ${drop.emoji} ${drop.name}`);
+          else player.items.push({ itemId: safeDrop.itemId, qty: 1 });
+          runState.log.push(`🎁 ${safeDrop.emoji} ${safeDrop.name}`);
         }
 
         const levelUp = checkLevelUp(player);

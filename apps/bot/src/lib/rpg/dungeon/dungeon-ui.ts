@@ -5,13 +5,10 @@ import { RunState } from './dungeon-state';
 export function renderMapIcons(state: RunState, isBoss: boolean): string {
   const icons: string[] = [];
   for (let i = 1; i <= state.rooms; i++) {
-    if (i < state.current)
-      icons.push('🟩'); // selesai
-    else if (i === state.current)
-      icons.push('🟦'); // posisi sekarang
-    else if (i === state.rooms && isBoss)
-      icons.push('👑'); // boss
-    else icons.push('⬜'); // belum
+    if (i < state.current) icons.push('🟩');
+    else if (i === state.current) icons.push('🟦');
+    else if (i === state.rooms && isBoss) icons.push('👑');
+    else icons.push('⬜');
   }
   return icons.join(' ');
 }
@@ -40,7 +37,6 @@ export function buildMainEmbed(params: {
     highestFloor,
     isBoss,
   } = params;
-
   return new EmbedBuilder()
     .setTitle(`🗼 Lantai ${floor} [${state.current}/${state.rooms}] • ${zone}`)
     .setDescription(`*${lore}*\n\n${state.log.slice(-6).join('\n') || 'Memasuki tower...'}`)
@@ -74,10 +70,7 @@ export function buildMapEmbed(params: {
   return new EmbedBuilder()
     .setTitle(`🗺️ Peta Lantai ${params.floor}`)
     .setDescription(
-      `*${params.lore}*\n${params.zone}\n\n**${renderMapIcons(params.state, params.isBoss)}**\n` +
-        `\`${params.state.current}/${params.state.rooms} ruangan\`\n\n` +
-        `🟩 Selesai • 🟦 Kamu • ⬜ Belum • ${params.isBoss ? '👑 Boss' : ''}\n\n` +
-        `**Log Lengkap:**\n${params.state.log.join('\n') || '-'}`,
+      `*${params.lore}*\n${params.zone}\n\n**${renderMapIcons(params.state, params.isBoss)}**\n\`${params.state.current}/${params.state.rooms} ruangan\`\n\n🟩 Selesai • 🟦 Kamu • ⬜ Belum • ${params.isBoss ? '👑 Boss' : ''}\n\n**Log Lengkap:**\n${params.state.log.join('\n') || '-'}`,
     )
     .setColor(0x3498db)
     .setFooter({
@@ -100,11 +93,7 @@ export function buildFleeEmbed(params: {
     .setTitle('🏃 Kamu Mundur')
     .setColor(0x95a5a6)
     .setDescription(
-      `*${params.lore}*\n\n` +
-        `Kamu keluar dari **Room ${params.state.current}/${params.state.rooms}**.\n\n` +
-        `> **Lantai ${params.floor} TIDAK hilang** — progress run saja yang dibatalkan.\n` +
-        `> Kamu bisa masuk lagi dari awal Lantai ${params.floor} kapan saja.\n` +
-        `> ℹ️ Checkpoint L${params.checkpoint} **hanya untuk respawn saat mati**, bukan saat kabur.`,
+      `*${params.lore}*\n\nKamu keluar dari **Room ${params.state.current}/${params.state.rooms}**.\n\n> **Lantai ${params.floor} TIDAK hilang** — progress run saja yang dibatalkan.\n> Kamu bisa masuk lagi dari awal Lantai ${params.floor} kapan saja.\n> ℹ️ Checkpoint L${params.checkpoint} **hanya untuk respawn saat mati**, bukan saat kabur.`,
     )
     .addFields(
       { name: '💰 Gold dibawa pulang', value: `${params.state.gold}`, inline: true },
@@ -129,8 +118,7 @@ export function buildRestEmbed(params: {
     .setColor(0x2ecc71)
     .setDescription(
       params.state.log.join('\n') +
-        `\n\n**Reward: +${params.state.gold} koin • +${params.state.exp} exp**` +
-        `\n\n🏠 Kamu istirahat di lantai ${params.nextFloor}.`,
+        `\n\n**Reward: +${params.state.gold} koin • +${params.state.exp} exp**\n\n🏠 Kamu istirahat di lantai ${params.nextFloor}.`,
     )
     .setFooter({ text: `Highest: ${params.highestFloor} • Tower of Stars` });
 }
@@ -176,15 +164,19 @@ export function buildMerchantEmbed(params: {
   heal: number;
   floor: number;
   playerGold: number;
+  zone: string;
 }) {
+  const titles: Record<string, string> = {
+    ruins: '🛒 Pedagang Reruntuhan',
+    mines: '⛏️ Pedagang Kurcaci',
+    library: '📚 Pustakawan',
+    temple: '⛩️ Miko Kuil',
+    summit: '✨ Pedagang Astral',
+  };
   return new EmbedBuilder()
-    .setTitle('🛒 Pedagang Misterius')
+    .setTitle(titles[params.zone] ?? '🛒 Pedagang Misterius')
     .setDescription(
-      `*${params.text}*\n\n` +
-        `Menawarkan **Ramuan Penyembuh**\n` +
-        `💚 Heal: +${params.heal} HP\n` +
-        `💰 Harga: ${params.cost} gold\n\n` +
-        `Gold kamu: ${params.playerGold}`,
+      `*${params.text}*\n\nMenawarkan **Ramuan Penyembuh**\n💚 Heal: +${params.heal} HP\n💰 Harga: ${params.cost} gold\n\nGold kamu: ${params.playerGold}`,
     )
     .setColor(0xf1c40f)
     .setFooter({ text: `Lantai ${params.floor} • Pilih dalam 20 detik` });
