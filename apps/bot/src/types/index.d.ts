@@ -9,5 +9,14 @@ declare module '@sapphire/pieces' {
       dungeon: typeof Dungeon;
       connection: Connection;
     };
+    invCache: Map<
+      string,
+      {
+        allItems: Array<{ id: string; text: string; sub: string; value: number; rarity: string }>;
+        totalValue: number;
+        userId: string;
+        t: number;
+      }
+    >;
   }
 }
