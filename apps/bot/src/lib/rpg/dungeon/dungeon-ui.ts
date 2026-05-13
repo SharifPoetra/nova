@@ -1,5 +1,5 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { bar } from '../../utils';
+import { colorBar, ratioBar } from '../../utils';
 import { RunState } from './dungeon-state';
 
 export function renderMapIcons(state: RunState, isBoss: boolean): string {
@@ -43,12 +43,12 @@ export function buildMainEmbed(params: {
     .addFields(
       {
         name: '❤️ HP',
-        value: `${bar(playerHp, playerMaxHp)} ${playerHp}/${playerMaxHp}`,
+        value: `${colorBar(playerHp, playerMaxHp, 10, '🟥', '⬛')} ${playerHp}/${playerMaxHp}`,
         inline: false,
       },
       {
         name: '⚡ Stamina',
-        value: `${bar(playerStamina, playerMaxStamina)} ${playerStamina}/${playerMaxStamina}`,
+        value: `${colorBar(playerStamina, playerMaxStamina, 10, '🟨', '⬛')} ${playerStamina}/${playerMaxStamina}`,
         inline: false,
       },
       { name: '💰 Gold Run', value: `${state.gold}`, inline: true },
@@ -143,12 +143,12 @@ export function buildBattleEmbed(params: {
     .addFields(
       {
         name: `❤️ ${params.playerName}`,
-        value: `${bar(params.playerHp, params.playerMaxHp)} ${params.playerHp}/${params.playerMaxHp}`,
+        value: `${ratioBar(params.playerHp, params.playerMaxHp)} ${params.playerHp}/${params.playerMaxHp}`,
         inline: true,
       },
       {
         name: `${params.monsterEmoji} HP`,
-        value: `${bar(Math.max(0, params.monsterHp), params.monsterMaxHp)} ${Math.max(0, params.monsterHp)}/${params.monsterMaxHp}`,
+        value: `${ratioBar(Math.max(0, params.monsterHp), params.monsterMaxHp)} ${Math.max(0, params.monsterHp)}/${params.monsterMaxHp}`,
         inline: true,
       },
     )

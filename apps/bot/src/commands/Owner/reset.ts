@@ -50,9 +50,7 @@ export class ResetCommand extends Command {
 
     if (target === 'items') {
       await this.container.db.item.deleteMany({});
-      return interaction.editReply(
-        '✅ Collection `items` dihapus.'
-      );
+      return interaction.editReply('✅ Collection `items` dihapus.');
     }
     if (target === 'users') {
       await this.container.db.user.deleteOne({ discordId: interaction.user.id });

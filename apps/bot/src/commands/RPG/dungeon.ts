@@ -1,7 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { ComponentType, EmbedBuilder, MessageFlags } from 'discord.js';
-import { sleep, bar } from '../../lib/utils';
+import { sleep, ratioBar, colorBar } from '../../lib/utils';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { ACTION_COST } from '../../lib/rpg/actions';
@@ -36,9 +36,9 @@ import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle';
   name: 'dungeon',
   description: 'Tower of Stars - 100 floor dungeon',
   detailedDescription: {
-  usage: '/dungeon action:<enter|status|leave>',
-  examples: ['/dungeon action:enter', '/dungeon action:status'],
-  extendedHelp: `
+    usage: '/dungeon action:<enter|status|leave>',
+    examples: ['/dungeon action:enter', '/dungeon action:status'],
+    extendedHelp: `
 Tower of Stars — dungeon 100 lantai (5 zona).
 Cost 15 stamina per room.
 
@@ -54,7 +54,7 @@ Cost 15 stamina per room.
 
 Tips: masak di /cook dulu, HP >50%, cek /dungeon action:status sebelum boss.
 `.trim(),
-},
+  },
   fullCategory: ['RPG'],
 })
 export class DungeonCommand extends Command {
@@ -108,8 +108,8 @@ export class DungeonCommand extends Command {
             .setDescription(
               `**Lantai ${dungeonData.currentFloor}** • ${zone}\n*${lore}*\n\n` +
                 `Highest: ${dungeonData.highestFloor}/100\nCheckpoint: ${checkpoint}\n` +
-                `HP ${bar(player.hp, player.maxHp)} ${player.hp}/${player.maxHp}\n` +
-                `Stamina ${bar(player.stamina, player.maxStamina)} ${player.stamina}/${player.maxStamina}\n` +
+                `HP ${ratioBar(player.hp, player.maxHp)} ${player.hp}/${player.maxHp}\n` +
+                `Stamina ${colorBar(player.stamina, player.maxStamina, 10, '🟨', '⬛')} ${player.stamina}/${player.maxStamina}\n` +
                 `${dungeonData.inRun ? '⚠️ Sedang dalam run!' : ''}`,
             )
             .setColor(0x9b59b6),
