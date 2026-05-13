@@ -1,10 +1,25 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { PermissionFlagsBits } from 'discord.js';
+import { PermissionFlagsBits, MessageFlags } from 'discord.js';
 
 @ApplyOptions<Command.Options>({
   name: 'reset',
   description: 'Reset data RPG (owner only)',
+  detailedDescription: {
+    usage: '/reset target:<items|me|all>',
+    examples: ['/reset target:items', '/reset target:me'],
+    extendedHelp: `
+Maintenance khusus Owner.
+
+**Target:**
+• items — hapus collection items
+• users — hapus collection users
+• all — WIPE TOTAL semua user (DANGER!)
+
+Butuh permission OwnerOnly.
+Jalankan 'items' setelah update /fish atau /hunt.
+`.trim(),
+  },
   preconditions: ['OwnerOnly'],
   fullCategory: ['Owner'],
 })
@@ -20,9 +35,9 @@ export class ResetCommand extends Command {
             .setDescription('apa yang direset')
             .setRequired(true)
             .addChoices(
-              { name: 'items (perbaiki rarity)', value: 'items' },
-              { name: 'my data', value: 'me' },
-              { name: 'ALL USERS (bahaya!)', value: 'all' },
+              { name: 'Hapus collection items', value: 'items' },
+              { name: 'Hapus collection users', value: 'users' },
+              { name: 'ALL DATA (bahaya!)', value: 'all' },
             ),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
@@ -31,17 +46,17 @@ export class ResetCommand extends Command {
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     const target = interaction.options.getString('target', true);
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     if (target === 'items') {
       await this.container.db.item.deleteMany({});
       return interaction.editReply(
-        '✅ Collection `items` dihapus. `/fish` sekali untuk rebuild dengan rarity baru.',
+        '✅ Collection `items` dihapus.'
       );
     }
-    if (target === 'me') {
+    if (target === 'users') {
       await this.container.db.user.deleteOne({ discordId: interaction.user.id });
-      return interaction.editReply('✅ Data kamu dihapus. Gunakan `/start` lagi.');
+      return interaction.editReply('✅ Collection `users` dihapus.';
     }
 
     if (target === 'all') {

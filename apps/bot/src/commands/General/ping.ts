@@ -5,6 +5,22 @@ import { EmbedBuilder } from 'discord.js';
 @ApplyOptions<Command.Options>({
   name: 'ping',
   description: 'Cek respon bot Nova',
+  detailedDescription: {
+    usage: '/ping',
+    examples: ['/ping'],
+    extendedHelp: `
+Cek kesehatan bot secara real-time.
+
+**Yang diukur:**
+- WebSocket — latency ke Discord gateway
+- API — waktu respon interaction
+- Database — ping ke MongoDB
+- Uptime — berapa lama bot hidup
+
+Warna embed hijau <150ms, kuning <300ms, merah >300ms.
+Gunakan saat bot terasa lag sebelum lapor bug.
+`.trim(),
+  },
   fullCategory: ['General'],
 })
 export class PingCommand extends Command {
