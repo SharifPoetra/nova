@@ -1,12 +1,11 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
-import { sleep, bar } from '../../lib/utils';
+import { sleep, ratioBar, RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
 import { getScaledMonster } from '../../lib/rpg/monsters';
 import { ACTION_COST } from '../../lib/rpg/actions';
-import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 
 @ApplyOptions<Command.Options>({
   name: 'hunt',
@@ -110,10 +109,10 @@ export class HuntCommand extends Command {
       embed.setDescription(log.slice(-4).join('\n') + buffInfo).setFields(
         {
           name: `${monster.emoji} ${monster.name}`,
-          value: `${bar(mHp, mMax)} \`${mHp}/${mMax}\``,
+          value: `${ratioBar(mHp, mMax)} \`${mHp}/${mMax}\``,
           inline: false,
         },
-        { name: `❤️ Kamu`, value: `${bar(uHp, uMax)} \`${uHp}/${uMax}\``, inline: false },
+        { name: `❤️ Kamu`, value: `${ratioBar(uHp, uMax)} \`${uHp}/${uMax}\``, inline: false },
       );
       await interaction.editReply({ embeds: [embed] });
       await sleep(850);
@@ -133,10 +132,10 @@ export class HuntCommand extends Command {
       embed.setDescription(log.slice(-4).join('\n') + buffInfo).setFields(
         {
           name: `${monster.emoji} ${monster.name}`,
-          value: `${bar(mHp, mMax)} \`${mHp}/${mMax}\``,
+          value: `${ratioBar(mHp, mMax)} \`${mHp}/${mMax}\``,
           inline: false,
         },
-        { name: `❤️ Kamu`, value: `${bar(uHp, uMax)} \`${uHp}/${uMax}\``, inline: false },
+        { name: `❤️ Kamu`, value: `${ratioBar(uHp, uMax)} \`${uHp}/${uMax}\``, inline: false },
       );
       await interaction.editReply({ embeds: [embed] });
       await sleep(850);

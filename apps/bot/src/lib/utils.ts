@@ -1,9 +1,44 @@
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export const bar = (cur: number, max: number, size = 10) => {
-  const p = Math.max(0, Math.min(1, cur / max));
-  const f = Math.round(p * size);
-  return '▰'.repeat(f) + '▱'.repeat(size - f);
+export const uniBar = (current: number, max: number, size = 10) => {
+  const safeMax = Math.max(1, max ?? 1);
+  const safeCurrent = Math.max(0, current ?? 0);
+
+  const percent = Math.min(1, safeCurrent / safeMax);
+  const filledCount = Math.round(percent * size);
+  const emptyCount = size - filledCount;
+
+  return '▰'.repeat(filledCount) + '▱'.repeat(emptyCount);
+};
+
+/**
+ * pakai:
+ * colorBar(hp, maxHp, 10, '🟥', '⬛')  // HP merah
+ * colorBar(stamina, maxStamina, 10, '🟨', '⬛')  // stamina kuning
+ * colorBar(exp, expNeeded, 12, '🟦', '⬜')  // exp biru
+ **/
+export const colorBar = (
+  current: number,
+  max: number,
+  size = 10,
+  filledEmoji = '🟩',
+  emptyEmoji = '⬜',
+) => {
+  const safeMax = Math.max(1, max ?? 1);
+  const safeCurrent = Math.max(0, current ?? 0);
+
+  const percent = Math.min(1, safeCurrent / safeMax);
+  const filledCount = Math.round(percent * size);
+  const emptyCount = Math.max(0, size - filledCount);
+
+  return filledEmoji.repeat(filledCount) + emptyEmoji.repeat(emptyCount);
+};
+
+export const ratioBar = (current: number, max: number, size = 10) => {
+  const ratio = Math.min(1, Math.max(0, current / Math.max(1, max)));
+  const filled = Math.round(ratio * size);
+  const emoji = ratio > 0.6 ? '🟩' : ratio > 0.3 ? '🟨' : '🟥';
+  return emoji.repeat(filled) + '⬛'.repeat(size - filled);
 };
 
 export const formatNumber = (n: number) => n.toLocaleString('id-ID');
