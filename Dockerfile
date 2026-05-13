@@ -13,14 +13,13 @@ FROM node:22-slim
 
 WORKDIR /usr/src/app
 
-COPY --from=build /usr/src/app/package*.json ./
-RUN npm install --only=production
-
 COPY --from=build /usr/src/app/ ./
 
+RUN mkdir -p /usr/src/app/logs && chown -R node:node /usr/src/app
+
+ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE $PORT
-
 
 USER node
 
