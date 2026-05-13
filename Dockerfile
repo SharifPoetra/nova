@@ -3,12 +3,9 @@ FROM node:22 AS build
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-COPY tsconfig.json ./
+COPY . .
 
 RUN npm install
-RUN npm install --save-dev typescript @types/node
-
-COPY . .
 
 RUN npm run build
 
