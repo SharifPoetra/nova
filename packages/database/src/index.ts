@@ -11,13 +11,15 @@ export const createDatabase = async (connectionString: string) => {
   try {
     // Setting buat mobile / koneksi tidak stabil
     const conn = await mongoose.connect(connectionString, {
-      serverSelectionTimeoutMS: 5000, // coba 5 detik, jangan 30 detik
-      socketTimeoutMS: 15000, // tutup socket kalau 15s gak respon
-      connectTimeoutMS: 10000, // timeout konek awal 10s
-      maxPoolSize: 5, // hemat RAM
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 15000,
+      connectTimeoutMS: 10000,
+      maxPoolSize: 5,
       minPoolSize: 1,
       retryWrites: true,
       retryReads: true,
+      heartbeatFrequencyMS: 5000,
+      family: 4,
     });
 
     const db = mongoose.connection;
