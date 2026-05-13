@@ -2,7 +2,7 @@ app = 'nova-hg8spq'
 primary_region = 'sin'
 
 [build]
-  builder = 'heroku/buildpacks:20'
+  builder = 'Dockerfile'
 
 [env]
   PORT = '3000'
