@@ -3,9 +3,12 @@ FROM node:22 AS build
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-COPY . .
+COPY packages/database/package*.json ./packages/database/
+COPY apps/bot/package*.json ./apps/bot/
 
-RUN npm install
+RUN npm ci --workspaces
+
+COPY . .
 
 RUN npm run build
 
