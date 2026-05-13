@@ -35,6 +35,26 @@ import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle';
 @ApplyOptions<Command.Options>({
   name: 'dungeon',
   description: 'Tower of Stars - 100 floor dungeon',
+  detailedDescription: {
+  usage: '/dungeon action:<enter|status|leave>',
+  examples: ['/dungeon action:enter', '/dungeon action:status'],
+  extendedHelp: `
+Tower of Stars — dungeon 100 lantai (5 zona).
+Cost 15 stamina per room.
+
+**Actions:**
+• enter — mulai/lanjutkan run
+• status — cek lantai, HP, stamina, checkpoint
+• leave — keluar & simpan progres
+
+**Isi lantai:**
+• Battle, treasure, trap, heal, merchant, puzzle
+• Boss tiap lantai 10 drop gear Epic+
+• Kalah = respawn di checkpoint kelipatan 10
+
+Tips: masak di /cook dulu, HP >50%, cek /dungeon action:status sebelum boss.
+`.trim(),
+},
   fullCategory: ['RPG'],
 })
 export class DungeonCommand extends Command {

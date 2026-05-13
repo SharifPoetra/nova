@@ -20,6 +20,27 @@ const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0
 @ApplyOptions<Command.Options>({
   name: 'inventory',
   description: 'Lihat semua item kamu',
+  detailedDescription: {
+    usage: '/inventory',
+    examples: ['/inventory'],
+    extendedHelp: `
+Lihat semua item, equipment, dan consumable yang kamu miliki.
+
+**Fitur:**
+- Auto-sort by rarity (Legendary → Common)
+- Hitung total nilai jual semua item
+- Pagination otomatis (10 item/halaman)
+- Dropdown untuk pakai consumable langsung
+
+**Info yang ditampilkan:**
+- ⚡ Stamina saat ini
+- 📦 Jumlah jenis item unik
+- 💰 Total nilai inventory
+- Deskripsi & harga jual per item
+
+Pakai setelah /explore, /hunt, atau /fish untuk cek hasil grinding.
+`.trim(),
+  },
   fullCategory: ['RPG'],
 })
 export class InventoryCommand extends Command {
