@@ -1,9 +1,20 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import { setGlobalDispatcher, Agent } from 'undici';
 import { GatewayIntentBits } from 'discord.js';
 import { SapphireClient, container, ApplicationCommandRegistries } from '@sapphire/framework';
 import { createDatabase, User, Item, Dungeon } from '@nova/db';
 import { logger } from './lib/logger';
+
+// undici keepalive untuk Discord (fix ECONNABORTED)
+setGlobalDispatcher(
+  new Agent({
+    connect: { timeout: 15000 },
+    keepAliveTimeout: 1000,
+    keepAliveMaxTimeout: 1000,
+    pipelining: 1,
+  }),
+);
 
 // load.env dari root project
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -27,9 +38,6 @@ const client = new SapphireClient({
 });
 
 async function main() {
-  process.on('unhandledRejection', e => console.error('[REJECT]', e));
-  process.on('uncaughtException', e => console.error('[EXCEPT]', e));
-
   try {
     console.log('--- STARTING NOVA ---');
     const mongoUri = process.env.MONGODB_URI;
@@ -44,8 +52,6 @@ async function main() {
       connection: conn.connection,
     };
 
-    console.log('Token exists:', !!process.env.DISCORD_TOKEN);
-
     await client.login(process.env.DISCORD_TOKEN);
     client.logger.info('🚀 Nova Sapphire sedang meluncur!');
   } catch (error) {
@@ -55,3 +61,13 @@ async function main() {
 }
 
 main();
+
+process.on('unhandledRejection', (err: any) => {
+  if (err.code === 'ECONNABORTED') return;
+  logger.error('[UNHANDLED]:', err);
+});
+
+process.on('uncaughtException', (err: any) => {
+  if (err.code === 'ECONNABORTED') return;
+  logger.error('[UNCAUGHT]:', err);
+});
