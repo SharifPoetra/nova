@@ -1,12 +1,13 @@
 # 🌌 Nova - Discord Bot & Activity RPG
 
-[![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Sapphire](https://img.shields.io/badge/Sapphire-v5-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://sapphirejs.dev/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongoosejs.com/)
-[![ESLint](https://img.shields.io/badge/ESLint-10-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)](https://eslint.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
-[![Monorepo](https://img.shields.io/badge/Monorepo-NPM_Workspaces-CB3837?style=for-the-badge&logo=npm&logoColor=white)](https://docs.npmjs.com/cli/v7/using-npm/workspaces)
+![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=nodedotjs)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript)
+![Sapphire](https://img.shields.io/badge/Sapphire-v5-5865F2?logo=discord)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb)
+![ESLint](https://img.shields.io/badge/ESLint-v10-4B32C3?logo=eslint)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Monorepo](https://img.shields.io/badge/Monorepo-NPM_Workspaces-CB3837)
+![Docker](https://img.shields.io/badge/Docker-ghcr.io-blue?logo=docker)
 
 Nova adalah Discord Bot + Activity berbasis **RPG** yang dibangun dengan arsitektur **Monorepo**. Menggunakan **Sapphire Framework** untuk command handler yang modular dan **Mongoose (MongoDB)** untuk data persistence. Fokusnya ke sistem grinding, dungeon, class, dan economy yang scalable.
 
@@ -33,13 +34,13 @@ Nova adalah Discord Bot + Activity berbasis **RPG** yang dibangun dengan arsitek
 
 | Kategori | Teknologi |
 | --- | --- |
-| **Runtime** | [Node.js 20+](https://nodejs.org/) |
-| **Language** | [TypeScript 6.0](https://www.typescript.org/) |
-| **Bot Framework** | [Sapphire Framework v5](https://www.sapphirejs.dev/) |
-| **Database** | [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/) |
-| **Package Manager** | [NPM Workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces) |
-| **Dev Tools** | [tsx](https://tsx.is/) untuk hot-reload |
-| **Linter/Formatter** | [ESLint v10 Flat Config](https://eslint.org/) & [Prettier](https://prettier.io/) |
+| **Runtime** | Node.js 20+ |
+| **Language** | TypeScript 6.0 |
+| **Bot Framework** | Sapphire Framework v5 |
+| **Database** | MongoDB via Mongoose |
+| **Package Manager** | NPM Workspaces |
+| **Dev Tools** | tsx untuk hot-reload |
+| **Linter/Formatter** | ESLint v10 Flat Config & Prettier |
 
 ---
 
@@ -55,21 +56,16 @@ nova/
 │ │ │ ├── General/ # help.ts, ping.ts, profile.ts
 │ │ │ ├── Owner/ # reset.ts
 │ │ │ └── RPG/ # cook.ts, dungeon.ts, explore.ts, fish.ts, hunt.ts, etc
-│ │ ├── interaction-handlers/ # classSelect.ts, cookSelect.ts, helpSelect.ts
-│ │ ├── listeners/ # client & command error handlers
-│ │ ├── lib/rpg/ # Logic game: classes, buffs, dungeon, leveling, monsters
-│ │ ├── preconditions/ # OwnerOnly.ts
+│ │ ├── interaction-handlers/
+│ │ ├── listeners/
+│ │ ├── lib/rpg/
+│ │ ├── preconditions/
 │ │ └── index.ts
 │ └── tsconfig.json
-├── packages/
-│ └── database/ # @nova/db
-│ └── src/
-│ ├── models/ # User.ts, Item.ts, Dungeon.ts
-│ └── index.ts # DB connection
+├── packages/database/
 ├── .env.example
-├── eslint.config.js # Flat config ESLint 10
-├── tsconfig.base.json # Base TS config untuk monorepo
-└── package.json # Workspaces + scripts
+├── Dockerfile
+└── package.json
 ```
 
 ---
@@ -80,13 +76,13 @@ nova/
 | Command | Deskripsi |
 | --- | --- |
 | `/ping` | Cek latency bot |
-| `/help` | List semua command + select menu kategori |
+| `/help` | List semua command + select menu |
 | `/profile` | Lihat profil, level, saldo, class |
 
 ### Economy
 | Command | Deskripsi |
 | --- | --- |
-| `/daily` | Klaim reward harian, cooldown 24 jam |
+| `/daily` | Klaim reward harian |
 | `/shop` | Beli item/consumable |
 | `/sell` | Jual item dari inventory |
 
@@ -94,73 +90,110 @@ nova/
 | Command | Deskripsi |
 | --- | --- |
 | `/start` | Buat karakter & pilih class |
-| `/explore` | Jelajahi area untuk EXP & drop random |
-| `/hunt` | Berburu monster untuk material |
-| `/fish` | Memancing untuk dapat ikan |
-| `/cook` | Masak dari recipe yang dimiliki |
-| `/dungeon` | Masuk dungeon turn-based battle |
-| `/inventory` | Cek semua item & equipment |
-| `/droprate` | Cek drop rate monster/item |
+| `/explore` | Jelajahi area untuk EXP & drop |
+| `/hunt` | Berburu monster |
+| `/fish` | Memancing |
+| `/cook` | Masak untuk heal/buff |
+| `/dungeon` | Masuk dungeon 100 lantai |
+| `/inventory` | Cek semua item |
+| `/droprate` | Cek drop rate |
 
-### Owner
-| Command | Deskripsi |
-| --- | --- |
-| `/reset <user>` | Reset data user, owner only |
+---
+
+## 🐳 Deploy dengan Docker
+
+### Opsi 1: Pull dari GHCR (Paling Cepat) ⭐
+Image official auto-build tiap push ke main:
+
+```bash
+docker pull ghcr.io/sharifpoetra/nova:latest
+
+docker run -d --name nova \
+  --env-file .env \
+  -e NODE_ENV=production \
+  --restart unless-stopped \
+  ghcr.io/sharifpoetra/nova:latest
+```
+
+### Opsi 2: Build Lokal
+```bash
+git clone https://github.com/SharifPoetra/nova.git
+cd nova
+docker build -t nova-bot .
+docker run -d --env-file .env nova-bot
+```
+
+### Deploy ke Platform
+
+**Railway**
+1. New Project → Deploy from GitHub
+2. Atau: Deploy from Image → `ghcr.io/sharifpoetra/nova:latest`
+3. Add Variables: `DISCORD_TOKEN`, `MONGODB_URI`, `OWNER_ID`
+
+**Fly.io**
+```bash
+fly launch --image ghcr.io/sharifpoetra/nova:latest
+fly secrets set DISCORD_TOKEN=xxx MONGODB_URI=xxx
+```
+
+**Render**
+- New → Web Service → Deploy existing image
+- Image URL: `ghcr.io/sharifpoetra/nova:latest`
+
+**Keunggulan:**
+- Image ~84MB (Node 22 slim multi-stage)
+- Build otomatis via GitHub Actions
+- No build time di Railway/Render
 
 ---
 
 ## 🚀 Cara Setup (Local/Termux)
 
 ### 1. Prasyarat
-- Node.js versi 20+
-- MongoDB Local atau MongoDB Atlas
+- Node.js 20+
+- MongoDB Atlas atau local
 
-### 2. Clone & Install
+### 2. Install
 ```bash
 git clone https://github.com/SharifPoetra/nova.git
 cd nova
-
-# Install semua dependencies + link workspaces
 npm install
 ```
 
-### 3. Konfigurasi .env
-Copy `.env.example` ke `.env` di **folder root**:
+### 3. .env
 ```env
 DISCORD_TOKEN=your_bot_token
-MONGODB_URI=mongodb+srv://user:pass@cluster/nova
+MONGODB_URI=mongodb+srv://...
 NODE_ENV=development
-OWNER_ID=your_discord_account_id
-DEV_GUILD_ID=your_test_server_id
+OWNER_ID=your_id
+DEV_GUILD_ID=test_server_id
 ```
 
-## 🏃 Menjalankan Proyek
-### Mode Development
-Hot-reload dengan `tsx`:
+### 4. Jalankan
 ```bash
+# dev
 npm run bot:dev
-```
 
-### Mode Produksi
-```bash
+# production
 npm run build
 npm run start
 ```
 
-## 🧹 Scripts Maintenance
+---
+
+## 🧹 Scripts
 | Script | Fungsi |
-| --- | --- |
-| `npm run lint` | Cek error ESLint v10 |
-| `npm run format` | Format dengan Prettier |
-| `npm run clean` | Hapus `node_modules` & `dist` semua workspace |
+| `npm run lint` | Cek ESLint |
+| `npm run format` | Format Prettier |
+| `npm run clean` | Hapus node_modules & dist |
+
+---
 
 ## 🤝 Kontribusi
-Kontribusi terbuka! Baca **[CONTRIBUTING.md](CONTRIBUTING.md)** dulu sebelum PR.
-
-Pastikan `npm run lint` lolos.
+Baca CONTRIBUTING.md sebelum PR.
 
 ## 👤 Author
-**SharifPoetra** - *Main Developer* - [GitHub](https://github.com/SharifPoetra/)
+**SharifPoetra** - [GitHub](https://github.com/SharifPoetra)
 
 ## 📄 License
-Proyek ini dilisensikan di bawah **[MIT License](LICENSE)**.
+MIT License
