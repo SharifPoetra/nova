@@ -39,7 +39,6 @@ export class ResetCommand extends Command {
         '✅ Collection `items` dihapus. `/fish` sekali untuk rebuild dengan rarity baru.',
       );
     }
-
     if (target === 'me') {
       await this.container.db.user.deleteOne({ discordId: interaction.user.id });
       return interaction.editReply('✅ Data kamu dihapus. Gunakan `/start` lagi.');
