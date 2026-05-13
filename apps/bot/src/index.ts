@@ -27,6 +27,9 @@ const client = new SapphireClient({
 });
 
 async function main() {
+  process.on('unhandledRejection', e => console.error('[REJECT]', e));
+  process.on('uncaughtException', e => console.error('[EXCEPT]', e));
+
   try {
     console.log('--- STARTING NOVA ---');
     const mongoUri = process.env.MONGODB_URI;
@@ -42,6 +45,7 @@ async function main() {
     };
 
     console.log('Token exists:', !!process.env.DISCORD_TOKEN);
+
     await client.login(process.env.DISCORD_TOKEN);
     client.logger.info('🚀 Nova Sapphire sedang meluncur!');
   } catch (error) {
