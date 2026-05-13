@@ -2,21 +2,22 @@ app = 'nova-hg8spq'
 primary_region = 'sin'
 
 [build]
-  builder = 'Dockerfile'
+  dockerfile = "Dockerfile"
 
 [env]
-  PORT = '3000'
-  NODE_ENV = 'production'
+  PORT = "8080"
+  NODE_ENV = "production"
 
 [http_service]
-  internal_port = 3000
+  internal_port = 8080
   force_https = true
   auto_stop_machines = false
   auto_start_machines = true
   min_machines_running = 1
-  processes = ['app']
+  processes = ["app"]
 
 [[vm]]
-  cpu_kind = 'shared'
+  cpu_kind = "shared"
   cpus = 1
   memory_mb = 256
+  
