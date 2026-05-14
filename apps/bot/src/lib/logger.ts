@@ -20,8 +20,9 @@ const rotate = () => {
 };
 
 export class RotatingLogger implements ILogger {
-  public level = process.env.NODE_ENV === 'production' ? LogLevel.Info : LogLevel.Debug;
-
+  public get level() {
+    return process.env.NODE_ENV === 'production' ? LogLevel.Info : LogLevel.Debug;
+  }
   public write(level: LogLevel, ...values: readonly unknown[]): void {
     rotate();
     const levelName = LogLevel[level].toLowerCase();
