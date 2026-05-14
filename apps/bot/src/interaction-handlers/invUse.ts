@@ -105,9 +105,7 @@ export class InvUseHandler extends InteractionHandler {
 
       invItem.qty -= 1;
       if (invItem.qty <= 0) user.items = user.items.filter((i) => i.itemId !== itemId);
-
       await user.save();
-
       return interaction.followUp({ content: msg });
     }
 
@@ -116,16 +114,12 @@ export class InvUseHandler extends InteractionHandler {
       let page = Number.parseInt(pageStr, 10);
       page = dir === 'next' ? page + 1 : page - 1;
       const cache = this.container.invCache?.get(interaction.message.id);
-      if (!cache)
-        return interaction.editReply({
-          content: 'Cache expired, ketik /inventory lagi',
-          components: [],
-        });
       const { allItems, totalValue } = cache;
       const totalPages = Math.max(1, Math.ceil(allItems.length / ITEMS_PER_PAGE));
       page = Math.max(0, Math.min(page, totalPages - 1));
       const pageItems = allItems.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE);
       const topRarity = pageItems[0]?.rarity || 'Common';
+
       const embed = new EmbedBuilder()
         .setAuthor({
           name: `${interaction.user.username}'s Inventory`,
@@ -138,6 +132,7 @@ export class InvUseHandler extends InteractionHandler {
         .setFooter({
           text: `Total nilai: ${totalValue.toLocaleString('id-ID')} koin | Hal ${page + 1}/${totalPages}`,
         });
+
       for (const it of pageItems) embed.addFields({ name: it.text, value: it.sub });
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
@@ -151,6 +146,7 @@ export class InvUseHandler extends InteractionHandler {
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(page >= totalPages - 1),
       );
+
       const itemIds = user.items.map((i) => i.itemId);
       const itemsData = await this.container.db.item.find({ itemId: { $in: itemIds } }).lean();
       const itemMap = new Map(itemsData.map((i) => [i.itemId, i]));
@@ -161,6 +157,7 @@ export class InvUseHandler extends InteractionHandler {
         | ActionRowBuilder<ButtonBuilder>
         | ActionRowBuilder<StringSelectMenuBuilder>
       )[] = [row];
+
       if (consumables.length) {
         components.push(
           new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(

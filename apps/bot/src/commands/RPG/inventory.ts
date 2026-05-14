@@ -128,6 +128,7 @@ export class InventoryCommand extends Command {
     const consumables = user.items
       .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
       .slice(0, 25);
+
     if (consumables.length) {
       components.push(
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -150,6 +151,7 @@ export class InventoryCommand extends Command {
     }
 
     const msg = await interaction.editReply({ embeds: [embed], components });
+    
     this.container.invCache ??= new Map();
     this.container.invCache.set(msg.id, {
       allItems,
@@ -157,6 +159,21 @@ export class InventoryCommand extends Command {
       userId: interaction.user.id,
       t: Date.now(),
     });
-    setTimeout(() => this.container.invCache.delete(msg.id), 5 * 60 * 1000);
+
+    setTimeout(
+      async () => {
+        try {
+          const expiredEmbed = EmbedBuilder.from(embed)
+            .setFooter({ text: `⏰ Waktu habis — ketik /inventory lagi` })
+            .setColor(0x808080);
+
+          await interaction.editReply({ embeds: [expiredEmbed], components: [] });
+          this.container.invCache.delete(msg.id);
+        } catch {
+          /* ignore */
+        }
+      },
+      5 * 60 * 1000,
+    );
   }
 }
