@@ -6,17 +6,16 @@ import {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  MessageFlags,
   StringSelectMenuBuilder,
 } from 'discord.js';
 import { RARITY_COLOR } from '../lib/utils';
+import { applyPassiveRegen } from '../lib/rpg/buffs';
 
 const ITEMS_PER_PAGE = 10;
 const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
 
-@ApplyOptions<InteractionHandler.Options>({
-  name: 'inv',
-  interactionHandlerType: InteractionHandlerTypes.MessageComponent,
-})
+@ApplyOptions({ name: 'inv', interactionHandlerType: InteractionHandlerTypes.MessageComponent })
 export class InvUseHandler extends InteractionHandler {
   public override parse(interaction) {
     if (typeof interaction.customId !== 'string') return this.none();
@@ -32,64 +31,102 @@ export class InvUseHandler extends InteractionHandler {
 
   public override async run(interaction: ButtonInteraction | StringSelectMenuInteraction) {
     const userId = interaction.customId.split('_').at(-1)!;
-    if (interaction.user.id !== userId) {
-      return interaction.reply({ content: 'Bukan inventory kamu!', ephemeral: true });
-    }
+    if (interaction.user.id !== userId)
+      return interaction.reply({ content: 'Bukan inventory kamu!', flags: MessageFlags.Ephemeral });
 
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (!user) return;
+    applyPassiveRegen(user);
 
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith('inv_use_')) {
       const itemId = interaction.values[0];
       const item = await this.container.db.item.findOne({ itemId }).lean();
-      if (!item) return interaction.reply({ content: 'Item tidak ditemukan', ephemeral: true });
+      if (!item)
+        return interaction.reply({
+          content: 'Item tidak ditemukan',
+          flags: MessageFlags.Ephemeral,
+        });
 
       const invItem = user.items.find((i) => i.itemId === itemId);
       if (!invItem || invItem.qty < 1)
-        return interaction.reply({ content: 'Habis!', ephemeral: true });
+        return interaction.reply({ content: 'Habis!', flags: MessageFlags.Ephemeral });
+
+      const effects = item.effects || [];
+      if (effects.length === 0) {
+        return interaction.reply({
+          content: '❌ Item ini tidak bisa dipakai',
+          flags: MessageFlags.Ephemeral,
+        });
+      }
 
       let msg = `✅ Pakai ${item.emoji} **${item.name}**`;
-      if (item.effect === 'heal') {
-        const before = user.hp ?? 0;
-        user.hp = Math.min(user.maxHp ?? 100, before + (item.effectValue || 0));
-        msg += ` (+${user.hp - before} HP)`;
-        if (item.itemId === 'nova_essence') {
-          const beforeS = user.stamina ?? 0;
-          user.stamina = Math.min(user.maxStamina ?? 100, beforeS + 50);
-          msg += ` (+50 ⚡)`;
+      let applied = 0;
+
+      for (const eff of effects) {
+        if (eff.type === 'heal') {
+          const before = user.hp ?? 0;
+          const maxHp = user.maxHp ?? 100;
+          if (before >= maxHp) continue;
+          user.hp = Math.min(maxHp, before + eff.value);
+          const gained = user.hp - before;
+          if (gained > 0) {
+            msg += `\n❤️ +${gained} HP`;
+            applied++;
+          }
+        } else if (eff.type === 'stamina') {
+          const before = user.stamina ?? 0;
+          const maxSt = user.maxStamina ?? 100;
+          if (before >= maxSt) continue;
+          user.stamina = Math.min(maxSt, before + eff.value);
+          const gained = user.stamina - before;
+          if (gained > 0) {
+            msg += `\n⚡ +${gained} Stamina`;
+            applied++;
+          }
+        } else if (eff.type === 'buff') {
+          user.buffs = user.buffs || [];
+          user.buffs.push({
+            type: 'atk',
+            value: eff.value,
+            expires: new Date(Date.now() + 10 * 60 * 1000),
+          });
+          msg += `\n⚔️ ATK +${eff.value} (10m)`;
+          applied++;
+        } else if (eff.type === 'mana') {
+          msg += `\n🔮 Mana +${eff.value} (belum aktif)`;
         }
-      } else if (item.effect === 'stamina') {
-        const before = user.stamina ?? 0;
-        user.stamina = Math.min(user.maxStamina ?? 100, before + (item.effectValue || 0));
-        msg += ` (+${user.stamina - before} ⚡)`;
+      }
+
+      if (applied === 0) {
+        return interaction.reply({
+          content: `❌ ${item.emoji} **${item.name}** tidak berpengaruh (HP/Stamina sudah penuh)`,
+          flags: MessageFlags.Ephemeral,
+        });
       }
 
       invItem.qty -= 1;
       if (invItem.qty <= 0) user.items = user.items.filter((i) => i.itemId !== itemId);
       await user.save();
-      await interaction.update({ content: msg, components: [] });
-      return;
+
+      await interaction.deferUpdate();
+      return interaction.followUp({ content: msg, flags: MessageFlags.Ephemeral });
     }
 
     if (interaction.isButton()) {
       const [, dir, pageStr] = interaction.customId.split('_');
       let page = Number.parseInt(pageStr, 10);
       page = dir === 'next' ? page + 1 : page - 1;
-
       const cache = this.container.invCache?.get(interaction.message.id);
       if (!cache)
         return interaction.update({
           content: 'Cache expired, ketik /inventory lagi',
           components: [],
         });
-
       const { allItems, totalValue } = cache;
       const totalPages = Math.max(1, Math.ceil(allItems.length / ITEMS_PER_PAGE));
       page = Math.max(0, Math.min(page, totalPages - 1));
-
       const pageItems = allItems.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE);
       const topRarity = pageItems[0]?.rarity || 'Common';
-
       const embed = new EmbedBuilder()
         .setAuthor({
           name: `${interaction.user.username}'s Inventory`,
@@ -102,9 +139,7 @@ export class InvUseHandler extends InteractionHandler {
         .setFooter({
           text: `Total nilai: ${totalValue.toLocaleString('id-ID')} koin | Hal ${page + 1}/${totalPages}`,
         });
-
       for (const it of pageItems) embed.addFields({ name: it.text, value: it.sub });
-
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId(`inv_prev_${page}_${userId}`)
@@ -117,15 +152,16 @@ export class InvUseHandler extends InteractionHandler {
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(page >= totalPages - 1),
       );
-
       const itemIds = user.items.map((i) => i.itemId);
       const itemsData = await this.container.db.item.find({ itemId: { $in: itemIds } }).lean();
       const itemMap = new Map(itemsData.map((i) => [i.itemId, i]));
       const consumables = user.items
         .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
         .slice(0, 25);
-
-      const components: ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[] = [row];
+      const components: (
+        | ActionRowBuilder<ButtonBuilder>
+        | ActionRowBuilder<StringSelectMenuBuilder>
+      )[] = [row];
       if (consumables.length) {
         components.push(
           new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -146,7 +182,6 @@ export class InvUseHandler extends InteractionHandler {
           ),
         );
       }
-
       await interaction.update({ embeds: [embed], components });
     }
   }

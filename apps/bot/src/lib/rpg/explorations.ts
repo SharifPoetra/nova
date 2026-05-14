@@ -9,6 +9,7 @@ export interface ExploreItem {
   sellPrice: number;
   type: 'material' | 'consumable';
   description: string;
+  effects?: { type: 'heal' | 'stamina' | 'mana' | 'buff'; value: number }[];
 }
 
 export interface ExploreOutcome {
@@ -100,7 +101,8 @@ export const EXPLORES: ExploreOutcome[] = [
       rarity: 'Uncommon',
       sellPrice: 30,
       type: 'consumable',
-      description: 'Madu hutan manis, bisa langsung diminum +15 HP',
+      description: 'Madu hutan manis, +15 HP',
+      effects: [{ type: 'heal', value: 15 }],
     },
   },
   {
@@ -206,7 +208,7 @@ export const EXPLORES: ExploreOutcome[] = [
 
   // EPIC
   {
-    text: 'DUNGEON! Peti berisi madu hutan.',
+    text: 'DUNGEON! Altar madu suci.',
     coins: 300,
     exp: 60,
     emoji: '🏰',
@@ -216,11 +218,12 @@ export const EXPLORES: ExploreOutcome[] = [
       id: 'honey',
       name: 'Madu Liar',
       emoji: '🍯',
-      qty: 2,
+      qty: 3,
       rarity: 'Uncommon',
       sellPrice: 30,
       type: 'consumable',
-      description: 'Madu hutan manis, bisa langsung diminum +15 HP',
+      description: 'Madu hutan manis, +15 HP',
+      effects: [{ type: 'heal', value: 15 }],
     },
   },
   {

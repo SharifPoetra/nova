@@ -10,6 +10,7 @@ export interface Fish {
   xp: number;
   type: 'material' | 'consumable';
   description: string;
+  effects?: { type: 'heal' | 'stamina' | 'mana' | 'buff'; value: number }[];
 }
 
 export const FISHES: Fish[] = [

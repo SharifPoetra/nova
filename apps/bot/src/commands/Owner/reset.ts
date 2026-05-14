@@ -60,6 +60,7 @@ export class ResetCommand extends Command {
     if (target === 'all') {
       await this.container.db.user.deleteMany({});
       await this.container.db.item.deleteMany({});
+      await this.container.db.dungeon.deleteMany({});
       return interaction.editReply('💥 SEMUA data diwipe. Fresh start!');
     }
   }
