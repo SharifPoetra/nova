@@ -82,11 +82,11 @@ export class HelpCommand extends Command {
       .setColor(0x5865f2);
 
     const emojis: Record<string, string> = {
-  rpg: '⚔️',
-  economy: '💰',
-  general: '📜',
-  owner: '👑',
-};
+      rpg: '⚔️',
+      economy: '💰',
+      general: '📜',
+      owner: '👑',
+    };
 
     for (const [cat, list] of [...grouped.entries()].sort()) {
       embed.addFields({

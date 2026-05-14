@@ -9,7 +9,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc && cp -r src/locales dist/locales",
     "start": "node dist/index.js"
   },
   "dependencies": {
@@ -17,6 +17,7 @@
     "@sapphire/decorators": "^6.2.0",
     "@sapphire/framework": "^5.5.0",
     "@sapphire/pieces": "^4.4.1",
+    "@sapphire/plugin-i18next": "^8.0.0",
     "discord.js": "^14.26.4",
     "dotenv": "^17.4.2"
   },

@@ -1,7 +1,6 @@
+import '@sapphire/plugin-i18next/register';
 import dotenv from 'dotenv';
 import path from 'path';
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-
 import { createWriteStream, existsSync, mkdirSync, WriteStream } from 'fs';
 import { setGlobalDispatcher, Agent } from 'undici';
 import { GatewayIntentBits } from 'discord.js';
@@ -11,7 +10,9 @@ import {
   ApplicationCommandRegistries,
   LogLevel,
 } from '@sapphire/framework';
-import { createDatabase, User, Item, Dungeon } from '@nova/db';
+import { createDatabase, User, Item, Dungeon, Guild } from '@nova/db';
+
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 // undici keepalive
 setGlobalDispatcher(
@@ -31,6 +32,8 @@ if (process.env.NODE_ENV === 'development' && devGuildId) {
 const isProd = process.env.NODE_ENV === 'production';
 
 const client = new SapphireClient({
+  baseUserDirectory: __dirname,
+  loadMessageCommandListeners: true,
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
@@ -39,8 +42,34 @@ const client = new SapphireClient({
   logger: {
     level: isProd ? LogLevel.Info : LogLevel.Debug, // <-- ini kuncinya
   },
-  baseUserDirectory: __dirname,
-  loadMessageCommandListeners: true,
+  i18n: {
+    fetchLanguage: async (context) => {
+      if (context.user?.id) {
+        const user = await container.db.user.findOne({ discordId: context.user.id }).lean();
+        if (user?.lang) return user.lang;
+      }
+
+      if (context.guild?.id) {
+        const guild = await container.db.guild.findOne({ guildId: context.guild.id }).lean();
+        if (guild?.lang) return guild.lang;
+      }
+
+      const discordLocale = context.interactionGuildLocale ?? context.interactionLocale;
+      if (discordLocale?.startsWith('en')) return 'en';
+
+      return context.guild?.preferredLocale?.startsWith('en') ? 'en' : 'id';
+    },
+    defaultLanguageDirectory: path.join(__dirname, 'locales'),
+    defaultName: 'id',
+    i18next: {
+      fallbackLng: 'id',
+      returnEmptyString: false,
+      interpolation: { escapeValue: false },
+      load: 'languageOnly',
+      preload: ['id', 'en', 'ms'],
+      ns: ['commands/hunt', 'commands/lang'],
+    },
+  },
 });
 
 // --- Hook file logging dengan rotasi harian ---
@@ -84,7 +113,13 @@ async function main() {
     if (!mongoUri) throw new Error('MONGODB_URI missing di.env');
 
     const conn = await createDatabase(mongoUri);
-    container.db = { user: User, item: Item, dungeon: Dungeon, connection: conn.connection };
+    container.db = {
+      user: User,
+      item: Item,
+      dungeon: Dungeon,
+      guild: Guild,
+      connection: conn.connection,
+    };
 
     await client.login(process.env.DISCORD_TOKEN);
     client.logger.info('🚀 Nova Sapphire sedang meluncur!');
