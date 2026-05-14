@@ -151,7 +151,7 @@ export class InventoryCommand extends Command {
     }
 
     const msg = await interaction.editReply({ embeds: [embed], components });
-    
+
     this.container.invCache ??= new Map();
     this.container.invCache.set(msg.id, {
       allItems,
