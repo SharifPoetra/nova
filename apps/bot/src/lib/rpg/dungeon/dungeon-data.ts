@@ -8,8 +8,7 @@ export type DropItem = {
   sellPrice: number;
   type: 'material' | 'equipment' | 'consumable';
   description: string;
-  effect?: 'heal' | 'stamina' | 'mana' | 'buff' | null;
-  effectValue?: number;
+  effects?: { type: 'heal' | 'stamina' | 'mana' | 'buff'; value: number }[];
 };
 
 export const FLOOR_LORE: Record<number, string> = {
@@ -182,8 +181,7 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       sellPrice: 10,
       type: 'consumable',
       description: 'Jeli lengket, pulihkan 15 HP',
-      effect: 'heal',
-      effectValue: 15,
+      effects: [{ type: 'heal', value: 15 }],
     },
   ],
   golem: [
@@ -352,8 +350,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 300,
       type: 'consumable',
       description: 'Jeli kerajaan, heal 100 HP',
-      effect: 'heal',
-      effectValue: 100,
+      effects: [{ type: 'heal', value: 100 }],
     },
   ],
   golem: [
@@ -414,8 +411,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 800,
       type: 'consumable',
       description: 'Jantung naga, pulihkan 80 stamina',
-      effect: 'stamina',
-      effectValue: 80,
+      effects: [{ type: 'stamina', value: 80 }],
     },
   ],
   warden: [
@@ -465,20 +461,21 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 2000,
       type: 'consumable',
       description: 'Bola energi kuantum, heal 250 HP',
-      effect: 'heal',
-      effectValue: 250,
+      effects: [{ type: 'heal', value: 250 }],
     },
 
     {
       id: 'nova_essence',
       name: 'Nova Essence',
       emoji: '💥🌟',
-      rarity: 'Legendary',
+      rarity: 'Mythic',
       sellPrice: 3000,
       type: 'consumable',
       description: 'Esensi ledakan nova, heal 500 HP + 50 stamina',
-      effect: 'heal',
-      effectValue: 500,
+      effects: [
+        { type: 'heal', value: 500 },
+        { type: 'stamina', value: 50 },
+      ],
     },
   ],
 };

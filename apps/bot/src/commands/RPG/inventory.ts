@@ -10,7 +10,7 @@ import {
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR } from '../../lib/utils';
 
-const RARITY_ORDER = ['Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'] as const;
+const RARITY_ORDER = ['Mythic', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'] as const;
 const ITEMS_PER_PAGE = 10;
 
 type GroupedItem = { id: string; text: string; sub: string; value: number; rarity: string };
