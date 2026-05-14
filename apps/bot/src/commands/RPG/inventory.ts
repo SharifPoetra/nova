@@ -113,12 +113,12 @@ export class InventoryCommand extends Command {
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
             .setCustomId(`inv_prev_${page}_${interaction.user.id}`)
-            .setLabel('◀')
+            .setLabel('◀ Sebelumnya')
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(true),
           new ButtonBuilder()
             .setCustomId(`inv_next_${page}_${interaction.user.id}`)
-            .setLabel('▶')
+            .setLabel('Selanjutnya ▶')
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(totalPages <= 1),
         ),
