@@ -106,7 +106,7 @@ export class HuntCommand extends Command {
       }
       log.push(playerLog);
 
-      embed.setDescription(log.slice(-4).join('\n') + buffInfo).setFields(
+      embed.setDescription(log.slice(-4).join('\n')).setFields(
         {
           name: `${monster.emoji} ${monster.name}`,
           value: `${ratioBar(mHp, mMax)} \`${mHp}/${mMax}\``,
@@ -129,7 +129,7 @@ export class HuntCommand extends Command {
       totalTaken += mDmg;
       log.push(`${monster.emoji} balas **${mDmg}**${blocked ? ` 🛡️-${blocked}` : ''}`);
 
-      embed.setDescription(log.slice(-4).join('\n') + buffInfo).setFields(
+      embed.setDescription(log.slice(-4).join('\n')).setFields(
         {
           name: `${monster.emoji} ${monster.name}`,
           value: `${ratioBar(mHp, mMax)} \`${mHp}/${mMax}\``,
@@ -188,7 +188,7 @@ export class HuntCommand extends Command {
     const lvl = checkLevelUp(user);
     if (lvl) {
       Object.assign(user, lvl);
-      levelUpText = `\n\n🎉 **LEVEL UP → Lv.${lvl.level}**`;
+      levelUpText = `🎉 **LEVEL UP → Lv.${lvl.level}**`;
     }
 
     await user.save();
@@ -197,7 +197,7 @@ export class HuntCommand extends Command {
       .setColor(RARITY_COLOR[drop.rarity as keyof typeof RARITY_COLOR])
       .setTitle(`✅ Menang lawan ${monster.name}!`)
       .setDescription(
-        `${monster.emoji} **${monster.name}** berhasil dikalahkan!${levelUpText}${buffInfo}\n\n` +
+        `${monster.emoji} **${monster.name}** berhasil dikalahkan!${buffInfo}${levelUpText ? `\n\n${levelUpText}` : ''}\n\n` +
           `${drop.emoji} **${drop.name}** ×1 ${RARITY_EMOJI[drop.rarity as keyof typeof RARITY_EMOJI]} *${drop.rarity}*\n\n` +
           `**📜 Pertarungan Terakhir:**\n${summary}\n\n` +
           `**📊 Statistik:** Dealt **${totalDealt}** • Taken **${totalTaken}**`,
