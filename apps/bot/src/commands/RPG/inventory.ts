@@ -157,5 +157,6 @@ export class InventoryCommand extends Command {
       userId: interaction.user.id,
       t: Date.now(),
     });
+    setTimeout(() => this.container.invCache.delete(msg.id), 5 * 60 * 1000);
   }
 }
