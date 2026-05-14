@@ -34,6 +34,12 @@ export class InvUseHandler extends InteractionHandler {
     if (interaction.user.id !== userId)
       return interaction.reply({ content: 'Bukan inventory kamu!', flags: MessageFlags.Ephemeral });
 
+    if (interaction.isStringSelectMenu()) {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    } else {
+      await interaction.deferUpdate();
+    }
+
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (!user) return;
     applyPassiveRegen(user);
@@ -41,21 +47,15 @@ export class InvUseHandler extends InteractionHandler {
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith('inv_use_')) {
       const itemId = interaction.values[0];
       const item = await this.container.db.item.findOne({ itemId }).lean();
-      if (!item)
-        return interaction.reply({
-          content: 'Item tidak ditemukan',
-          flags: MessageFlags.Ephemeral,
-        });
+      if (!item) return interaction.followUp({ content: 'Item tidak ditemukan' });
 
       const invItem = user.items.find((i) => i.itemId === itemId);
-      if (!invItem || invItem.qty < 1)
-        return interaction.reply({ content: 'Habis!', flags: MessageFlags.Ephemeral });
+      if (!invItem || invItem.qty < 1) return interaction.followUp({ content: 'Habis!' });
 
       const effects = item.effects || [];
       if (effects.length === 0) {
-        return interaction.reply({
+        return interaction.followUp({
           content: '❌ Item ini tidak bisa dipakai',
-          flags: MessageFlags.Ephemeral,
         });
       }
 
@@ -98,18 +98,17 @@ export class InvUseHandler extends InteractionHandler {
       }
 
       if (applied === 0) {
-        return interaction.reply({
+        return interaction.followUp({
           content: `❌ ${item.emoji} **${item.name}** tidak berpengaruh (HP/Stamina sudah penuh)`,
-          flags: MessageFlags.Ephemeral,
         });
       }
 
       invItem.qty -= 1;
       if (invItem.qty <= 0) user.items = user.items.filter((i) => i.itemId !== itemId);
+
       await user.save();
 
-      await interaction.deferUpdate();
-      return interaction.followUp({ content: msg, flags: MessageFlags.Ephemeral });
+      return interaction.followUp({ content: msg });
     }
 
     if (interaction.isButton()) {
@@ -118,7 +117,7 @@ export class InvUseHandler extends InteractionHandler {
       page = dir === 'next' ? page + 1 : page - 1;
       const cache = this.container.invCache?.get(interaction.message.id);
       if (!cache)
-        return interaction.update({
+        return interaction.editReply({
           content: 'Cache expired, ketik /inventory lagi',
           components: [],
         });
@@ -143,12 +142,12 @@ export class InvUseHandler extends InteractionHandler {
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId(`inv_prev_${page}_${userId}`)
-          .setLabel('◀')
+          .setLabel('◀ Sebelumnya')
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(page <= 0),
         new ButtonBuilder()
           .setCustomId(`inv_next_${page}_${userId}`)
-          .setLabel('▶')
+          .setLabel('Selanjutnya ▶')
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(page >= totalPages - 1),
       );
@@ -182,7 +181,7 @@ export class InvUseHandler extends InteractionHandler {
           ),
         );
       }
-      await interaction.update({ embeds: [embed], components });
+      await interaction.editReply({ embeds: [embed], components });
     }
   }
 }
