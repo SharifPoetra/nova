@@ -113,7 +113,7 @@ export class InvUseHandler extends InteractionHandler {
       const [, dir, pageStr] = interaction.customId.split('_');
       let page = Number.parseInt(pageStr, 10);
       page = dir === 'next' ? page + 1 : page - 1;
-      const cache = this.container.invCache?.get(interaction.message.id);
+      const cache = this.container.invCache!.get(interaction.message.id)!;
       const { allItems, totalValue } = cache;
       const totalPages = Math.max(1, Math.ceil(allItems.length / ITEMS_PER_PAGE));
       page = Math.max(0, Math.min(page, totalPages - 1));
