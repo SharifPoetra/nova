@@ -55,7 +55,7 @@ async function main() {
     await client.login(process.env.DISCORD_TOKEN);
     client.logger.info('🚀 Nova Sapphire sedang meluncur!');
   } catch (error) {
-    client.logger.fatal(error);
+    client.logger.error(error);
     process.exit(1);
   }
 }
