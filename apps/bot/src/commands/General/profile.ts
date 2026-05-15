@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
 import { getClass } from '../../lib/rpg/classes';
 import { BASE_MONSTERS } from '../../lib/rpg/monsters';
@@ -9,44 +10,32 @@ import { colorBar } from '../../lib/utils';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',
-  description: 'Melihat profil lengkap Ekonomi dan RPG kamu di Nova',
-  detailedDescription: {
-    usage: '/profile [user:optional]',
-    examples: ['/profile', '/profile user:@Kaito'],
-    extendedHelp: `
-Lihat semua statistik karakter kamu atau orang lain.
-
-**Yang ditampilkan:**
-- 💰 Ekonomi: dompet, bank, total item
-- 📊 RPG: level, EXP bar, HP, stamina, attack
-- ✨ Buff aktif dengan sisa waktu
-- ⏱️ Cooldown /explore, /fish, /hunt
-- 📅 Tanggal bergabung
-
-**Fitur khusus:**
-- Regen pasif otomatis saat cek profil sendiri
-- Lihat profil orang lain tanpa mengganggu data mereka
-- Warna embed sesuai class
-- Footer menampilkan milestone hunt
-
-Gunakan untuk cek kesiapan sebelum hunt atau pamer build ke teman.
-    `.trim(),
-  },
+  description: 'View your Nova RPG profile',
   fullCategory: ['General'],
 })
 export class ProfileCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .addUserOption((o) =>
-          o.setName('user').setDescription('User yang ingin dilihat profilnya').setRequired(false),
-        ),
+      applyLocalizedBuilder(
+        builder,
+        'commands/names:profile',
+        'commands/descriptions:profile',
+      ).addUserOption((o) =>
+        o
+          .setName('user')
+          .setDescription('User to view')
+          .setDescriptionLocalizations({
+            'en-US': 'User to view',
+            'en-GB': 'User to view',
+            id: 'User yang ingin dilihat',
+          })
+          .setRequired(false),
+      ),
     );
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    const t = await fetchT(interaction);
     const target = interaction.options.getUser('user') ?? interaction.user;
     await interaction.deferReply();
 
@@ -58,8 +47,13 @@ export class ProfileCommand extends Command {
           .setAuthor({ name: target.username, iconURL: target.displayAvatarURL() })
           .setDescription(
             target.id === interaction.user.id
-              ? '❌ Kamu belum terdaftar di Nova Chronicles!\nGunakan `/start` untuk memulai petualangan.'
-              : `❌ **${target.username}** belum memulai petualangan.`,
+              ? t('commands/profile:not_registered_self', {
+                  defaultValue: '❌ You are not registered! Use `/start`.',
+                })
+              : t('commands/profile:not_registered_other', {
+                  user: target.username,
+                  defaultValue: `❌ **${target.username}** hasn't started yet.`,
+                }),
           );
         return interaction.editReply({ embeds: [embed] });
       }
@@ -87,7 +81,9 @@ export class ProfileCommand extends Command {
       const classData = getClass(userData.class);
       const color = classData?.color ?? 0x3498db;
       const classEmoji = classData?.emoji ?? '👤';
-      const className = classData?.name ?? 'Petualang Baru';
+      const className = t(`classes:${userData.class ?? 'adventurer'}`, {
+        defaultValue: classData?.name ?? 'Adventurer',
+      });
 
       const bonusAtk = getAtkBuff(userData);
       const activeBuffs = (userData.buffs || []).filter((b) => new Date(b.expires) > new Date());
@@ -97,12 +93,11 @@ export class ProfileCommand extends Command {
             .map((b) => {
               const mins = Math.max(0, Math.ceil((new Date(b.expires).getTime() - now) / 60000));
               const icon = b.type === 'atk' ? '⚔️' : b.type === 'stamina_regen' ? '⚡' : '✨';
-              const label =
-                b.type === 'atk' ? 'ATK' : b.type === 'stamina_regen' ? 'Regen' : b.type;
+              const label = t(`commands/profile:buff_${b.type}`, { defaultValue: b.type });
               return `${icon} ${label} +${b.value} (${mins}m)`;
             })
             .join('\n')
-        : 'Tidak ada';
+        : t('commands/profile:no_buffs', { defaultValue: 'None' });
 
       const atkDisplay =
         bonusAtk > 0
@@ -114,40 +109,77 @@ export class ProfileCommand extends Command {
       )[0];
 
       const footerText = nextUnlock
-        ? `🎯 ${nextUnlock.name} terbuka di Lv.${nextUnlock.minLevel} • ${expNext} EXP lagi`
-        : '🏆 Semua monster terbuka! Kamu legenda Nova';
+        ? t('commands/profile:footer_next', {
+            name: nextUnlock.name,
+            level: nextUnlock.minLevel,
+            exp: expNext,
+            defaultValue: `🎯 ${nextUnlock.name} unlocks at Lv.${nextUnlock.minLevel} • ${expNext} EXP left`,
+          })
+        : t('commands/profile:footer_max', {
+            defaultValue: '🏆 All monsters unlocked! You are a Nova legend',
+          });
 
       const embed = new EmbedBuilder()
         .setAuthor({
-          name: `Nova Chronicles — ${target.username}`,
+          name: t('commands/profile:author', {
+            user: target.username,
+            defaultValue: `Nova Chronicles — ${target.username}`,
+          }),
           iconURL: target.displayAvatarURL(),
         })
         .setThumbnail(target.displayAvatarURL({ size: 256 }))
         .setColor(color)
-        .setDescription(`*“Setiap langkah di Menara Nova menulis takdir.”*`)
+        .setDescription(
+          t('commands/profile:quote', {
+            defaultValue: '*“Every step in Nova Tower writes destiny.”*',
+          }),
+        )
         .addFields(
-          { name: '💰 Dompet', value: `**${balance.toLocaleString('id-ID')}**`, inline: true },
-          { name: '🏦 Bank', value: `**${bank.toLocaleString('id-ID')}**`, inline: true },
-          { name: '🎒 Inventory', value: `${itemCount} item`, inline: true },
+          {
+            name: t('commands/profile:wallet', { defaultValue: '💰 Wallet' }),
+            value: `**${balance.toLocaleString(t('common:locale', { defaultValue: 'en-US' }))}**`,
+            inline: true,
+          },
+          {
+            name: t('commands/profile:bank', { defaultValue: '🏦 Bank' }),
+            value: `**${bank.toLocaleString(t('common:locale', { defaultValue: 'en-US' }))}**`,
+            inline: true,
+          },
+          {
+            name: t('commands/profile:inventory', { defaultValue: '🎒 Inventory' }),
+            value: t('commands/profile:inventory_value', {
+              count: itemCount,
+              defaultValue: `${itemCount} items`,
+            }),
+            inline: true,
+          },
           {
             name: `${classEmoji} ${className} — Lv.${level}`,
-            value: `${colorBar(exp, expNeeded, 10, '🟦', '⬜')} \`${exp}/${expNeeded} EXP\` • **${expNext} lagi**`,
+            value: `${colorBar(exp, expNeeded, 10, '🟦', '⬜')} \`${exp}/${expNeeded} EXP\` • **${t('commands/profile:exp_left', { exp: expNext, defaultValue: `${expNext} left` })}**`,
             inline: false,
           },
           {
-            name: '❤️ Vitalitas',
+            name: t('commands/profile:vitality', { defaultValue: '❤️ Vitality' }),
             value: `${colorBar(hp, maxHp, 10, '🟥', '⬛')} \`${hp}/${maxHp}\``,
             inline: true,
           },
           {
-            name: '⚡ Stamina',
+            name: t('commands/profile:stamina', { defaultValue: '⚡ Stamina' }),
             value: `${colorBar(stamina, maxStamina, 10, '🟨', '⬛')} \`${stamina}/${maxStamina}\``,
             inline: true,
           },
-          { name: '🗡️ Attack', value: atkDisplay, inline: true },
-          { name: '✨ Buff Aktif', value: buffText, inline: false },
           {
-            name: '📅 Bergabung',
+            name: t('commands/profile:attack', { defaultValue: '🗡️ Attack' }),
+            value: atkDisplay,
+            inline: true,
+          },
+          {
+            name: t('commands/profile:buffs', { defaultValue: '✨ Active Buffs' }),
+            value: buffText,
+            inline: false,
+          },
+          {
+            name: t('commands/profile:joined', { defaultValue: '📅 Joined' }),
             value: `<t:${Math.floor(new Date(userData.createdAt).getTime() / 1000)}:D>`,
             inline: true,
           },
@@ -157,7 +189,10 @@ export class ProfileCommand extends Command {
       return interaction.editReply({ embeds: [embed] });
     } catch (error) {
       this.container.logger.error(error);
-      return interaction.editReply('❌ Terjadi kesalahan saat mengambil data.');
+      const t = await fetchT(interaction);
+      return interaction.editReply(
+        t('commands/profile:error', { defaultValue: '❌ Error fetching data.' }),
+      );
     }
   }
 }
