@@ -11,10 +11,6 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 @ApplyOptions<Command.Options>({
   name: 'hunt',
   description: 'Hunt monsters',
-  detailedDescription: {
-    usage: '/hunt',
-    examples: ['/hunt'],
-  },
   fullCategory: ['RPG'],
 })
 export class HuntCommand extends Command {

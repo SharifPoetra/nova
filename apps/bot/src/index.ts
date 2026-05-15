@@ -66,7 +66,14 @@ const client = new SapphireClient({
       fallbackLng: 'en-US',
       supportedLngs: ['id', 'en-US', 'en-GB'],
       preload: ['id', 'en-US', 'en-GB'],
-      ns: ['commands/names', 'commands/descriptions', 'commands/hunt', 'commands/lang'],
+      ns: [
+        'common',
+        'commands/names',
+        'commands/descriptions',
+        'commands/hunt',
+        'commands/lang',
+        'commands/help',
+      ],
     },
   },
 });
