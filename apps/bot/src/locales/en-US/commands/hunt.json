@@ -1,5 +1,5 @@
 {
-  "extended_help": "Cooldown 45 seconds • need {{cost}} stamina and minimum 20 HP.\n\n**Class passive:**\n🛡️ Warrior — 20% chance block 30% damage\n🏹 Rogue — 18% crit chance\n🪄 Mage — 15% lifesteal",
+  "extended_help": "Cooldown 45 seconds • need 20 stamina and minimum 20 HP.\n\n**Class passive:**\n🛡️ Warrior — 20% chance block 30% damage\n🏹 Rogue — 18% crit chance\n🪄 Mage — 15% lifesteal",
   "usage": "/hunt",
   "description": "Hunt monsters (costs {{cost}} stamina)",
   "need_start": "Use /start first!",

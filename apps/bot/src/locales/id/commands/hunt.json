@@ -1,5 +1,5 @@
 {
-  "extended_help": "Cooldown 45 detik • butuh {{cost}} stamina dan minimal 20 HP.\n\n**Class passive:**\n🛡️ Warrior — 20% chance block 30% damage\n🏹 Rogue — 18% crit chance\n🪄 Mage — 15% lifesteal",
+  "extended_help": "Cooldown 45 detik • butuh 20 stamina dan minimal 20 HP.\n\n**Pasif class:**\n🛡️ Warrior — 20% peluang block 30% damage\n🏹 Rogue — 18% crit\n🪄 Mage — 15% lifesteal",
   "usage": "/hunt",
   "description": "Berburu monster (cost {{cost}} stamina)",
   "need_start": "Gunakan /start dulu!",

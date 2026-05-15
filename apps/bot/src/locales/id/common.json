@@ -1,0 +1,10 @@
+{
+  "usage": "Penggunaan",
+  "category": "Kategori",
+  "categories": {
+    "rpg": "RPG",
+    "economy": "EKONOMI",
+    "general": "UMUM",
+    "owner": "OWNER"
+  }
+}
