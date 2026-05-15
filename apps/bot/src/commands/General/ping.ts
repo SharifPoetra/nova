@@ -1,34 +1,22 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions<Command.Options>({
   name: 'ping',
-  description: 'Cek respon bot Nova',
-  detailedDescription: {
-    usage: '/ping',
-    examples: ['/ping'],
-    extendedHelp: `
-Cek kesehatan bot secara real-time.
-
-**Yang diukur:**
-- WebSocket — latency ke Discord gateway
-- API — waktu respon interaction
-- Database — ping ke MongoDB
-- Uptime — berapa lama bot hidup
-
-Warna embed hijau <150ms, kuning <300ms, merah >300ms.
-Gunakan saat bot terasa lag sebelum lapor bug.
-`.trim(),
-  },
+  description: 'Check Nova bot response',
   fullCategory: ['General'],
 })
 export class PingCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((b) => b.setName(this.name).setDescription(this.description));
+    registry.registerChatInputCommand((builder) =>
+      applyLocalizedBuilder(builder, 'commands/names:ping', 'commands/descriptions:ping'),
+    );
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    const t = await fetchT(interaction);
     const start = Date.now();
     await interaction.deferReply({ withResponse: true });
     const apiLatency = Date.now() - start;
@@ -47,15 +35,39 @@ export class PingCommand extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(color)
-      .setAuthor({ name: 'Nova Status', iconURL: this.container.client.user?.displayAvatarURL() })
-      .setDescription('Pong! 🏓')
+      .setAuthor({
+        name: t('commands/ping:author', { defaultValue: 'Nova Status' }),
+        iconURL: this.container.client.user?.displayAvatarURL(),
+      })
+      .setDescription(t('commands/ping:description', { defaultValue: 'Pong! 🏓' }))
       .addFields(
-        { name: 'WebSocket', value: `\`${wsLatency}ms\``, inline: true },
-        { name: 'API', value: `\`${apiLatency}ms\``, inline: true },
-        { name: 'Database', value: `\`${dbLatency}ms\``, inline: true },
-        { name: 'Uptime', value: uptime, inline: false },
+        {
+          name: t('commands/ping:websocket', { defaultValue: 'WebSocket' }),
+          value: `\`${wsLatency}ms\``,
+          inline: true,
+        },
+        {
+          name: t('commands/ping:api', { defaultValue: 'API' }),
+          value: `\`${apiLatency}ms\``,
+          inline: true,
+        },
+        {
+          name: t('commands/ping:database', { defaultValue: 'Database' }),
+          value: `\`${dbLatency}ms\``,
+          inline: true,
+        },
+        {
+          name: t('commands/ping:uptime', { defaultValue: 'Uptime' }),
+          value: uptime,
+          inline: false,
+        },
       )
-      .setFooter({ text: `Shard ${interaction.guild?.shardId ?? 0}` })
+      .setFooter({
+        text: t('commands/ping:footer', {
+          shard: interaction.guild?.shardId ?? 0,
+          defaultValue: `Shard ${interaction.guild?.shardId ?? 0}`,
+        }),
+      })
       .setTimestamp();
 
     return interaction.editReply({ embeds: [embed] });
