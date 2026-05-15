@@ -9,6 +9,7 @@ import {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
 } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RECIPES } from '../../lib/rpg/recipes';
 import { ACTION_COST } from '../../lib/rpg/actions';
@@ -23,43 +24,27 @@ const TIER_FILTERS: Record<string, (recipe: any) => boolean> = {
 
 @ApplyOptions<Command.Options>({
   name: 'cook',
-  description: 'Masak untuk heal atau buff',
+  description: 'Cook food to heal or buff',
   fullCategory: ['RPG'],
-  detailedDescription: {
-    usage: '/cook [tier] [resep]',
-    examples: ['/cook', '/cook tier:late', '/cook resep:Hydra'],
-    extendedHelp: `
-Cost 5 stamina per masak • Tidak ada cooldown.
-
-**Cara pakai:**
-• /cook → buka menu dengan pagination (25 resep per halaman)
-• /cook tier:basic|mid|late|end|dungeon → filter langsung
-• /cook resep:[ketik] → autocomplete, masak instan
-
-**Tier:**
-• Basic (≤35 HP): Sarden Bakar, Nila Bakar, Steak Daging
-• Mid (36-70 HP): Spicy Stew, Herbal Tea, Salmon Panggang, Bear Steak
-• Late (71-150 HP): Tuna Special, Ginseng Brew, Wolf Pack Stew
-• End (>150 HP): Hydra Gumbo, Phoenix Rebirth, Drake Flame Grill
-• Dungeon: Slime Jelly, Void Soup
-
-**Buff tidak stack.** Masak sebelum /hunt atau /dungeon untuk ATK/DEF/regen.
-Bahan didapat dari /hunt (daging), /fish (ikan), /explore (herb/chili/madu).
-`.trim(),
-  },
 })
 export class CookCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
+      applyLocalizedBuilder(builder, 'commands/names:cook', 'commands/descriptions:cook')
         .addStringOption((option) =>
           option
             .setName('tier')
-            .setDescription('Filter berdasarkan tier')
+            .setDescription('Filter by tier')
+            .setDescriptionLocalizations({
+              id: 'Filter berdasarkan tier',
+              'en-US': 'Filter by tier',
+            })
             .addChoices(
-              { name: 'Basic (≤35 HP)', value: 'basic' },
+              {
+                name: 'Basic (≤35 HP)',
+                value: 'basic',
+                name_localizations: { id: 'Basic (≤35 HP)' },
+              },
               { name: 'Mid (36-70 HP)', value: 'mid' },
               { name: 'Late (71-150 HP)', value: 'late' },
               { name: 'End Game (>150 HP)', value: 'end' },
@@ -67,29 +52,35 @@ export class CookCommand extends Command {
             ),
         )
         .addStringOption((option) =>
-          option.setName('resep').setDescription('Ketik nama resep').setAutocomplete(true),
+          option
+            .setName('recipe')
+            .setNameLocalizations({ id: 'resep' })
+            .setDescription('Type recipe name')
+            .setDescriptionLocalizations({ id: 'Ketik nama resep', 'en-US': 'Type recipe name' })
+            .setAutocomplete(true),
         ),
     );
   }
 
   public async chatInputRun(interaction: ChatInputCommandInteraction) {
+    const t = await fetchT(interaction);
     await interaction.deferReply();
 
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
-    if (!user) return interaction.editReply('Gunakan /start dulu!');
+    if (!user)
+      return interaction.editReply(t('common:need_start', { defaultValue: 'Use /start first!' }));
 
     applyPassiveRegen(user);
     await user.save();
 
     const selectedTier = interaction.options.getString('tier');
-    const selectedRecipeId = interaction.options.getString('resep');
+    const selectedRecipeId =
+      interaction.options.getString('recipe') ?? interaction.options.getString('resep');
 
-    // Direct cook via autocomplete
     if (selectedRecipeId) {
       return this.cookDirectly(interaction, selectedRecipeId);
     }
 
-    // Get available recipes based on inventory
     let availableRecipes = RECIPES.filter((recipe) =>
       recipe.ingredients.every(
         (ingredient) =>
@@ -97,14 +88,15 @@ export class CookCommand extends Command {
       ),
     );
 
-    // Apply tier filter if specified
     if (selectedTier) {
       availableRecipes = availableRecipes.filter(TIER_FILTERS[selectedTier]);
     }
 
     if (!availableRecipes.length) {
       return interaction.editReply(
-        '📦 Tidak ada bahan untuk resep ini! Coba `/explore`, `/hunt`, atau `/fish` dulu.',
+        t('commands/cook:no_ingredients', {
+          defaultValue: '📦 No ingredients! Try /explore, /hunt, or /fish.',
+        }),
       );
     }
 
@@ -118,13 +110,20 @@ export class CookCommand extends Command {
     page: number,
     tier: string,
   ) {
+    const t = await fetchT(interaction);
     const startIndex = page * 25;
     const pageRecipes = recipeList.slice(startIndex, startIndex + 25);
     const totalPages = Math.ceil(recipeList.length / 25);
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId(`cook_${interaction.user.id}_${page}_${tier}`)
-      .setPlaceholder(`Pilih resep — Halaman ${page + 1} / ${totalPages}`)
+      .setPlaceholder(
+        t('commands/cook:select_placeholder', {
+          page: page + 1,
+          total: totalPages,
+          defaultValue: `Choose recipe — Page ${page + 1}/${totalPages}`,
+        }),
+      )
       .addOptions(
         pageRecipes.map((recipe) => ({
           label:
@@ -145,17 +144,16 @@ export class CookCommand extends Command {
       new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu),
     ];
 
-    // Add pagination buttons if needed
     if (recipeList.length > 25) {
       const prevButton = new ButtonBuilder()
         .setCustomId(`cookprev_${interaction.user.id}_${page}_${tier}`)
-        .setLabel('◀ Sebelumnya')
+        .setLabel(t('commands/cook:prev', { defaultValue: '◀ Previous' }))
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(page === 0);
 
       const nextButton = new ButtonBuilder()
         .setCustomId(`cooknext_${interaction.user.id}_${page}_${tier}`)
-        .setLabel('Selanjutnya ▶')
+        .setLabel(t('commands/cook:next', { defaultValue: 'Next ▶' }))
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(startIndex + 25 >= recipeList.length);
 
@@ -164,21 +162,26 @@ export class CookCommand extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(0xf39c12)
-      .setTitle('🍳 Dapur Nova')
+      .setTitle(t('commands/cook:title', { defaultValue: '🍳 Nova Kitchen' }))
       .setDescription(
-        `❤️ **HP:** ${user.hp}/${user.maxHp}` +
-          `⚡ **Stamina:** ${user.stamina}/${user.maxStamina}` +
-          `💰 **Cost:** -${ACTION_COST.cook} stamina per masak`,
+        `${t('commands/cook:hp', { defaultValue: '❤️ HP' })}: ${user.hp}/${user.maxHp}\n` +
+          `${t('commands/cook:stamina', { defaultValue: '⚡ Stamina' })}: ${user.stamina}/${user.maxStamina}\n` +
+          `${t('commands/cook:cost', { cost: ACTION_COST.cook, defaultValue: `💰 Cost: -${ACTION_COST.cook} stamina` })}`,
       )
       .setFooter({
-        text: tier !== 'all' ? `Filter: ${tier.toUpperCase()}` : 'Semua resep yang bisa dimasak',
+        text:
+          tier !== 'all'
+            ? t('commands/cook:filter', {
+                tier: tier.toUpperCase(),
+                defaultValue: `Filter: ${tier.toUpperCase()}`,
+              })
+            : t('commands/cook:all', { defaultValue: 'All cookable recipes' }),
       });
 
     return interaction.editReply({ embeds: [embed], components });
   }
 
   private async cookDirectly(interaction: ChatInputCommandInteraction, recipeId: string) {
-    // Simulate a select menu interaction to reuse the handler
     const handler = this.container.stores.get('interaction-handlers').get('cookSelect');
     const fakeInteraction = {
       customId: `cook_${interaction.user.id}_0_all`,
@@ -187,6 +190,8 @@ export class CookCommand extends Command {
       deferUpdate: async () => {},
       editReply: (options: any) => interaction.editReply(options),
       isStringSelectMenu: () => true,
+      locale: interaction.locale,
+      guildLocale: interaction.guildLocale,
     } as any;
 
     return handler?.run(fakeInteraction);
