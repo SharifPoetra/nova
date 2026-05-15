@@ -74,6 +74,7 @@ const client = new SapphireClient({
         'commands/lang',
         'commands/help',
         'commands/ping',
+        'commands/profile',
       ],
     },
   },
