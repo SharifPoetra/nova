@@ -1,4 +1,8 @@
 {
+  "option_name": "language",
+  "option_desc": "Pilih bahasa",
+  "guild_name": "guild",
+  "guild_desc": "Atur untuk server (hanya admin)",
   "lang_changed": "Bahasa diubah ke {{lang}} ✅",
-  "lang_reset": "Bahasa direset ke default server ✅"
+  "no_perm": "Kamu butuh izin Kelola Server"
 }
