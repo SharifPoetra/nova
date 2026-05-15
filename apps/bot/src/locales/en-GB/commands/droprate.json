@@ -1,0 +1,17 @@
+{
+  "usage": "/droprate ",
+  "extended_help": "**Features:**\n• Shows chance, sell price, XP, and rarity\n• Calculates expected value\n• Simulation up to 10,000 rolls (Admin)\n\n**Types:** fish, explore, hunt",
+  "sim_no_perm": "❌ Simulation only for Admin.",
+  "sim_title": "🎲 Simulation {{sim}}x — {{type}}",
+  "no_drop": "No Drop",
+  "chance": "Chance",
+  "sell": "Sell",
+  "drop": "Drop",
+  "rarity": "📊 Rarity",
+  "fish_title": "🎣 Drop Rate Detail — Fish",
+  "fish_footer": "EV: ~{{ev}}💰 per catch • Total: {{total}}%",
+  "explore_title": "🗺️ Drop Rate Detail — Explore",
+  "average": "💡 Average",
+  "per_explore": "per explore",
+  "hunt_title": "⚔️ Drop Rate Detail — Hunt"
+}
