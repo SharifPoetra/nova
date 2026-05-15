@@ -9,6 +9,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from 'discord.js';
+import { fetchT } from '@sapphire/plugin-i18next';
 import { getRecipe, RECIPES } from '../lib/rpg/recipes';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { ACTION_COST } from '../lib/rpg/actions';
@@ -35,13 +36,16 @@ export class CookSelectHandler extends InteractionHandler {
   }
 
   public async run(interaction: StringSelectMenuInteraction | ButtonInteraction) {
+    const t = await fetchT(interaction);
     const [, userId, pageStr, tier = 'all'] = interaction.customId.split('_');
     const isPrevButton = interaction.customId.startsWith('cookprev');
     const isNextButton = interaction.customId.startsWith('cooknext');
 
-    // security: only owner can use
     if (interaction.user.id !== userId) {
-      return interaction.reply({ content: 'Ini bukan kompor kamu 😅', ephemeral: true });
+      return interaction.reply({
+        content: t('commands/cook:not_yours', { defaultValue: 'This is not your stove 😅' }),
+        ephemeral: true,
+      });
     }
 
     await interaction.deferUpdate();
@@ -55,7 +59,6 @@ export class CookSelectHandler extends InteractionHandler {
       const currentPage = parseInt(pageStr, 10);
       const newPage = isPrevButton ? currentPage - 1 : currentPage + 1;
 
-      // get available recipes
       let availableRecipes = RECIPES.filter((recipe) =>
         recipe.ingredients.every(
           (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
@@ -65,10 +68,13 @@ export class CookSelectHandler extends InteractionHandler {
 
       const startIndex = newPage * 25;
       const pageRecipes = availableRecipes.slice(startIndex, startIndex + 25);
+      const totalPages = Math.ceil(availableRecipes.length / 25);
 
       const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(`cook_${userId}_${newPage}_${tier}`)
-        .setPlaceholder(`Halaman ${newPage + 1} / ${Math.ceil(availableRecipes.length / 25)}`)
+        .setPlaceholder(
+          t('commands/cook:select_placeholder', { page: newPage + 1, total: totalPages }),
+        )
         .addOptions(
           pageRecipes.map((recipe) => ({
             label:
@@ -92,13 +98,13 @@ export class CookSelectHandler extends InteractionHandler {
       if (availableRecipes.length > 25) {
         const prevButton = new ButtonBuilder()
           .setCustomId(`cookprev_${userId}_${newPage}_${tier}`)
-          .setLabel('◀ Sebelumnya')
+          .setLabel(t('commands/cook:prev'))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(newPage === 0);
 
         const nextButton = new ButtonBuilder()
           .setCustomId(`cooknext_${userId}_${newPage}_${tier}`)
-          .setLabel('Selanjutnya ▶')
+          .setLabel(t('commands/cook:next'))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(startIndex + 25 >= availableRecipes.length);
 
@@ -109,9 +115,9 @@ export class CookSelectHandler extends InteractionHandler {
 
       const embed = new EmbedBuilder()
         .setColor(0xf39c12)
-        .setTitle('🍳 Dapur Nova')
+        .setTitle(t('commands/cook:title'))
         .setDescription(
-          `HP: **${user.hp}/${user.maxHp}** • Stamina cost: **-${ACTION_COST.cook}**`,
+          `${t('commands/cook:hp')}: **${user.hp}/${user.maxHp}** • ${t('commands/cook:cost', { cost: ACTION_COST.cook })}`,
         );
 
       return interaction.editReply({ embeds: [embed], components });
@@ -127,7 +133,9 @@ export class CookSelectHandler extends InteractionHandler {
         embeds: [
           new EmbedBuilder()
             .setColor(0xe74c3c)
-            .setDescription(`⚡ Stamina kurang! Butuh ${ACTION_COST.cook}.`),
+            .setDescription(
+              t('commands/cook:low_stamina', { current: user.stamina, need: ACTION_COST.cook }),
+            ),
         ],
         components: [],
       });
@@ -138,12 +146,11 @@ export class CookSelectHandler extends InteractionHandler {
     );
     if (!hasIngredients) {
       return interaction.editReply({
-        embeds: [new EmbedBuilder().setColor(0xe74c3c).setDescription('📦 Bahan tidak cukup!')],
+        embeds: [new EmbedBuilder().setColor(0xe74c3c).setDescription(t('commands/cook:missing'))],
         components: [],
       });
     }
 
-    // consume ingredients
     for (const ing of recipe.ingredients) {
       const item = user.items.find((i) => i.itemId === ing.id)!;
       item.qty -= ing.qty;
@@ -167,25 +174,27 @@ export class CookSelectHandler extends InteractionHandler {
       });
       const minutes = Math.floor(recipe.buff.duration / 60000);
       const durationText =
-        minutes >= 60 ? `${Math.floor(minutes / 60)}j ${minutes % 60}m` : `${minutes}m`;
-      buffText = `✨ **${recipe.buff.type.toUpperCase()} +${recipe.buff.value}** (${durationText})`;
+        minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes}m`;
+      buffText = `\n✨ **${recipe.buff.type.toUpperCase()} +${recipe.buff.value}** (${durationText})`;
     }
 
     await user.save();
 
     const resultEmbed = new EmbedBuilder()
       .setColor(0x2ecc71)
-      .setTitle('✅ Masakan Selesai')
-      .setDescription(`${recipe.emoji} **${recipe.name}** berhasil dimasak!${buffText}`)
+      .setTitle(t('commands/cook:success_title', { name: recipe.name }))
+      .setDescription(
+        `${recipe.emoji} **${recipe.name}** ${t('commands/cook:success_desc', { defaultValue: 'cooked successfully!' })}${buffText}`,
+      )
       .addFields(
         {
-          name: '❤️ HP',
+          name: t('commands/cook:hp'),
           value:
             hpHealed > 0 ? `${hpBefore} → ${user.hp} (+${hpHealed})` : `${user.hp}/${user.maxHp}`,
           inline: true,
         },
         {
-          name: '⚡ Stamina',
+          name: t('commands/cook:stamina'),
           value: `${user.stamina + ACTION_COST.cook} → ${user.stamina}`,
           inline: true,
         },

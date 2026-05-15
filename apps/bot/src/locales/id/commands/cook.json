@@ -1,0 +1,22 @@
+{
+  "usage": "/cook ",
+  "extended_help": "Butuh 5 stamina per masak • Tanpa cooldown.\n\n**Cara pakai:**\n• /cook → buka menu\n• /cook tier:basic|mid|late|end|dungeon → filter langsung\n• /cook resep:[ketik] → masak instan\n\n**Tier:** Basic (≤35 HP), Mid (36-70 HP), Late (71-150 HP), End (>150 HP), Dungeon\n\nBuff tidak stack. Masak sebelum /hunt atau /dungeon.",
+  "title": "🍳 Dapur Nova",
+  "hp": "❤️ HP",
+  "stamina": "⚡ Stamina",
+  "cost": "💰 Cost: -{{cost}} stamina",
+  "filter": "Filter: {{tier}}",
+  "all": "Semua resep yang bisa dimasak",
+  "select_placeholder": "Pilih resep — Halaman {{page}}/{{total}}",
+  "prev": "◀ Sebelumnya",
+  "next": "Selanjutnya ▶",
+  "no_ingredients": "📦 Tidak ada bahan untuk resep ini! Coba /explore, /hunt, atau /fish dulu.",
+  "low_stamina": "⚡ Stamina kurang ({{current}}/{{need}})",
+  "missing": "❌ Bahan tidak cukup",
+  "success_title": "🍳 Berhasil masak {{name}}!",
+  "buff_atk": "ATK",
+  "buff_def": "DEF",
+  "buff_stamina_regen": "Regen",
+  "not_yours": "Ini bukan kompor kamu 😅",
+  "success_desc": "berhasil dimasak!"
+}

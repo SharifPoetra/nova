@@ -1,0 +1,22 @@
+{
+  "usage": "/cook ",
+  "extended_help": "Cost 5 stamina per cook • No cooldown.\n\n**Usage:**\n• /cook → open menu\n• /cook tier:basic|mid|late|end|dungeon → filter\n• /cook recipe:[name] → instant cook\n\n**Tiers:**\n• Basic (≤35 HP)\n• Mid (36-70 HP)\n• Late (71-150 HP)\n• End (>150 HP)\n• Dungeon\n\nBuffs do not stack. Cook before /hunt or /dungeon.",
+  "title": "🍳 Nova Kitchen",
+  "hp": "❤️ HP",
+  "stamina": "⚡ Stamina",
+  "cost": "💰 Cost: -{{cost}} stamina",
+  "filter": "Filter: {{tier}}",
+  "all": "All cookable recipes",
+  "select_placeholder": "Choose recipe — Page {{page}}/{{total}}",
+  "prev": "◀ Previous",
+  "next": "Next ▶",
+  "no_ingredients": "📦 No ingredients for this! Try /explore, /hunt, or /fish first.",
+  "low_stamina": "⚡ Not enough stamina ({{current}}/{{need}})",
+  "missing": "❌ Missing ingredients",
+  "success_title": "🍳 Cooked {{name}}!",
+  "buff_atk": "ATK",
+  "buff_def": "DEF",
+  "buff_stamina_regen": "Regen",
+  "not_yours": "This is not your stove 😅",
+  "success_desc": "cooked successfully!"
+}
