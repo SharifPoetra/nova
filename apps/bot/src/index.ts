@@ -76,6 +76,7 @@ const client = new SapphireClient({
         'commands/ping',
         'commands/profile',
         'commands/cook',
+        'commands/droprate',
       ],
     },
   },

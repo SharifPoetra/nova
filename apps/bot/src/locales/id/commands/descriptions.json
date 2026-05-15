@@ -1,4 +1,6 @@
 {
+  "simdroprate": "Jalankan simulasi drop rate (Owner only)",
+  "droprate": "Lihat drop rate detail untuk fish, explore, dan hunt",
   "cook": "Masak untuk heal atau buff",
   "profile": "Melihat profil lengkap Ekonomi dan RPG kamu di Nova",
   "ping": "Cek respon bot Nova",

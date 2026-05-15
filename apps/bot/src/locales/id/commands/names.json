@@ -1,4 +1,6 @@
 {
+  "simdroprate": "simdroprate",
+  "droprate": "droprate",
   "cook": "cook",
   "profile": "profile",
   "ping": "ping",
