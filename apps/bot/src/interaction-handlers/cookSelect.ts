@@ -115,10 +115,21 @@ export class CookSelectHandler extends InteractionHandler {
 
       const embed = new EmbedBuilder()
         .setColor(0xf39c12)
-        .setTitle(t('commands/cook:title'))
+        .setTitle(t('commands/cook:title', { defaultValue: '🍳 Nova Kitchen' }))
         .setDescription(
-          `${t('commands/cook:hp')}: **${user.hp}/${user.maxHp}** • ${t('commands/cook:cost', { cost: ACTION_COST.cook })}`,
-        );
+          `${t('commands/cook:hp', { defaultValue: '❤️ HP' })}: ${user.hp}/${user.maxHp}\n` +
+            `${t('commands/cook:stamina', { defaultValue: '⚡ Stamina' })}: ${user.stamina}/${user.maxStamina}\n` +
+            `${t('commands/cook:cost', { cost: ACTION_COST.cook, defaultValue: `💰 Cost: -${ACTION_COST.cook} stamina` })}`,
+        )
+        .setFooter({
+          text:
+            tier !== 'all'
+              ? t('commands/cook:filter', {
+                  tier: tier.toUpperCase(),
+                  defaultValue: `Filter: ${tier.toUpperCase()}`,
+                })
+              : t('commands/cook:all', { defaultValue: 'All cookable recipes' }),
+        });
 
       return interaction.editReply({ embeds: [embed], components });
     }
