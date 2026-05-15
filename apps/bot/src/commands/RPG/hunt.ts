@@ -1,7 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
-import { fetchT } from '@sapphire/plugin-i18next';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { sleep, ratioBar, RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
@@ -20,13 +20,7 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 export class HuntCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription('Hunt monsters (costs 20 stamina)')
-        .setDescriptionLocalizations({
-          id: 'Berburu monster (cost 20 stamina)',
-          'en-US': 'Hunt monsters (costs 20 stamina)',
-        }),
+      applyLocalizedBuilder(builder, 'commands/names:hunt', 'commands/descriptions:hunt'),
     );
   }
 
