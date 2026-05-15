@@ -48,26 +48,25 @@ const client = new SapphireClient({
         const user = await container.db.user.findOne({ discordId: context.user.id }).lean();
         if (user?.lang) return user.lang;
       }
-
       if (context.guild?.id) {
         const guild = await container.db.guild.findOne({ guildId: context.guild.id }).lean();
         if (guild?.lang) return guild.lang;
       }
-
       const discordLocale = context.interactionGuildLocale ?? context.interactionLocale;
-      if (discordLocale?.startsWith('en')) return 'en';
-
-      return context.guild?.preferredLocale?.startsWith('en') ? 'en' : 'id';
+      if (discordLocale?.startsWith('id')) return 'id';
+      return 'en-US'; // default EN
     },
     defaultLanguageDirectory: path.join(__dirname, 'locales'),
-    defaultName: 'id',
+    defaultName: 'en-US',
     i18next: {
-      fallbackLng: 'id',
       returnEmptyString: false,
       interpolation: { escapeValue: false },
-      load: 'languageOnly',
-      preload: ['id', 'en', 'ms'],
-      ns: ['commands/hunt', 'commands/lang'],
+      initImmediate: false,
+      load: 'currentOnly',
+      fallbackLng: 'en-US',
+      supportedLngs: ['id', 'en-US', 'en-GB'],
+      preload: ['id', 'en-US', 'en-GB'],
+      ns: ['commands/names', 'commands/descriptions', 'commands/hunt', 'commands/lang'],
     },
   },
 });
