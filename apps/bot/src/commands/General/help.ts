@@ -98,7 +98,12 @@ export class HelpCommand extends Command {
     for (const [cat, list] of [...grouped.entries()].sort()) {
       embed.addFields({
         name: `${emojis[cat.toLowerCase()] || '📁'} ${t(`common:categories.${cat.toLowerCase()}`, { defaultValue: cat.toUpperCase() })}`,
-        value: list.map((c) => `\`/${c.name}\` — ${t(`commands/descriptions:${c.name}`, { defaultValue: c.description })}`).join('\n'),
+        value: list
+          .map(
+            (c) =>
+              `\`/${c.name}\` — ${t(`commands/descriptions:${c.name}`, { defaultValue: c.description })}`,
+          )
+          .join('\n'),
       });
     }
     return embed;

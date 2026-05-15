@@ -1,0 +1,11 @@
+{
+  "usage": "/ping",
+  "extended_help": "Check bot health in real-time.\n\n**Measured:**\n- WebSocket — latency to Discord gateway\n- API — interaction response time\n- Database — MongoDB ping\n- Uptime — how long the bot has been alive\n\nEmbed color: green <150ms, yellow <300ms, red >300ms.\nUse when bot feels laggy before reporting bugs.",
+  "author": "Nova Status",
+  "description": "Pong! 🏓",
+  "websocket": "WebSocket",
+  "api": "API",
+  "database": "Database",
+  "uptime": "Uptime",
+  "footer": "Shard {{shard}}"
+}

@@ -1,0 +1,11 @@
+{
+  "usage": "/ping",
+  "extended_help": "Cek kesehatan bot secara real-time.\n\n**Yang diukur:**\n- WebSocket — latency ke Discord gateway\n- API — waktu respon interaction\n- Database — ping ke MongoDB\n- Uptime — berapa lama bot hidup\n\nWarna embed hijau <150ms, kuning <300ms, merah >300ms.\nGunakan saat bot terasa lag sebelum lapor bug.",
+  "author": "Status Nova",
+  "description": "Pong! 🏓",
+  "websocket": "WebSocket",
+  "api": "API",
+  "database": "Database",
+  "uptime": "Uptime",
+  "footer": "Shard {{shard}}"
+}

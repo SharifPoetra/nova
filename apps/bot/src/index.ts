@@ -73,6 +73,7 @@ const client = new SapphireClient({
         'commands/hunt',
         'commands/lang',
         'commands/help',
+        'commands/ping',
       ],
     },
   },
