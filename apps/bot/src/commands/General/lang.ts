@@ -1,7 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { PermissionFlagsBits } from 'discord.js';
+import { MessageFlags, PermissionFlagsBits } from 'discord.js';
 
 @ApplyOptions<Command.Options>({
   name: 'lang',
@@ -31,7 +31,7 @@ export class LangCommand extends Command {
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const t = await fetchT(interaction);
     const lang = interaction.options.getString('language', true) as 'id' | 'en-US';
     const isGuild = interaction.options.getBoolean('guild') ?? false;
