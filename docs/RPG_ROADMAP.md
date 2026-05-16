@@ -12,17 +12,16 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 
 ## Phase 0: Persiapan & Audit - 1 hari
 - [x] **0.1** Dump semua item existing (done generated dari code)
-- [ ] **0.2** Bikin `ITEM_REGISTRY.md`: list semua `itemId` + tentuin mau jadi `weapon/armor/material/consumable`
-- [ ] **0.3** Desain stat buat 6 weapon awal: `iron_sword`, `mage_staff`, `hunter_bow`, `slime_crown`, `reaper_scythe`, `obsidian_plate`
-- [ ] **0.4** Commit: `chore: audit existing items for equipment migration`
+- [x] **0.2** Bikin `ITEM_REGISTRY.md`: list semua `itemId` + tentuin mau jadi `weapon/armor/material/consumable`
+- [x] **0.3** Desain stat buat 6 weapon awal: `iron_sword`, `mage_staff`, `hunter_bow`, `slime_crown`, `reaper_scythe`, `obsidian_plate`
 
 ## Phase 1: Core System - 2-3 hari
-- [ ] **1.1** DB Schema: tambah `equipped: { weapon: string|null, armor: string|null, accessory: string|null }` di `User.ts`
-- [ ] **1.2** DB Schema: tambah `stats?: EquipmentStat` di `Item.ts` 
-- [ ] **1.3** Buat `/lib/rpg/equipment.ts`: type `EquipmentStat`, `getItemData()`, `validateEquip()`
-- [ ] **1.4** Buat `/lib/rpg/skills.ts`: pindahin 3 skill sekarang + interface `Skill`
-- [ ] **1.5** Buat `/lib/rpg/combat.ts`: function `getPlayerStats(player)` yg return `totalAtk`, `critRate`, `skills[]`
-- [ ] **1.6** Update `classes.ts`: tambah `skillId`, `passiveId`
+- [x] **1.1** DB Schema: tambah `equipped: { weapon: string|null, armor: string|null, accessory: string|null }` di `User.ts`
+- [x] **1.2** DB Schema: tambah `stats?: EquipmentStat` di `Item.ts` 
+- [x] **1.3** Buat `/lib/rpg/equipment.ts`: type `EquipmentStat`, `getItemData()`, `validateEquip()`
+- [x] **1.4** Buat `/lib/rpg/skills.ts`: pindahin 3 skill sekarang + interface `Skill`
+- [x] **1.5** Buat `/lib/rpg/combat.ts`: function `getPlayerStats(player)` yg return `totalAtk`, `critRate`, `skills[]`
+- [x] **1.6** Update `classes.ts`: tambah `skillId`, `passiveId`
 - [ ] **1.7** Unit test: `getPlayerStats()` return bener kalau equip `iron_sword {atk:12}`
 - [ ] **1.8** Commit: `feat(rpg): add equipment and skill registry`
 
