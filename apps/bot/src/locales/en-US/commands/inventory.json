@@ -1,0 +1,22 @@
+{
+  "usage": "/inventory",
+  "examples": "/inventory",
+  "extended_help": "View all items, equipment, and consumables you own.\n\n**Features:**\n- Auto-sort by rarity (Legendary → Common)\n- Calculate total sell value\n- Automatic pagination (10 items/page)\n- Dropdown to use consumables directly\n\n**Shows:**\n- ⚡ Current stamina\n- 📦 Unique item count\n- 💰 Total inventory value\n- Description & sell price per item\n\nUse after /explore, /hunt, or /fish to check grinding results.",
+  "empty": "📦 Inventory empty. Try /fish, /hunt, or /explore!",
+  "author": "{{username}}'s Inventory",
+  "header": "⚡ Stamina: {{stamina}}/{{maxStamina}}\n📦 {{count}} item types",
+  "footer": "Total value: {{total}} coins | Page {{page}}/{{totalPages}}",
+  "prev": "◀ Previous",
+  "next": "Next ▶",
+  "use_placeholder": "Use consumable...",
+  "expired": "⏰ Expired — type /inventory again",
+  "not_yours": "Not your inventory!",
+  "item_not_found": "Item not found",
+  "out_of_stock": "Out of stock!",
+  "cannot_use": "❌ This item cannot be used",
+  "used": "✅ Used {{emoji}} **{{name}}**",
+  "heal": "❤️ +{{amount}} HP",
+  "stamina_gain": "⚡ +{{amount}} Stamina",
+  "buff": "⚔️ ATK +{{value}} (10m)",
+  "no_effect": "❌ {{emoji}} **{{name}}** had no effect (HP/Stamina full)"
+}
