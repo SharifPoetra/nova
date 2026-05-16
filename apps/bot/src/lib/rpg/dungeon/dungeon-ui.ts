@@ -1,6 +1,7 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { colorBar, ratioBar } from '../../utils';
 import { RunState } from './dungeon-state';
+import type { TFunction } from 'i18next';
 
 export function renderMapIcons(state: RunState, isBoss: boolean): string {
   const icons: string[] = [];
@@ -24,6 +25,7 @@ export function buildMainEmbed(params: {
   playerMaxStamina: number;
   highestFloor: number;
   isBoss: boolean;
+  t: TFunction;
 }) {
   const {
     floor,
@@ -36,26 +38,52 @@ export function buildMainEmbed(params: {
     playerMaxStamina,
     highestFloor,
     isBoss,
+    t,
   } = params;
   return new EmbedBuilder()
-    .setTitle(`🗼 Lantai ${floor} [${state.current}/${state.rooms}] • ${zone}`)
-    .setDescription(`*${lore}*\n\n${state.log.slice(-6).join('\n') || 'Memasuki tower...'}`)
+    .setTitle(
+      t('commands/dungeon:main_title', {
+        floor,
+        current: state.current,
+        rooms: state.rooms,
+        zone,
+        defaultValue: `🗼 Floor ${floor} [${state.current}/${state.rooms}] • ${zone}`,
+      }),
+    )
+    .setDescription(
+      `*${lore}*\n\n${state.log.slice(-6).join('\n') || t('commands/dungeon:entering', { defaultValue: 'Entering tower...' })}`,
+    )
     .addFields(
       {
-        name: '❤️ HP',
+        name: t('commands/dungeon:hp', { defaultValue: '❤️ HP' }),
         value: `${colorBar(playerHp, playerMaxHp, 10, '🟥', '⬛')} ${playerHp}/${playerMaxHp}`,
         inline: false,
       },
       {
-        name: '⚡ Stamina',
+        name: t('commands/dungeon:stamina', { defaultValue: '⚡ Stamina' }),
         value: `${colorBar(playerStamina, playerMaxStamina, 10, '🟨', '⬛')} ${playerStamina}/${playerMaxStamina}`,
         inline: false,
       },
-      { name: '💰 Gold Run', value: `${state.gold}`, inline: true },
-      { name: '✨ EXP Run', value: `${state.exp}`, inline: true },
+      {
+        name: t('commands/dungeon:gold_run', { defaultValue: '💰 Gold Run' }),
+        value: `${state.gold}`,
+        inline: true,
+      },
+      {
+        name: t('commands/dungeon:exp_run', { defaultValue: '✨ EXP Run' }),
+        value: `${state.exp}`,
+        inline: true,
+      },
     )
     .setColor(isBoss ? 0xe74c3c : 0x9b59b6)
-    .setFooter({ text: `Highest: ${highestFloor} • Dealt ${state.dealt} | Taken ${state.taken}` });
+    .setFooter({
+      text: t('commands/dungeon:main_footer', {
+        highest: highestFloor,
+        dealt: state.dealt,
+        taken: state.taken,
+        defaultValue: `Highest: ${highestFloor} • Dealt ${state.dealt} | Taken ${state.taken}`,
+      }),
+    });
 }
 
 export function buildMapEmbed(params: {
@@ -66,15 +94,27 @@ export function buildMapEmbed(params: {
   isBoss: boolean;
   playerHp: number;
   playerMaxHp: number;
+  t: TFunction;
 }) {
+  const { t } = params;
   return new EmbedBuilder()
-    .setTitle(`🗺️ Peta Lantai ${params.floor}`)
+    .setTitle(
+      t('commands/dungeon:map_title', {
+        floor: params.floor,
+        defaultValue: `🗺️ Floor ${params.floor} Map`,
+      }),
+    )
     .setDescription(
-      `*${params.lore}*\n${params.zone}\n\n**${renderMapIcons(params.state, params.isBoss)}**\n\`${params.state.current}/${params.state.rooms} ruangan\`\n\n🟩 Selesai • 🟦 Kamu • ⬜ Belum • ${params.isBoss ? '👑 Boss' : ''}\n\n**Log Lengkap:**\n${params.state.log.join('\n') || '-'}`,
+      `*${params.lore}*\n${params.zone}\n\n**${renderMapIcons(params.state, params.isBoss)}**\n\`${params.state.current}/${params.state.rooms} ${t('commands/dungeon:rooms', { defaultValue: 'rooms' })}\`\n\n🟩 ${t('commands/dungeon:done')} • 🟦 ${t('commands/dungeon:you')} • ⬜ ${t('commands/dungeon:not_yet')} • ${params.isBoss ? '👑 Boss' : ''}\n\n**${t('commands/dungeon:full_log')}:**\n${params.state.log.join('\n') || '-'}`,
     )
     .setColor(0x3498db)
     .setFooter({
-      text: `Gold: ${params.state.gold} • EXP: ${params.state.exp} • HP ${params.playerHp}/${params.playerMaxHp}`,
+      text: t('commands/dungeon:map_footer', {
+        gold: params.state.gold,
+        exp: params.state.exp,
+        hp: params.playerHp,
+        maxHp: params.playerMaxHp,
+      }),
     });
 }
 
@@ -88,18 +128,28 @@ export function buildFleeEmbed(params: {
   playerMaxHp: number;
   playerStamina: number;
   playerMaxStamina: number;
+  t: TFunction;
 }) {
+  const { t } = params;
   return new EmbedBuilder()
-    .setTitle('🏃 Kamu Mundur')
+    .setTitle(t('commands/dungeon:flee_title', { defaultValue: '🏃 You Fled' }))
     .setColor(0x95a5a6)
     .setDescription(
-      `*${params.lore}*\n\nKamu keluar dari **Room ${params.state.current}/${params.state.rooms}**.\n\n> **Lantai ${params.floor} TIDAK hilang** — progress run saja yang dibatalkan.\n> Kamu bisa masuk lagi dari awal Lantai ${params.floor} kapan saja.\n> ℹ️ Checkpoint L${params.checkpoint} **hanya untuk respawn saat mati**, bukan saat kabur.`,
+      `*${params.lore}*\n\n${t('commands/dungeon:flee_desc', { current: params.state.current, rooms: params.state.rooms, floor: params.floor, checkpoint: params.checkpoint })}`,
     )
     .addFields(
-      { name: '💰 Gold dibawa pulang', value: `${params.state.gold}`, inline: true },
-      { name: '✨ EXP didapat', value: `${params.state.exp}`, inline: true },
       {
-        name: '❤️ HP / ⚡ Stamina',
+        name: t('commands/dungeon:gold_brought', { defaultValue: '💰 Gold brought' }),
+        value: `${params.state.gold}`,
+        inline: true,
+      },
+      {
+        name: t('commands/dungeon:exp_gained', { defaultValue: '✨ EXP gained' }),
+        value: `${params.state.exp}`,
+        inline: true,
+      },
+      {
+        name: `${t('commands/dungeon:hp')} / ${t('commands/dungeon:stamina')}`,
         value: `${params.playerHp}/${params.playerMaxHp} • ${params.playerStamina}/${params.playerMaxStamina}`,
         inline: false,
       },
@@ -112,15 +162,22 @@ export function buildRestEmbed(params: {
   state: RunState;
   nextFloor: number;
   highestFloor: number;
+  t: TFunction;
 }) {
+  const { t } = params;
   return new EmbedBuilder()
-    .setTitle(`✅ Lantai ${params.floor} Clear!`)
+    .setTitle(
+      t('commands/dungeon:clear_title', {
+        floor: params.floor,
+        defaultValue: `✅ Floor ${params.floor} Clear!`,
+      }),
+    )
     .setColor(0x2ecc71)
     .setDescription(
       params.state.log.join('\n') +
-        `\n\n**Reward: +${params.state.gold} koin • +${params.state.exp} exp**\n\n🏠 Kamu istirahat di lantai ${params.nextFloor}.`,
+        `\n\n**${t('commands/dungeon:reward', { gold: params.state.gold, exp: params.state.exp })}**\n\n${t('commands/dungeon:resting', { floor: params.nextFloor })}`,
     )
-    .setFooter({ text: `Highest: ${params.highestFloor} • Tower of Stars` });
+    .setFooter({ text: t('commands/dungeon:rest_footer', { highest: params.highestFloor }) });
 }
 
 export function buildBattleEmbed(params: {
@@ -136,7 +193,9 @@ export function buildBattleEmbed(params: {
   isBoss: boolean;
   isElite: boolean;
   skillCd: number;
+  t: TFunction;
 }) {
+  const { t } = params;
   return new EmbedBuilder()
     .setTitle(`${params.isElite ? '🌟 ' : ''}${params.isBoss ? '👑 ' : ''}⚔️ ${params.monsterName}`)
     .setDescription(`*${params.lore}*\n\n${params.action}`)
@@ -154,7 +213,9 @@ export function buildBattleEmbed(params: {
     )
     .setColor(params.isElite ? 0xf1c40f : params.isBoss ? 0xe74c3c : 0xe67e22)
     .setFooter({
-      text: params.skillCd ? `Skill cooldown: ${params.skillCd} turn` : 'Pilih aksimu!',
+      text: params.skillCd
+        ? t('commands/dungeon:skill_cd', { cd: params.skillCd })
+        : t('commands/dungeon:choose_action'),
     });
 }
 
@@ -165,63 +226,99 @@ export function buildMerchantEmbed(params: {
   floor: number;
   playerGold: number;
   zone: string;
+  t: TFunction;
 }) {
+  const { t } = params;
   const titles: Record<string, string> = {
-    ruins: '🛒 Pedagang Reruntuhan',
-    mines: '⛏️ Pedagang Kurcaci',
-    library: '📚 Pustakawan',
-    temple: '⛩️ Miko Kuil',
-    summit: '✨ Pedagang Astral',
+    ruins: t('commands/dungeon:merchant_ruins', { defaultValue: '🛒 Ruins Trader' }),
+    mines: t('commands/dungeon:merchant_mines', { defaultValue: '⛏️ Dwarf Trader' }),
+    library: t('commands/dungeon:merchant_library', { defaultValue: '📚 Librarian' }),
+    temple: t('commands/dungeon:merchant_temple', { defaultValue: '⛩️ Shrine Maiden' }),
+    summit: t('commands/dungeon:merchant_summit', { defaultValue: '✨ Astral Trader' }),
   };
   return new EmbedBuilder()
-    .setTitle(titles[params.zone] ?? '🛒 Pedagang Misterius')
+    .setTitle(titles[params.zone] ?? t('commands/dungeon:merchant_default'))
     .setDescription(
-      `*${params.text}*\n\nMenawarkan **Ramuan Penyembuh**\n💚 Heal: +${params.heal} HP\n💰 Harga: ${params.cost} gold\n\nGold kamu: ${params.playerGold}`,
+      t('commands/dungeon:merchant_desc', {
+        text: params.text,
+        heal: params.heal,
+        cost: params.cost,
+        gold: params.playerGold,
+      }),
     )
     .setColor(0xf1c40f)
-    .setFooter({ text: `Lantai ${params.floor} • Pilih dalam 20 detik` });
+    .setFooter({ text: t('commands/dungeon:merchant_footer', { floor: params.floor }) });
 }
 
-export function getMerchantButtons(cost: number, canAfford: boolean) {
+export function getMerchantButtons(cost: number, canAfford: boolean, t: TFunction) {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId('buy')
-      .setLabel(`Beli (${cost}g)`)
+      .setLabel(t('commands/dungeon:btn_buy', { cost, defaultValue: `Buy (${cost}g)` }))
       .setStyle(ButtonStyle.Success)
       .setDisabled(!canAfford),
-    new ButtonBuilder().setCustomId('skip').setLabel('Lewati').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('skip')
+      .setLabel(t('commands/dungeon:btn_skip', { defaultValue: 'Skip' }))
+      .setStyle(ButtonStyle.Secondary),
   );
 }
 
-export function getMainButtons() {
+export function getMainButtons(t: TFunction) {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder().setCustomId('next').setLabel('➡️ Masuk Room').setStyle(ButtonStyle.Primary),
-    new ButtonBuilder().setCustomId('map').setLabel('🗺️ Peta').setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder().setCustomId('flee').setLabel('🏃 Kabur').setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
+      .setCustomId('next')
+      .setLabel(t('commands/dungeon:btn_next', { defaultValue: '➡️ Next Room' }))
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId('map')
+      .setLabel(t('commands/dungeon:btn_map', { defaultValue: '🗺️ Map' }))
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('flee')
+      .setLabel(t('commands/dungeon:btn_flee', { defaultValue: '🏃 Flee' }))
+      .setStyle(ButtonStyle.Danger),
   );
 }
 
-export function getBattleButtons(skillName: string, skillCd: number) {
+export function getBattleButtons(skillName: string, skillCd: number, t: TFunction) {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder().setCustomId('atk').setLabel('🗡️ Attack').setStyle(ButtonStyle.Primary),
-    new ButtonBuilder().setCustomId('def').setLabel('🛡️ Defend').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('atk')
+      .setLabel(t('commands/dungeon:btn_attack', { defaultValue: '🗡️ Attack' }))
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId('def')
+      .setLabel(t('commands/dungeon:btn_defend', { defaultValue: '🛡️ Defend' }))
+      .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId('skl')
-      .setLabel(`✨ ${skillName}${skillCd ? ` (${skillCd})` : ''}`)
+      .setLabel(
+        t('commands/dungeon:btn_skill', {
+          skill: skillName,
+          cd: skillCd ? ` (${skillCd})` : '',
+          defaultValue: `✨ ${skillName}${skillCd ? ` (${skillCd})` : ''}`,
+        }),
+      )
       .setStyle(ButtonStyle.Success)
       .setDisabled(skillCd > 0),
   );
 }
 
-export function getContinueButtons(nextFloor: number) {
+export function getContinueButtons(nextFloor: number, t: TFunction) {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId('continue')
-      .setLabel(`➡️ Lanjut L${nextFloor}`)
+      .setLabel(
+        t('commands/dungeon:btn_continue', {
+          floor: nextFloor,
+          defaultValue: `➡️ Continue F${nextFloor}`,
+        }),
+      )
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
       .setCustomId('stop')
-      .setLabel('🏠 Istirahat')
+      .setLabel(t('commands/dungeon:btn_stop', { defaultValue: '🏠 Rest' }))
       .setStyle(ButtonStyle.Secondary),
   );
 }
