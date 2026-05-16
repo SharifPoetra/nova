@@ -1,0 +1,19 @@
+{
+  "reset": "Reset RPG data (owner only)",
+  "daily": "Claim your daily coins (1000 coins)!",
+  "shop": "Buy items at Nova Shop",
+  "start": "Start your adventure in Nova Chronicles and choose a Class!",
+  "sell": "Sell fish/materials",
+  "inventory": "View all your items",
+  "fish": "Go fishing for fish to sell or cook",
+  "explore": "Explore the world of Nova and find treasures",
+  "dungeon": "Tower of Stars - 100 floor dungeon",
+  "simdroprate": "Run drop rate simulation (Owner only)",
+  "droprate": "View detailed drop rates for fish, explore, and hunt",
+  "cook": "Cook food to heal or buff",
+  "profile": "View your Nova RPG profile",
+  "ping": "Check Nova bot response",
+  "help": "View all Nova commands",
+  "hunt": "Hunt monsters",
+  "lang": "Change bot language for you or the server"
+}

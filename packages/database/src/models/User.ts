@@ -12,6 +12,7 @@ export interface IBuff {
 export interface IUser extends Document {
   discordId: string;
   username: string;
+  lang?: string | null;
   balance: number;
   bank: number;
   lastDaily: Date | null;
@@ -37,6 +38,7 @@ const UserSchema = new Schema<IUser>(
   {
     discordId: { type: String, required: true, unique: true, index: true },
     username: { type: String, required: true },
+    lang: { type: String, default: null },
     balance: { type: Number, default: 1000 },
     bank: { type: Number, default: 0 },
     lastDaily: { type: Date, default: null },

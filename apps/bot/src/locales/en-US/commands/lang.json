@@ -1,0 +1,8 @@
+{
+  "option_name": "language",
+  "option_desc": "Choose language",
+  "guild_name": "guild",
+  "guild_desc": "Set for server (admin only)",
+  "lang_changed": "Language changed to {{lang}} ✅",
+  "no_perm": "You need Manage Server permission"
+}

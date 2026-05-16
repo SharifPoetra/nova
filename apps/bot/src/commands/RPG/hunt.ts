@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { sleep, ratioBar, RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
@@ -9,60 +10,54 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 
 @ApplyOptions<Command.Options>({
   name: 'hunt',
-  description: 'Berburu monster (cost 20 stamina)',
-  detailedDescription: {
-    usage: '/hunt',
-    examples: ['/hunt'],
-    extendedHelp: `
-Cooldown 45 detik • butuh ${ACTION_COST.hunt} stamina dan minimal 20 HP.
-
-**Class passive:**
-🛡️ Warrior — 20% chance block 30% damage
-🏹 Rogue — 18% crit chance (normal 10%)
-🪄 Mage — 15% lifesteal 25% dari damage
-
-Drop tergantung monster dan level kamu. Gunakan /droprate tipe:hunt untuk lihat tabel lengkap.
-    `.trim(),
-  },
+  description: 'Hunt monsters',
   fullCategory: ['RPG'],
 })
 export class HuntCommand extends Command {
-  public override registerApplicationCommands(r: Command.Registry) {
-    r.registerChatInputCommand((b) => b.setName(this.name).setDescription(this.description));
+  public override registerApplicationCommands(registry: Command.Registry) {
+    registry.registerChatInputCommand((builder) =>
+      applyLocalizedBuilder(builder, 'commands/names:hunt', 'commands/descriptions:hunt'),
+    );
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     await interaction.deferReply();
+    const t = await fetchT(interaction);
+
     const db = this.container.db;
     const user = await db.user.findOne({ discordId: interaction.user.id });
-    if (!user) return interaction.editReply('Gunakan /start dulu!');
+
+    if (!user) return interaction.editReply(t('common:need_start'));
 
     applyPassiveRegen(user);
-
     const now = Date.now();
+
     if (now - (user.lastHunt?.getTime() ?? 0) < 45000) {
       await user.save();
-      return interaction.editReply(
-        `🏹 Tunggu ${Math.ceil((45000 - (now - user.lastHunt!.getTime())) / 1000)}s`,
-      );
+      const s = Math.ceil((45000 - (now - user.lastHunt!.getTime())) / 1000);
+      return interaction.editReply(t('commands/hunt:cooldown', { s }));
     }
+
     if ((user.stamina ?? 0) < ACTION_COST.hunt) {
       await user.save();
-      return interaction.editReply(`⚡ Stamina kurang (${user.stamina}/${ACTION_COST.hunt})`);
+      return interaction.editReply(
+        t('commands/hunt:low_stamina', { current: user.stamina, need: ACTION_COST.hunt }),
+      );
     }
+
     if ((user.hp ?? 0) < 20) {
       await user.save();
-      return interaction.editReply(`❤️ HP rendah (${user.hp}). /cook dulu!`);
+      return interaction.editReply(t('commands/hunt:low_hp', { hp: user.hp }));
     }
+
     user.stamina -= ACTION_COST.hunt;
     user.lastHunt = new Date();
 
     const monster = getScaledMonster(user.level ?? 1);
-
     let mHp = monster.hp,
       uHp = user.hp;
-    const mMax = monster.hp;
-    const uMax = user.maxHp;
+    const mMax = monster.hp,
+      uMax = user.maxHp;
     let totalDealt = 0,
       totalTaken = 0;
     const log: string[] = [];
@@ -74,23 +69,29 @@ export class HuntCommand extends Command {
     const isRogue = userClass === 'rogue';
     const isMage = userClass === 'mage';
     const isWarrior = userClass === 'warrior';
-
     const critChance = isRogue ? 0.18 : 0.1;
     const classIcon = isWarrior ? '🛡️' : isMage ? '🪄' : '🏹';
 
     const embed = new EmbedBuilder()
       .setColor(0xe67e22)
       .setAuthor({
-        name: `${interaction.user.username} berburu`,
+        name: t('commands/hunt:author', { user: interaction.user.username }),
         iconURL: interaction.user.displayAvatarURL(),
       })
-      .setTitle(`Menemukan ${monster.emoji} ${monster.name}!`)
-      .setDescription(`⚔️ Pertarungan dimulai...${buffInfo}\n${classIcon} ${userClass}`);
+      .setTitle(t('commands/hunt:found_title', { emoji: monster.emoji, name: monster.name }))
+      .setDescription(
+        t('commands/hunt:battle_start', {
+          buff: buffInfo,
+          icon: classIcon,
+          class: userClass,
+        }),
+      );
+
     await interaction.editReply({ embeds: [embed] });
     await sleep(1000);
 
     while (mHp > 0 && uHp > 0) {
-      // PLAYER
+      // PLAYER TURN
       const isCrit = Math.random() < critChance;
       let pDmg =
         Math.floor(Math.random() * 15) + 10 + Math.floor((user.attack ?? 10) / 3) + bonusAtk;
@@ -98,12 +99,18 @@ export class HuntCommand extends Command {
       mHp = Math.max(0, mHp - pDmg);
       totalDealt += pDmg;
 
-      let playerLog = `${isCrit ? '💥' : '🗡️'} Kamu ${isCrit ? 'CRIT ' : ''}**${pDmg}**`;
+      let playerLog = t('commands/hunt:player_hit', {
+        icon: isCrit ? '💥' : '🗡️',
+        crit: isCrit ? t('commands/hunt:player_crit') : '',
+        dmg: pDmg,
+      });
+
       if (isMage && Math.random() < 0.15 && uHp < uMax) {
         const heal = Math.floor(pDmg * 0.25);
         uHp = Math.min(uMax, uHp + heal);
-        playerLog += ` +🩸${heal}`;
+        playerLog += t('commands/hunt:mage_heal', { heal });
       }
+
       log.push(playerLog);
 
       embed.setDescription(log.slice(-4).join('\n')).setFields(
@@ -112,13 +119,17 @@ export class HuntCommand extends Command {
           value: `${ratioBar(mHp, mMax)} \`${mHp}/${mMax}\``,
           inline: false,
         },
-        { name: `❤️ Kamu`, value: `${ratioBar(uHp, uMax)} \`${uHp}/${uMax}\``, inline: false },
+        {
+          name: t('commands/hunt:field_you'),
+          value: `${ratioBar(uHp, uMax)} \`${uHp}/${uMax}\``,
+          inline: false,
+        },
       );
       await interaction.editReply({ embeds: [embed] });
       await sleep(850);
       if (mHp <= 0) break;
 
-      // MONSTER
+      // MONSTER TURN
       let mDmg = Math.floor(Math.random() * (monster.dmg[1] - monster.dmg[0])) + monster.dmg[0];
       let blocked = 0;
       if (isWarrior && Math.random() < 0.2) {
@@ -127,7 +138,14 @@ export class HuntCommand extends Command {
       }
       uHp = Math.max(0, uHp - mDmg);
       totalTaken += mDmg;
-      log.push(`${monster.emoji} balas **${mDmg}**${blocked ? ` 🛡️-${blocked}` : ''}`);
+
+      log.push(
+        t('commands/hunt:monster_hit', {
+          emoji: monster.emoji,
+          dmg: mDmg,
+          block: blocked ? t('commands/hunt:block_suffix', { blocked }) : '',
+        }),
+      );
 
       embed.setDescription(log.slice(-4).join('\n')).setFields(
         {
@@ -135,7 +153,11 @@ export class HuntCommand extends Command {
           value: `${ratioBar(mHp, mMax)} \`${mHp}/${mMax}\``,
           inline: false,
         },
-        { name: `❤️ Kamu`, value: `${ratioBar(uHp, uMax)} \`${uHp}/${uMax}\``, inline: false },
+        {
+          name: t('commands/hunt:field_you'),
+          value: `${ratioBar(uHp, uMax)} \`${uHp}/${uMax}\``,
+          inline: false,
+        },
       );
       await interaction.editReply({ embeds: [embed] });
       await sleep(850);
@@ -147,25 +169,34 @@ export class HuntCommand extends Command {
     if (uHp <= 0) {
       user.exp = (user.exp ?? 0) + Math.floor(monster.xp / 3);
       await user.save();
+
       embed
         .setColor(0xe74c3c)
-        .setTitle(`💀 Kalah dari ${monster.name}`)
+        .setTitle(t('commands/hunt:lose_title', { name: monster.name }))
         .setDescription(
-          `Tumbang lawan ${monster.emoji} **${monster.name}**${buffInfo}\n\n` +
-            `**📜 Pertarungan:**\n${summary}\n\n` +
-            `**📊** Dealt ${totalDealt} | Taken ${totalTaken}\n\n` +
-            `> +${Math.floor(monster.xp / 3)} EXP`,
+          t('commands/hunt:lose_desc', {
+            emoji: monster.emoji,
+            name: monster.name,
+            buff: buffInfo,
+            summary,
+            dealt: totalDealt,
+            taken: totalTaken,
+            exp: Math.floor(monster.xp / 3),
+          }),
         )
         .setFields();
       return interaction.editReply({ embeds: [embed] });
     }
 
+    // WIN
     const roll = Math.random() * 100;
     let cum = 0;
     const drop = monster.drops.find((d) => (cum += d.chance) >= roll)!;
+
     const inv = user.items.find((i) => i.itemId === drop.id);
     if (inv) inv.qty += 1;
     else user.items.push({ itemId: drop.id, qty: 1 });
+
     user.balance += monster.xp * 2;
     user.exp = (user.exp ?? 0) + monster.xp;
 
@@ -188,26 +219,40 @@ export class HuntCommand extends Command {
     const lvl = checkLevelUp(user);
     if (lvl) {
       Object.assign(user, lvl);
-      levelUpText = `🎉 **LEVEL UP → Lv.${lvl.level}**`;
+      levelUpText = t('commands/hunt:levelup', { level: lvl.level });
     }
 
     await user.save();
 
     embed
       .setColor(RARITY_COLOR[drop.rarity as keyof typeof RARITY_COLOR])
-      .setTitle(`✅ Menang lawan ${monster.name}!`)
+      .setTitle(t('commands/hunt:win_title', { name: monster.name }))
       .setDescription(
-        `${monster.emoji} **${monster.name}** berhasil dikalahkan!${buffInfo}${levelUpText ? `\n\n${levelUpText}` : ''}\n\n` +
-          `${drop.emoji} **${drop.name}** ×1 ${RARITY_EMOJI[drop.rarity as keyof typeof RARITY_EMOJI]} *${drop.rarity}*\n\n` +
-          `**📜 Pertarungan Terakhir:**\n${summary}\n\n` +
-          `**📊 Statistik:** Dealt **${totalDealt}** • Taken **${totalTaken}**`,
+        t('commands/hunt:win_desc', {
+          emoji: monster.emoji,
+          name: monster.name,
+          buff: buffInfo,
+          levelup: levelUpText,
+          dropEmoji: drop.emoji,
+          dropName: drop.name,
+          rarityEmoji: RARITY_EMOJI[drop.rarity as keyof typeof RARITY_EMOJI],
+          rarity: drop.rarity,
+          summary,
+          dealt: totalDealt,
+          taken: totalTaken,
+        }),
       )
       .setFields(
-        { name: '💰 Koin', value: `+${monster.xp * 2}`, inline: true },
-        { name: '✨ EXP', value: `+${monster.xp}`, inline: true },
-        { name: '❤️ HP', value: `${user.hp}/${user.maxHp}`, inline: true },
-        { name: '⚡ Stamina', value: `${user.stamina}/${user.maxStamina}`, inline: true },
+        { name: t('commands/hunt:field_coin'), value: `+${monster.xp * 2}`, inline: true },
+        { name: t('commands/hunt:field_exp'), value: `+${monster.xp}`, inline: true },
+        { name: t('commands/hunt:field_hp'), value: `${user.hp}/${user.maxHp}`, inline: true },
+        {
+          name: t('commands/hunt:field_stamina'),
+          value: `${user.stamina}/${user.maxStamina}`,
+          inline: true,
+        },
       );
+
     await interaction.editReply({ embeds: [embed] });
   }
 }

@@ -1,0 +1,19 @@
+{
+  "reset": "Reset data RPG (owner only)",
+  "daily": "Ambil koin harianmu (1000 koin)!",
+  "shop": "Beli item di Nova Shop",
+  "start": "Mulai petualanganmu di Nova Chronicles dan pilih Class!",
+  "sell": "Jual ikan/material",
+  "inventory": "Lihat semua item kamu",
+  "fish": "Mancing santai, dapat ikan untuk dijual atau dimasak",
+  "explore": "Jelajahi dunia Nova dan temukan harta karun",
+  "dungeon": "Tower of Stars - 100 lantai dungeon",
+  "simdroprate": "Jalankan simulasi drop rate (Owner only)",
+  "droprate": "Lihat drop rate detail untuk fish, explore, dan hunt",
+  "cook": "Masak untuk heal atau buff",
+  "profile": "Melihat profil lengkap Ekonomi dan RPG kamu di Nova",
+  "ping": "Cek respon bot Nova",
+  "help": "Lihat semua command Nova",
+  "hunt": "Berburu monster",
+  "lang": "Ubah bahasa bot untuk kamu atau server"
+}

@@ -7,66 +7,57 @@ import {
   ButtonStyle,
   ComponentType,
 } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
+
+import sellEn from '../../locales/en-US/commands/sell.json';
+import sellId from '../../locales/id/commands/sell.json';
 
 @ApplyOptions<Command.Options>({
   name: 'sell',
-  description: 'Jual ikan/material',
-  detailedDescription: {
-    usage: '/sell type:<rarity>',
-    examples: ['/sell type:all', '/sell type:Rare', '/sell type:Legendary'],
-    extendedHelp: `
-Jual item dari inventory untuk koin.
-
-**Pilihan type:**
-- all — jual semua kecuali Legendary (aman)
-- Common / Uncommon — langsung terjual
-- Rare / Epic / Legendary — perlu konfirmasi tombol
-
-**Catatan:**
-- Item dari /fish, /hunt, /explore bisa dijual
-- Legendary tidak ikut 'all' untuk mencegah salah jual
-- Gunakan /inventory dulu untuk cek total nilai
-
-Tip: simpan Rare+ untuk /cook, jual Common/Uncommon saja untuk farming cepat.
-    `.trim(),
-  },
+  description: 'Sell fish/materials',
   fullCategory: ['RPG'],
 })
 export class SellCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .addStringOption((o) =>
+    registry.registerChatInputCommand((b) =>
+      applyLocalizedBuilder(b, 'commands/names:sell', 'commands/descriptions:sell').addStringOption(
+        (o) =>
           o
             .setName('type')
-            .setDescription('Rarity yang mau dijual')
+            .setDescription(sellEn.option_desc)
+            .setDescriptionLocalizations({ id: sellId.option_desc, 'en-US': sellEn.option_desc })
             .setRequired(true)
             .addChoices(
-              { name: 'All (kecuali Legendary)', value: 'all' },
-              { name: 'Common', value: 'Common' },
-              { name: 'Uncommon', value: 'Uncommon' },
-              { name: 'Rare', value: 'Rare' },
-              { name: 'Epic', value: 'Epic' },
-              { name: 'Legendary', value: 'Legendary' },
+              {
+                name: sellEn.choice_all,
+                value: 'all',
+                name_localizations: { id: sellId.choice_all },
+              },
+              { name: 'Common', value: 'Common', name_localizations: { id: 'Common' } },
+              { name: 'Uncommon', value: 'Uncommon', name_localizations: { id: 'Uncommon' } },
+              { name: 'Rare', value: 'Rare', name_localizations: { id: 'Rare' } },
+              { name: 'Epic', value: 'Epic', name_localizations: { id: 'Epic' } },
+              { name: 'Legendary', value: 'Legendary', name_localizations: { id: 'Legendary' } },
             ),
-        ),
+      ),
     );
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    const t = await fetchT(interaction);
     await interaction.deferReply();
     const type = interaction.options.getString('type', true);
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
-    if (!user) return interaction.editReply('❌ Kamu belum terdaftar! Gunakan `/start` dulu.');
+    if (!user) return interaction.editReply(t('common:need_start'));
 
     applyPassiveRegen(user);
 
     if (!user.items?.length) {
       await user.save();
-      return interaction.editReply('❌ Inventory kosong!');
+      return interaction.editReply(
+        t('commands/sell:empty', { defaultValue: '❌ Inventory empty!' }),
+      );
     }
 
     const itemIds = user.items.map((i) => i.itemId);
@@ -82,7 +73,12 @@ export class SellCommand extends Command {
 
     if (!toSell.length) {
       await user.save();
-      return interaction.editReply(`❌ Tidak ada item ${type}!`);
+      return interaction.editReply(
+        t('commands/sell:none', {
+          type: t(`commands/sell:type_${type}`, { defaultValue: type }),
+          defaultValue: `❌ No ${type} items!`,
+        }),
+      );
     }
 
     const total = toSell.reduce((sum, i) => sum + i.qty * Number(i.data!.sellPrice), 0);
@@ -90,28 +86,40 @@ export class SellCommand extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(needConfirm ? 0xe67e22 : 0x2ecc71)
-      .setTitle('💰 Penjualan')
+      .setTitle(t('commands/sell:title', { defaultValue: '💰 Sale' }))
       .setDescription(
         toSell
           .map(
             (i) =>
-              `${i.data!.emoji} **${i.data!.name}** x${i.qty} — ${(i.qty * i.data!.sellPrice).toLocaleString('id-ID')} koin`,
+              `${i.data!.emoji} **${i.data!.name}** x${i.qty} — ${(i.qty * i.data!.sellPrice).toLocaleString(interaction.locale)} ${t('commands/sell:coins', { defaultValue: 'coins' })}`,
           )
           .join('\n'),
       )
-      .addFields({ name: 'Total', value: `+${total.toLocaleString('id-ID')} koin` });
+      .addFields({
+        name: t('commands/sell:total', { defaultValue: 'Total' }),
+        value: `+${total.toLocaleString(interaction.locale)} ${t('commands/sell:coins')}`,
+      });
 
     if (!needConfirm) {
       user.balance = Number(user.balance) + total;
       user.items = user.items.filter((ui) => !toSell.some((ts) => ts.itemId === ui.itemId));
       await user.save();
-      embed.addFields({ name: '💰 Saldo', value: `${user.balance.toLocaleString('id-ID')} koin` });
+      embed.addFields({
+        name: t('commands/sell:balance', { defaultValue: '💰 Balance' }),
+        value: `${user.balance.toLocaleString(interaction.locale)} ${t('commands/sell:coins')}`,
+      });
       return interaction.editReply({ embeds: [embed] });
     }
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder().setCustomId('yes').setLabel('Jual').setStyle(ButtonStyle.Danger),
-      new ButtonBuilder().setCustomId('no').setLabel('Batal').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId('yes')
+        .setLabel(t('commands/sell:confirm_yes', { defaultValue: 'Sell' }))
+        .setStyle(ButtonStyle.Danger),
+      new ButtonBuilder()
+        .setCustomId('no')
+        .setLabel(t('commands/sell:confirm_no', { defaultValue: 'Cancel' }))
+        .setStyle(ButtonStyle.Secondary),
     );
 
     await interaction.editReply({ embeds: [embed], components: [row] });
@@ -127,13 +135,20 @@ export class SellCommand extends Command {
     col.on('collect', async (i) => {
       if (i.customId === 'no') {
         await user.save();
-        return i.update({ content: '❌ Dibatalkan', embeds: [], components: [] });
+        return i.update({
+          content: t('commands/sell:cancelled', { defaultValue: '❌ Cancelled' }),
+          embeds: [],
+          components: [],
+        });
       }
 
       user.balance = Number(user.balance) + total;
       user.items = user.items.filter((ui) => !toSell.some((ts) => ts.itemId === ui.itemId));
       await user.save();
-      embed.addFields({ name: '💰 Saldo', value: `${user.balance.toLocaleString('id-ID')} koin` });
+      embed.addFields({
+        name: t('commands/sell:balance'),
+        value: `${user.balance.toLocaleString(interaction.locale)} ${t('commands/sell:coins')}`,
+      });
       await i.update({ embeds: [embed], components: [] });
     });
 

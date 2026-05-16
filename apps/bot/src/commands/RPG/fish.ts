@@ -1,56 +1,33 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
-import { catchFish, FISHES } from '../../lib/rpg/fishes';
+import { RARITY_COLOR } from '../../lib/utils';
+import { catchFish } from '../../lib/rpg/fishes';
 import { ACTION_COST } from '../../lib/rpg/actions';
-
-const groupByRarity = <T extends { rarity: string }>(arr: T[]) =>
-  arr.reduce(
-    (acc, cur) => ((acc[cur.rarity] = acc[cur.rarity] ?? []).push(cur), acc),
-    {} as Record<string, T[]>,
-  );
-
-const raritySummary = Object.entries(groupByRarity(FISHES))
-  .map(
-    ([r, arr]) =>
-      `${RARITY_EMOJI[r as keyof typeof RARITY_EMOJI]} ${r} ${arr.reduce((a, b) => a + b.chance, 0)}%`,
-  )
-  .join(' • ');
 
 @ApplyOptions<Command.Options>({
   name: 'fish',
-  description: 'Mancing santai, dapat ikan untuk dijual atau dimasak',
-  detailedDescription: {
-    usage: '/fish',
-    examples: ['/fish'],
-    extendedHelp: `
-Cooldown 30 detik • cost ${ACTION_COST.fish} stamina.
-
-**Kegunaan ikan:**
-1. **Jual** — pakai /sell untuk koin instan
-2. **Masak** — pakai /cook untuk jadi Fish Soup (+40 HP) atau resep lain
-
-**Drop:** 13 jenis ikan dari Common sampai Legendary
-**Rarity:** ${raritySummary}
-
-Tips: ikan Rare+ jangan langsung dijual, simpan untuk masak sebelum /hunt. Rata-rata jual ~${Math.round(FISHES.reduce((a, f) => a + f.sellPrice * (f.chance / 100), 0))}💰.
-Lihat tabel: /droprate tipe:fish
-    `.trim(),
-  },
+  description: 'Go fishing for fish to sell or cook',
   fullCategory: ['RPG'],
 })
 export class FishCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((b) => b.setName(this.name).setDescription(this.description));
+    registry.registerChatInputCommand((b) =>
+      applyLocalizedBuilder(b, 'commands/names:fish', 'commands/descriptions:fish'),
+    );
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    const t = await fetchT(interaction);
     await interaction.deferReply();
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
-    if (!user) return interaction.editReply('Gunakan /start dulu!');
+    if (!user)
+      return interaction.editReply(
+        t('common:need_start', { defaultValue: '❌  Use /start first.' }),
+      );
 
     applyPassiveRegen(user);
     const now = Date.now();
@@ -58,11 +35,19 @@ export class FishCommand extends Command {
     if (now - (user.lastFish?.getTime() ?? 0) < cd) {
       const wait = Math.ceil((cd - (now - (user.lastFish?.getTime() ?? 0))) / 1000);
       await user.save();
-      return interaction.editReply(`🎣 Joran masih basah! Tunggu ${wait}s`);
+      return interaction.editReply(
+        t('commands/fish:cooldown', { wait, defaultValue: `🎣 Rod is still wet! Wait ${wait}s` }),
+      );
     }
     if (user.stamina < ACTION_COST.fish) {
       await user.save();
-      return interaction.editReply(`⚡ Stamina kurang (${user.stamina}/${ACTION_COST.fish})`);
+      return interaction.editReply(
+        t('commands/fish:low_stamina', {
+          current: user.stamina,
+          cost: ACTION_COST.fish,
+          defaultValue: `⚡ Not enough stamina (${user.stamina}/${ACTION_COST.fish})`,
+        }),
+      );
     }
 
     const fish = catchFish();
@@ -94,7 +79,7 @@ export class FishCommand extends Command {
     const levelData = checkLevelUp(user);
     if (levelData) {
       Object.assign(user, levelData);
-      levelUpText = `\n🎉 **LEVEL UP! → Lv.${levelData.level}**`;
+      levelUpText = `\n${t('commands/fish:levelup', { level: levelData.level, defaultValue: `🎉 **LEVEL UP! → Lv.${levelData.level}**` })}`;
     }
 
     await user.save();
@@ -102,21 +87,52 @@ export class FishCommand extends Command {
     const embed = new EmbedBuilder()
       .setColor(RARITY_COLOR[fish.rarity])
       .setAuthor({
-        name: `${interaction.user.username} memancing`,
+        name: t('commands/fish:author', {
+          username: interaction.user.username,
+          defaultValue: `${interaction.user.username} is fishing`,
+        }),
         iconURL: interaction.user.displayAvatarURL(),
       })
-      .setDescription(`**${fish.emoji} ${fish.name}** tertangkap!\n*${fish.rarity}*${levelUpText}`)
+      .setDescription(
+        t('commands/fish:caught', {
+          emoji: fish.emoji,
+          name: fish.name,
+          rarity: fish.rarity,
+          defaultValue: `**${fish.emoji} ${fish.name}** caught!\n*${fish.rarity}*`,
+        }) + levelUpText,
+      )
       .addFields(
-        { name: '💰 Jual', value: `${fish.sellPrice} koin`, inline: true },
-        { name: '🍳 Masak', value: 'Bisa untuk Fish Soup', inline: true },
-        { name: '✨ EXP', value: `+${fish.xp}`, inline: true },
         {
-          name: '⚡ Stamina',
-          value: `${user.stamina + ACTION_COST.fish} → ${user.stamina}`,
+          name: t('commands/fish:sell', { defaultValue: '💰 Sell' }),
+          value: t('commands/fish:sell_value', {
+            price: fish.sellPrice,
+            defaultValue: `${fish.sellPrice} coins`,
+          }),
+          inline: true,
+        },
+        {
+          name: t('commands/fish:cook', { defaultValue: '🍳 Cook' }),
+          value: t('commands/fish:cook_value', { defaultValue: 'Can be used for Fish Soup' }),
+          inline: true,
+        },
+        {
+          name: t('commands/fish:exp', { defaultValue: '✨ EXP' }),
+          value: `+${fish.xp}`,
+          inline: true,
+        },
+        {
+          name: t('commands/fish:stamina', { defaultValue: '⚡ Stamina' }),
+          value: t('commands/fish:stamina_value', {
+            before: user.stamina + ACTION_COST.fish,
+            after: user.stamina,
+            defaultValue: `${user.stamina + ACTION_COST.fish} → ${user.stamina}`,
+          }),
           inline: true,
         },
       )
-      .setFooter({ text: 'Gunakan /cook untuk heal sebelum hunt' });
+      .setFooter({
+        text: t('commands/fish:footer', { defaultValue: 'Use /cook to heal before hunt' }),
+      });
 
     return interaction.editReply({ embeds: [embed] });
   }

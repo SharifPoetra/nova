@@ -1,0 +1,18 @@
+{
+  "reset": "reset,"
+  "daily": "daily",
+  "shop": "shop",
+  "start": "start",
+  "sell": "sell",
+  "inventory": "inventory",
+  "fish": "fish",
+  "dungeon": "dungeon",
+  "simdroprate": "simdroprate",
+  "droprate": "droprate",
+  "cook": "cook",
+  "profile": "profile",
+  "ping": "ping",
+  "hunt": "hunt",
+  "lang": "lang",
+  "help": "help"
+}

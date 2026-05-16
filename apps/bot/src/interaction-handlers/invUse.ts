@@ -9,13 +9,17 @@ import {
   MessageFlags,
   StringSelectMenuBuilder,
 } from 'discord.js';
+import { fetchT } from '@sapphire/plugin-i18next';
 import { RARITY_COLOR } from '../lib/utils';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 
 const ITEMS_PER_PAGE = 10;
 const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
 
-@ApplyOptions({ name: 'inv', interactionHandlerType: InteractionHandlerTypes.MessageComponent })
+@ApplyOptions<InteractionHandler.Options>({
+  name: 'invUse',
+  interactionHandlerType: InteractionHandlerTypes.MessageComponent,
+})
 export class InvUseHandler extends InteractionHandler {
   public override parse(interaction) {
     if (typeof interaction.customId !== 'string') return this.none();
@@ -30,9 +34,13 @@ export class InvUseHandler extends InteractionHandler {
   }
 
   public override async run(interaction: ButtonInteraction | StringSelectMenuInteraction) {
+    const t = await fetchT(interaction);
     const userId = interaction.customId.split('_').at(-1)!;
     if (interaction.user.id !== userId)
-      return interaction.reply({ content: 'Bukan inventory kamu!', flags: MessageFlags.Ephemeral });
+      return interaction.reply({
+        content: t('commands/inventory:not_yours', { defaultValue: 'Not your inventory!' }),
+        flags: MessageFlags.Ephemeral,
+      });
 
     if (interaction.isStringSelectMenu()) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -47,19 +55,31 @@ export class InvUseHandler extends InteractionHandler {
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith('inv_use_')) {
       const itemId = interaction.values[0];
       const item = await this.container.db.item.findOne({ itemId }).lean();
-      if (!item) return interaction.followUp({ content: 'Item tidak ditemukan' });
+      if (!item)
+        return interaction.followUp({
+          content: t('commands/inventory:item_not_found', { defaultValue: 'Item not found' }),
+        });
 
       const invItem = user.items.find((i) => i.itemId === itemId);
-      if (!invItem || invItem.qty < 1) return interaction.followUp({ content: 'Habis!' });
+      if (!invItem || invItem.qty < 1)
+        return interaction.followUp({
+          content: t('commands/inventory:out_of_stock', { defaultValue: 'Out of stock!' }),
+        });
 
       const effects = item.effects || [];
       if (effects.length === 0) {
         return interaction.followUp({
-          content: '❌ Item ini tidak bisa dipakai',
+          content: t('commands/inventory:cannot_use', {
+            defaultValue: '❌ This item cannot be used',
+          }),
         });
       }
 
-      let msg = `✅ Pakai ${item.emoji} **${item.name}**`;
+      let msg = t('commands/inventory:used', {
+        emoji: item.emoji,
+        name: item.name,
+        defaultValue: `✅ Used ${item.emoji} **${item.name}**`,
+      });
       let applied = 0;
 
       for (const eff of effects) {
@@ -70,7 +90,7 @@ export class InvUseHandler extends InteractionHandler {
           user.hp = Math.min(maxHp, before + eff.value);
           const gained = user.hp - before;
           if (gained > 0) {
-            msg += `\n❤️ +${gained} HP`;
+            msg += `\n${t('commands/inventory:heal', { amount: gained, defaultValue: `❤️ +${gained} HP` })}`;
             applied++;
           }
         } else if (eff.type === 'stamina') {
@@ -80,7 +100,7 @@ export class InvUseHandler extends InteractionHandler {
           user.stamina = Math.min(maxSt, before + eff.value);
           const gained = user.stamina - before;
           if (gained > 0) {
-            msg += `\n⚡ +${gained} Stamina`;
+            msg += `\n${t('commands/inventory:stamina_gain', { amount: gained, defaultValue: `⚡ +${gained} Stamina` })}`;
             applied++;
           }
         } else if (eff.type === 'buff') {
@@ -90,16 +110,18 @@ export class InvUseHandler extends InteractionHandler {
             value: eff.value,
             expires: new Date(Date.now() + 10 * 60 * 1000),
           });
-          msg += `\n⚔️ ATK +${eff.value} (10m)`;
+          msg += `\n${t('commands/inventory:buff', { value: eff.value, defaultValue: `⚔️ ATK +${eff.value} (10m)` })}`;
           applied++;
-        } else if (eff.type === 'mana') {
-          msg += `\n🔮 Mana +${eff.value} (belum aktif)`;
         }
       }
 
       if (applied === 0) {
         return interaction.followUp({
-          content: `❌ ${item.emoji} **${item.name}** tidak berpengaruh (HP/Stamina sudah penuh)`,
+          content: t('commands/inventory:no_effect', {
+            emoji: item.emoji,
+            name: item.name,
+            defaultValue: `❌ ${item.emoji} **${item.name}** had no effect (HP/Stamina full)`,
+          }),
         });
       }
 
@@ -122,27 +144,41 @@ export class InvUseHandler extends InteractionHandler {
 
       const embed = new EmbedBuilder()
         .setAuthor({
-          name: `${interaction.user.username}'s Inventory`,
+          name: t('commands/inventory:author', {
+            username: interaction.user.username,
+            defaultValue: `${interaction.user.username}'s Inventory`,
+          }),
           iconURL: interaction.user.displayAvatarURL(),
         })
         .setColor(RARITY_COLOR[topRarity as keyof typeof RARITY_COLOR])
         .setDescription(
-          `⚡ Stamina: ${user.stamina}/${user.maxStamina}\n📦 ${allItems.length} jenis item`,
+          t('commands/inventory:header', {
+            stamina: user.stamina,
+            maxStamina: user.maxStamina,
+            count: allItems.length,
+            defaultValue: `⚡ Stamina: ${user.stamina}/${user.maxStamina}\n📦 ${allItems.length} item types`,
+          }),
         )
         .setFooter({
-          text: `Total nilai: ${totalValue.toLocaleString('id-ID')} koin | Hal ${page + 1}/${totalPages}`,
+          text: t('commands/inventory:footer', {
+            total: totalValue.toLocaleString(cache.locale || 'en-US'),
+            page: page + 1,
+            totalPages,
+            defaultValue: `Total value: ${totalValue.toLocaleString()} coins | Page ${page + 1}/${totalPages}`,
+          }),
         });
 
       for (const it of pageItems) embed.addFields({ name: it.text, value: it.sub });
+
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId(`inv_prev_${page}_${userId}`)
-          .setLabel('◀ Sebelumnya')
+          .setLabel(t('commands/inventory:prev', { defaultValue: '◀ Previous' }))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(page <= 0),
         new ButtonBuilder()
           .setCustomId(`inv_next_${page}_${userId}`)
-          .setLabel('Selanjutnya ▶')
+          .setLabel(t('commands/inventory:next', { defaultValue: 'Next ▶' }))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(page >= totalPages - 1),
       );
@@ -153,6 +189,7 @@ export class InvUseHandler extends InteractionHandler {
       const consumables = user.items
         .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
         .slice(0, 25);
+
       const components: (
         | ActionRowBuilder<ButtonBuilder>
         | ActionRowBuilder<StringSelectMenuBuilder>
@@ -163,7 +200,9 @@ export class InvUseHandler extends InteractionHandler {
           new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder()
               .setCustomId(`inv_use_${userId}`)
-              .setPlaceholder('Gunakan consumable...')
+              .setPlaceholder(
+                t('commands/inventory:use_placeholder', { defaultValue: 'Use consumable...' }),
+              )
               .addOptions(
                 consumables.map((c) => {
                   const d = itemMap.get(c.itemId)!;

@@ -6,42 +6,33 @@ import {
   StringSelectMenuBuilder,
   MessageFlags,
   type ChatInputCommandInteraction,
+  type Interaction,
 } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions<Command.Options>({
   name: 'help',
-  description: 'Lihat semua command Nova',
-  detailedDescription: {
-    usage: '/help [command:optional]',
-    examples: ['/help', '/help command:fish', '/help command:profile'],
-    extendedHelp: `
-Pusat bantuan interaktif Nova.
-
-**Cara pakai:**
-- /help — lihat daftar semua command yang bisa kamu pakai
-- /help command:... — langsung lihat detail (autocomplete tersedia)
-- Pilih dari dropdown menu untuk detail cepat
-
-**Fitur:**
-- Hanya menampilkan command yang kamu punya izin
-- Menampilkan usage, contoh, dan penjelasan lengkap
-- Dikelompokkan per kategori (RPG, Economy, General)
-- Private reply (ephemeral)
-
-Tips: ketik /help lalu pilih /fish untuk lihat droprate ikan.
-    `.trim(),
-  },
+  description: 'View all Nova commands',
   fullCategory: ['General'],
 })
 export class HelpCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .addStringOption((o) =>
-          o.setName('command').setDescription('Detail command').setAutocomplete(true),
-        ),
+      applyLocalizedBuilder(
+        builder,
+        'commands/names:help',
+        'commands/descriptions:help',
+      ).addStringOption((o) =>
+        o
+          .setName('command')
+          .setDescription('View command details')
+          .setDescriptionLocalizations({
+            'en-US': 'View command details',
+            'en-GB': 'View command details',
+            id: 'Lihat detail command',
+          })
+          .setAutocomplete(true),
+      ),
     );
   }
 
@@ -54,22 +45,38 @@ export class HelpCommand extends Command {
     return true;
   }
 
-  public getCommandDetail(cmd: Command) {
-    const detail = (cmd as any).detailedDescription;
+  public async getCommandDetail(cmd: Command, interaction: Interaction) {
+    const t = await fetchT(interaction);
+    const key = `commands/${cmd.name}`;
+
     return new EmbedBuilder()
       .setTitle(`/${cmd.name}`)
-      .setDescription(detail?.extendedHelp || cmd.description)
+      .setDescription(t(`${key}:extended_help`, { defaultValue: cmd.description }))
       .setColor(0x5865f2)
       .addFields(
-        ...(detail?.usage ? [{ name: 'Usage', value: `\`${detail.usage}\``, inline: true }] : []),
+        {
+          name: t('common:usage', { defaultValue: 'Usage' }),
+          value: `\`${t(`${key}:usage`, { defaultValue: `/${cmd.name}` })}\``,
+          inline: true,
+        },
         ...(cmd.fullCategory?.length
-          ? [{ name: 'Kategori', value: cmd.fullCategory[0], inline: true }]
+          ? [
+              {
+                name: t('common:category', { defaultValue: 'Category' }),
+                value: t(`common:categories.${cmd.fullCategory[0].toLowerCase()}`, {
+                  defaultValue: cmd.fullCategory[0],
+                }),
+                inline: true,
+              },
+            ]
           : []),
       );
   }
 
-  public buildMainEmbed(usable: Command[]) {
+  public async buildMainEmbed(usable: Command[], interaction: Interaction) {
+    const t = await fetchT(interaction);
     const grouped = new Map<string, Command[]>();
+
     for (const cmd of usable) {
       const cat = cmd.fullCategory?.[0] || 'general';
       if (!grouped.has(cat)) grouped.set(cat, []);
@@ -77,21 +84,26 @@ export class HelpCommand extends Command {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle('📖 Nova Help')
-      .setDescription(`Kamu bisa pakai **${usable.length}** command`)
+      .setTitle(t('commands/help:main_title', { defaultValue: '📖 Nova Help' }))
+      .setDescription(
+        t('commands/help:main_desc', {
+          count: usable.length,
+          defaultValue: `You can use **${usable.length}** commands`,
+        }),
+      )
       .setColor(0x5865f2);
 
-    const emojis: Record<string, string> = {
-  rpg: '⚔️',
-  economy: '💰',
-  general: '📜',
-  owner: '👑',
-};
+    const emojis: Record<string, string> = { rpg: '⚔️', economy: '💰', general: '📜', owner: '👑' };
 
     for (const [cat, list] of [...grouped.entries()].sort()) {
       embed.addFields({
-        name: `${emojis[cat.toLowerCase()] || '📁'} ${cat.toUpperCase()}`,
-        value: list.map((c) => `\`/${c.name}\` — ${c.description}`).join('\n'),
+        name: `${emojis[cat.toLowerCase()] || '📁'} ${t(`common:categories.${cat.toLowerCase()}`, { defaultValue: cat.toUpperCase() })}`,
+        value: list
+          .map(
+            (c) =>
+              `\`/${c.name}\` — ${t(`commands/descriptions:${c.name}`, { defaultValue: c.description })}`,
+          )
+          .join('\n'),
       });
     }
     return embed;
@@ -99,6 +111,8 @@ export class HelpCommand extends Command {
 
   public override async chatInputRun(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    const t = await fetchT(interaction);
+
     const all = [...this.container.stores.get('commands').values()] as Command[];
     const usable: Command[] = [];
     for (const cmd of all) {
@@ -108,15 +122,20 @@ export class HelpCommand extends Command {
     const target = interaction.options.getString('command');
     if (target) {
       const cmd = usable.find((c) => c.name === target);
-      if (!cmd) return interaction.editReply({ content: 'Tidak ditemukan' });
-      return interaction.editReply({ embeds: [this.getCommandDetail(cmd)] });
+      if (!cmd)
+        return interaction.editReply({
+          content: t('commands/help:not_found', { defaultValue: 'Not found' }),
+        });
+      return interaction.editReply({ embeds: [await this.getCommandDetail(cmd, interaction)] });
     }
 
-    const embed = this.buildMainEmbed(usable);
+    const embed = await this.buildMainEmbed(usable, interaction);
     const menu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId(`help_select_${interaction.user.id}`)
-        .setPlaceholder('Pilih command untuk detail')
+        .setPlaceholder(
+          t('commands/help:select_placeholder', { defaultValue: 'Select command for details' }),
+        )
         .addOptions(
           usable.slice(0, 25).map((c) => ({
             label: `/${c.name}`,
@@ -127,6 +146,7 @@ export class HelpCommand extends Command {
     );
 
     await interaction.editReply({ embeds: [embed], components: [menu] });
+
     setTimeout(
       () =>
         interaction
@@ -135,7 +155,11 @@ export class HelpCommand extends Command {
             embeds: [
               EmbedBuilder.from(embed)
                 .setColor(0x95a5a6)
-                .setFooter({ text: '⏰ Waktu habis (2 menit) — ketik /help lagi' }),
+                .setFooter({
+                  text: t('commands/help:timeout', {
+                    defaultValue: '⏰ Timeout (2 minutes) — type /help again',
+                  }),
+                }),
             ],
           })
           .catch(() => {}),

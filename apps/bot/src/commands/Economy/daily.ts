@@ -1,36 +1,22 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions<Command.Options>({
   name: 'daily',
-  description: 'Ambil koin harianmu (1000 koin)!',
-  detailedDescription: {
-    usage: '/daily',
-    examples: ['/daily'],
-    extendedHelp: `
-Klaim reward harian setiap 24 jam.
-
-**Hadiah:**
-- +1.000 koin
-- +20 stamina
-
-**Aturan:**
-- Wajib /start dulu
-- Cooldown 24 jam
-- Stamina tidak akan melebihi max
-
-Gunakan untuk farming konsisten sebelum /hunt atau /explore.
-    `.trim(),
-  },
+  description: 'Claim your daily coins (1000 coins)!',
   fullCategory: ['Economy'],
 })
 export class DailyCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((b) => b.setName(this.name).setDescription(this.description));
+    registry.registerChatInputCommand((b) =>
+      applyLocalizedBuilder(b, 'commands/names:daily', 'commands/descriptions:daily'),
+    );
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    const t = await fetchT(interaction);
     await interaction.deferReply();
 
     const reward = 1000;
@@ -44,8 +30,12 @@ export class DailyCommand extends Command {
       if (!user) {
         const embed = new EmbedBuilder()
           .setColor(0xe74c3c)
-          .setTitle('❌ Belum Terdaftar')
-          .setDescription('Gunakan `/start` dulu untuk membuat karakter sebelum klaim daily.');
+          .setTitle(t('commands/daily:not_registered_title', { defaultValue: '❌ Not Registered' }))
+          .setDescription(
+            t('commands/daily:not_registered_desc', {
+              defaultValue: 'Use `/start` first to create a character before claiming daily.',
+            }),
+          );
         return interaction.editReply({ embeds: [embed] });
       }
 
@@ -58,9 +48,17 @@ export class DailyCommand extends Command {
 
         const embed = new EmbedBuilder()
           .setColor(0xe67e22)
-          .setTitle('⏳ Daily Cooldown')
-          .setDescription(`Kamu sudah klaim hari ini.\nCoba lagi dalam **${h}j ${m}m**.`)
-          .setFooter({ text: 'Reset setiap 24 jam' });
+          .setTitle(t('commands/daily:cooldown_title', { defaultValue: '⏳ Daily Cooldown' }))
+          .setDescription(
+            t('commands/daily:cooldown_desc', {
+              h,
+              m,
+              defaultValue: `You already claimed today.\nTry again in **${h}h ${m}m**.`,
+            }),
+          )
+          .setFooter({
+            text: t('commands/daily:cooldown_footer', { defaultValue: 'Resets every 24 hours' }),
+          });
 
         return interaction.editReply({ embeds: [embed] });
       }
@@ -84,20 +82,42 @@ export class DailyCommand extends Command {
           name: interaction.user.username,
           iconURL: interaction.user.displayAvatarURL(),
         })
-        .setTitle('💰 Daily Reward')
-        .setDescription('Reward harian berhasil diklaim!')
-        .addFields(
-          { name: 'Koin', value: `+${reward.toLocaleString('id-ID')}`, inline: true },
-          { name: 'Stamina', value: `+${actualStaminaGain}`, inline: true },
-          { name: 'Saldo Baru', value: `${newBalance.toLocaleString('id-ID')} koin`, inline: true },
+        .setTitle(t('commands/daily:title', { defaultValue: '💰 Daily Reward' }))
+        .setDescription(
+          t('commands/daily:desc', { defaultValue: 'Daily reward claimed successfully!' }),
         )
-        .setFooter({ text: `Stamina: ${newStamina}/${user.maxStamina} • Kembali besok` })
+        .addFields(
+          {
+            name: t('commands/daily:coins', { defaultValue: 'Coins' }),
+            value: `+${reward.toLocaleString(interaction.locale)}`,
+            inline: true,
+          },
+          {
+            name: t('commands/daily:stamina', { defaultValue: 'Stamina' }),
+            value: `+${actualStaminaGain}`,
+            inline: true,
+          },
+          {
+            name: t('commands/daily:new_balance', { defaultValue: 'New Balance' }),
+            value: `${newBalance.toLocaleString(interaction.locale)} ${t('commands/shop:coins', { defaultValue: 'coins' })}`,
+            inline: true,
+          },
+        )
+        .setFooter({
+          text: t('commands/daily:footer', {
+            stamina: newStamina,
+            max: user.maxStamina,
+            defaultValue: `Stamina: ${newStamina}/${user.maxStamina} • Come back tomorrow`,
+          }),
+        })
         .setTimestamp();
 
       return interaction.editReply({ embeds: [embed] });
     } catch (e) {
       this.container.logger.error(e);
-      const err = new EmbedBuilder().setColor(0xe74c3c).setDescription('❌ Gagal memproses daily.');
+      const err = new EmbedBuilder()
+        .setColor(0xe74c3c)
+        .setDescription(t('commands/daily:error', { defaultValue: '❌ Failed to process daily.' }));
       return interaction.editReply({ embeds: [err] });
     }
   }
