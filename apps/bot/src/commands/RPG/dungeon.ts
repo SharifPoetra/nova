@@ -375,6 +375,33 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
         runState.exp += roomExp;
         player.balance += roomGold;
         player.exp += roomExp;
+
+        const pool = isBossFloor
+          ? (BOSS_DROPS[floorMonster.base] ?? BOSS_DROPS.guardian)
+          : (DUNGEON_DROPS[floorMonster.base] ?? DUNGEON_DROPS.slime);
+
+        const dropChance = isBossFloor ? 1.0 : isElite ? 0.15 : 0.03; // Boss 100%, Elite 15%, Normal 3%
+        if (Math.random() < dropChance) {
+          const weights = { Common: 60, Uncommon: 25, Rare: 10, Epic: 4, Legendary: 1, Mythic: 0 };
+          const weighted = pool.flatMap((d) => Array(weights[d.rarity] || 1).fill(d));
+          const drop = weighted[Math.floor(Math.random() * weighted.length)];
+
+          // Save ke Item DB
+          await itemModel.updateOne({ itemId: drop.id }, { $set: drop }, { upsert: true });
+
+          // Add ke inventory
+          const inv = player.items.find((x) => x.itemId === drop.id);
+          if (inv) inv.qty++;
+          else player.items.push({ itemId: drop.id, qty: 1 });
+
+          runState.log.push(
+            t('commands/dungeon:drop', {
+              emoji: drop.emoji,
+              name: drop.name,
+              defaultValue: `🎁 ${drop.emoji} ${drop.name}`,
+            }),
+          );
+        }
       } else if (event.type === 'treasure') {
         const gold = event.effect?.gold ?? 50 + currentFloor * 3;
         runState.gold += gold;
@@ -543,40 +570,6 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
 
         dungeonData.currentFloor++;
         if (currentFloor > dungeonData.highestFloor) dungeonData.highestFloor = currentFloor;
-
-        const pool = isBossFloor
-          ? (BOSS_DROPS[floorMonster.base] ?? BOSS_DROPS.guardian)
-          : (DUNGEON_DROPS[floorMonster.base] ?? DUNGEON_DROPS.slime);
-
-        if (Math.random() < (isBossFloor ? 1 : 0.4)) {
-          const weights = { Common: 60, Uncommon: 25, Rare: 10, Epic: 4, Legendary: 1 };
-          const weighted = pool.flatMap((d) => Array(weights[d.rarity] || 1).fill(d));
-          const drop = weighted[Math.floor(Math.random() * weighted.length)];
-          const safeDrop = {
-            itemId: drop.id,
-            name: drop.name,
-            emoji: drop.emoji,
-            description: drop.description,
-            type: drop.type,
-            rarity: drop.rarity,
-            sellPrice: drop.sellPrice,
-          };
-          await itemModel.updateOne(
-            { itemId: safeDrop.itemId },
-            { $set: safeDrop },
-            { upsert: true },
-          );
-          const inv = player.items.find((x) => x.itemId === safeDrop.itemId);
-          if (inv) inv.qty++;
-          else player.items.push({ itemId: safeDrop.itemId, qty: 1 });
-          runState.log.push(
-            t('commands/dungeon:drop', {
-              emoji: safeDrop.emoji,
-              name: safeDrop.name,
-              defaultValue: `🎁 ${safeDrop.emoji} ${safeDrop.name}`,
-            }),
-          );
-        }
 
         const levelUp = checkLevelUp(player);
         if (levelUp) {

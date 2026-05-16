@@ -9,6 +9,7 @@ export type DropItem = {
   type: 'material' | 'equipment' | 'consumable';
   description: string;
   effects?: { type: 'heal' | 'stamina' | 'mana' | 'buff'; value: number }[];
+  stats?: { atk?: number; def?: number; hp?: number; critRate?: number; critDmg?: number };
 };
 
 export const FLOOR_LORE: Record<number, string> = {
@@ -340,7 +341,8 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       rarity: 'Rare',
       sellPrice: 150,
       type: 'equipment',
-      description: 'Mahkota asli Raja Slime',
+      description: 'Mahkota asli Raja Slime. Lengket tapi bawa hoki + HP.',
+      stats: { hp: 20, critRate: 0.05 },
     },
     {
       id: 'royal_jelly',
@@ -362,6 +364,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 280,
       type: 'equipment',
       description: 'Pelat obsidian super keras',
+      stats: { hp: 50, def: 5 },
     },
     {
       id: 'heart_of_crystal',
@@ -382,6 +385,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 450,
       type: 'equipment',
       description: 'Sabit pencabut nyawa',
+      stats: { atk: 25, critRate: 0.1, critDmg: 2.0 },
     },
     {
       id: 'void_crown',
@@ -391,6 +395,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 800,
       type: 'equipment',
       description: 'Mahkota kehampaan',
+      stats: { atk: 15, critRate: 0.15, hp: 30 },
     },
   ],
   drake: [
@@ -423,6 +428,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 500,
       type: 'equipment',
       description: 'Rantai penjaga yang tak terpatahkan',
+      stats: { def: 8, hp: 40 },
     },
     {
       id: 'absolute_shard',
@@ -463,7 +469,6 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       description: 'Bola energi kuantum, heal 250 HP',
       effects: [{ type: 'heal', value: 250 }],
     },
-
     {
       id: 'nova_essence',
       name: 'Nova Essence',
