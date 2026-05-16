@@ -1,0 +1,13 @@
+{
+  "usage": "/explore",
+  "examples": "/explore",
+  "extended_help": "Cooldown 30 seconds • cost 15 stamina.\n\n**Results:**\n• Random coins & EXP\n• Sometimes get cooking materials for /cook (Herb, Chili, Ore, etc)\n• 15 unique outcomes\n\n**Rarity:** ⚪ Common 55% • 🟢 Uncommon 25% • 🔵 Rare 12% • 🟣 Epic 6% • 🟡 Legendary 2%\n\nAverage: ~42💰 per explore.\nSee full table: /droprate type:explore",
+  "low_stamina": "⚡ Not enough stamina ({{current}}/{{cost}})",
+  "cooldown": "⏳ Wait {{s}}s more.",
+  "title": "{{emoji}} Exploration",
+  "coins": "+{{coins}} coins",
+  "exp": "+{{exp}} EXP",
+  "item": "+{{qty}}x {{emoji}} {{name}}",
+  "levelup": "🎉 **LEVEL UP → Lv.{{level}}**",
+  "footer": "Stamina -{{cost}} • {{current}}/{{max}}"
+}
