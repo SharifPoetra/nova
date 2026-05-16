@@ -5,7 +5,7 @@ import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { checkLevelUp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
-import { rollExplore, EXPLORES } from '../../lib/rpg/explorations';
+import { rollExplore } from '../../lib/rpg/explorations';
 import { ACTION_COST } from '../../lib/rpg/actions';
 
 @ApplyOptions<Command.Options>({
