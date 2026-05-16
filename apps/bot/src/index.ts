@@ -80,6 +80,7 @@ const client = new SapphireClient({
         'commands/dungeon',
         'commands/explore',
         'commands/fish',
+        'commands/inventory',
       ],
     },
   },
