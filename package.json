@@ -22,7 +22,7 @@
     "lint": "eslint \"{apps,packages}/**/*.ts\" --fix",
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/dist packages/*/dist",
     "clean:dist": "rm -rf apps/*/dist packages/*/dist",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
   "keywords": [
     "discord-bot",
@@ -40,7 +40,8 @@
     "eslint-plugin-prettier": "^5.5.5",
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.2"
+    "typescript-eslint": "^8.59.2",
+    "vitest": "^4.1.6"
   },
   "engines": {
     "node": ">=20",

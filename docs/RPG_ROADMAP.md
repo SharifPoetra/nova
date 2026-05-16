@@ -22,8 +22,7 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 - [x] **1.4** Buat `/lib/rpg/skills.ts`: pindahin 3 skill sekarang + interface `Skill`
 - [x] **1.5** Buat `/lib/rpg/combat.ts`: function `getPlayerStats(player)` yg return `totalAtk`, `critRate`, `skills[]`
 - [x] **1.6** Update `classes.ts`: tambah `skillId`, `passiveId`
-- [ ] **1.7** Unit test: `getPlayerStats()` return bener kalau equip `iron_sword {atk:12}`
-- [ ] **1.8** Commit: `feat(rpg): add equipment and skill registry`
+- [x] **1.7** Unit test: `getPlayerStats()` return bener kalau equip `iron_sword {atk:12}`
 
 ## Phase 2: Integrasi Dungeon - 2 hari
 - [ ] **2.1** Refactor `dungeon-battle.ts`: hapus semua `if player.class ===`, ganti pake `getPlayerStats()`
