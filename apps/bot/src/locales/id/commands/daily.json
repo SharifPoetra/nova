@@ -1,0 +1,17 @@
+{
+  "usage": "/daily",
+  "examples": "/daily",
+  "extended_help": "Klaim reward harian setiap 24 jam.\n\n**Hadiah:**\n- +1.000 koin\n- +20 stamina\n\n**Aturan:**\n- Wajib /start dulu\n- Cooldown 24 jam\n- Stamina tidak akan melebihi max\n\nGunakan untuk farming konsisten sebelum /hunt atau /explore.",
+  "not_registered_title": "❌ Belum Terdaftar",
+  "not_registered_desc": "Gunakan `/start` dulu untuk membuat karakter sebelum klaim daily.",
+  "cooldown_title": "⏳ Daily Cooldown",
+  "cooldown_desc": "Kamu sudah klaim hari ini.\nCoba lagi dalam **{{h}}j {{m}}m**.",
+  "cooldown_footer": "Reset setiap 24 jam",
+  "title": "💰 Daily Reward",
+  "desc": "Reward harian berhasil diklaim!",
+  "coins": "Koin",
+  "stamina": "Stamina",
+  "new_balance": "Saldo Baru",
+  "footer": "Stamina: {{stamina}}/{{max}} • Kembali besok",
+  "error": "❌ Gagal memproses daily."
+}
