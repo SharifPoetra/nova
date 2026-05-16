@@ -1,15 +1,24 @@
 import type { IUser } from '@nova/database';
+import { calculateDamage, PlayerStats } from './combat';
 
-// === SKILL SYSTEM TYPES ===
 export type SkillTarget = 'self' | 'enemy' | 'all_enemies' | 'ally';
 export type SkillEffectType = 'damage' | 'heal' | 'buff' | 'debuff';
 
 export interface SkillEffect {
   type: SkillEffectType;
-  value: number | string; // number = flat, string = formula like '0.5*atk'
+  value: number | string;
   element?: 'phys' | 'fire' | 'ice' | 'light' | 'dark';
-  duration?: number; // ms, buat buff/debuff
-  chance?: number; // 0-1, chance to apply
+  duration?: number;
+  chance?: number;
+}
+
+export interface SkillContext {
+  user: IUser;
+  stats: PlayerStats;
+  enemy: { hp: number; def: number; element?: string };
+  t: (key: string, opts?: any) => string;
+  addBuff: (type: string, value: number, duration: number) => void;
+  addLog: (text: string) => void;
 }
 
 export interface SkillData {
@@ -17,18 +26,24 @@ export interface SkillData {
   name: string;
   emoji: string;
   description: string;
-  cooldown: number; // ms
+  cooldown: number;
   staminaCost: number;
   target: SkillTarget;
   effects: SkillEffect[];
   classLock?: ('warrior' | 'mage' | 'rogue')[];
   requiredLevel?: number;
-  passive?: boolean; // kalau true = auto trigger, bukan button
+  passive?: boolean;
+  use: (ctx: SkillContext) => { damage: number; heal: number; isCrit: boolean };
 }
 
-// 3 SKILL AWAL DARI DUNGEON-BATTLE.TS ===
+// Helper parse '1.5*atk' jadi number
+function parseValue(value: string | number, atk: number): number {
+  if (typeof value === 'number') return value;
+  if (value.includes('*atk')) return parseFloat(value.replace('*atk', '')) * atk;
+  return parseFloat(value);
+}
+
 export const SKILLS: Record<string, SkillData> = {
-  // === WARRIOR ===
   rage: {
     id: 'rage',
     name: 'Rage',
@@ -38,16 +53,14 @@ export const SKILLS: Record<string, SkillData> = {
     staminaCost: 20,
     target: 'self',
     classLock: ['warrior'],
-    effects: [
-      {
-        type: 'buff',
-        value: 'buff:atk:0.3', // +30% atk
-        duration: 10000,
-      },
-    ],
+    effects: [{ type: 'buff', value: 'buff:atk:0.3', duration: 10000 }],
+    use: (ctx) => {
+      ctx.addBuff('atk', 0.3, 10000); // +30% atk 10s
+      ctx.addLog(`✨ 😡 Rage! ATK up 30% for 10s`);
+      return { damage: 0, heal: 0, isCrit: false };
+    },
   },
 
-  // === MAGE ===
   fireball: {
     id: 'fireball',
     name: 'Fireball',
@@ -57,16 +70,15 @@ export const SKILLS: Record<string, SkillData> = {
     staminaCost: 25,
     target: 'enemy',
     classLock: ['mage'],
-    effects: [
-      {
-        type: 'damage',
-        value: '1.5*atk',
-        element: 'fire',
-      },
-    ],
+    effects: [{ type: 'damage', value: '1.5*atk', element: 'fire' }],
+    use: (ctx) => {
+      const mult = parseValue('1.5*atk', ctx.stats.atk) / ctx.stats.atk;
+      const { damage, isCrit } = calculateDamage(ctx.stats, ctx.enemy, mult);
+      ctx.addLog(`✨ 🔥 Fireball! **${damage}**${isCrit? ' 💥CRIT!' : ''}`);
+      return { damage, heal: 0, isCrit };
+    },
   },
 
-  // === ROGUE ===
   backstab: {
     id: 'backstab',
     name: 'Backstab',
@@ -77,20 +89,18 @@ export const SKILLS: Record<string, SkillData> = {
     target: 'enemy',
     classLock: ['rogue'],
     effects: [
-      {
-        type: 'damage',
-        value: '2.0*atk',
-        element: 'phys',
-      },
-      {
-        type: 'buff',
-        value: 'buff:critRate:0.2', // +20% crit untuk hit ini
-        duration: 0, // instant
-      },
+      { type: 'damage', value: '2.0*atk', element: 'phys' },
+      { type: 'buff', value: 'buff:critRate:0.2', duration: 0 },
     ],
+    use: (ctx) => {
+      // Temporarily boost crit buat hit ini
+      const boostedStats = {...ctx.stats, critRate: ctx.stats.critRate + 0.2 };
+      const { damage, isCrit } = calculateDamage(boostedStats, ctx.enemy, 2.0);
+      ctx.addLog(`✨ 🗡️ Backstab! **${damage}**${isCrit? ' 💥CRIT!' : ''}`);
+      return { damage, heal: 0, isCrit };
+    },
   },
 
-  // === PASSIVE CONTOH: Buat Phase 5 nanti ===
   berserker_passive: {
     id: 'berserker_passive',
     name: 'Berserker Blood',
@@ -102,12 +112,8 @@ export const SKILLS: Record<string, SkillData> = {
     classLock: ['warrior'],
     passive: true,
     requiredLevel: 10,
-    effects: [
-      {
-        type: 'buff',
-        value: 'passive:atk_per_hp_loss',
-      },
-    ],
+    effects: [{ type: 'buff', value: 'passive:atk_per_hp_loss' }],
+    use: () => ({ damage: 0, heal: 0, isCrit: false }), // passive gak dipanggil manual
   },
 };
 

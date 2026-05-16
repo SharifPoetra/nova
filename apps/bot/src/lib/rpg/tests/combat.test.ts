@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { getPlayerStats } from '../combat';
-import { EQUIPMENTS } from '../equipment';
 import type { IUser } from '@nova/db';
 
 // Mock user base warrior lv1
@@ -30,6 +29,8 @@ describe('getPlayerStats()', () => {
     expect(stats.def).toBe(0);
     expect(stats.critRate).toBe(0.05);
     expect(stats.critDmg).toBe(1.5);
+    // === cek skill default ===
+    expect(stats.availableSkills).toContain('rage');
   });
 
   it('1.7: equip iron_sword {atk:12} harus nambah atk', () => {
@@ -41,7 +42,7 @@ describe('getPlayerStats()', () => {
 
     // base 13 + iron_sword 12 = 25
     expect(stats.atk).toBe(25);
-    expect(stats.def).toBe(0); // iron_sword gak ada def
+    expect(stats.def).toBe(0);
   });
 
   it('equip obsidian_plate {hp:50, def:5} harus nambah maxHp + def', () => {
@@ -54,7 +55,7 @@ describe('getPlayerStats()', () => {
     // warrior baseHp 120 + lv1*10 = 130, + 50 = 180
     expect(stats.maxHp).toBe(180);
     expect(stats.def).toBe(5);
-    expect(stats.atk).toBe(13); // atk gak berubah
+    expect(stats.atk).toBe(13);
   });
 
   it('equip hunter_bow {atk:15, critDmg:1.8} harus stack critDmg', () => {
@@ -65,9 +66,23 @@ describe('getPlayerStats()', () => {
     };
     const stats = getPlayerStats(userWithBow);
 
-    // rogue baseAtk 14 + lv1*1.5 = 15, + 15 = 30
+    // rogue baseAtk 14 + lv1*1.5 = 15.5 → floor 15, + 15 = 30
     expect(stats.atk).toBe(30);
     // base 1.5 + 1.8 = 3.3
     expect(stats.critDmg).toBe(3.3);
+    // === cek skill rogue ===
+    expect(stats.availableSkills).toContain('backstab');
+  });
+
+  // === Buff harus ke-apply ===
+  it('buff atk +30% harus naikin atk', () => {
+    const userWithBuff = {
+     ...mockUser,
+      buffs: [{ type: 'atk', value: 0.3, expires: new Date(Date.now() + 10000) }],
+    };
+    const stats = getPlayerStats(userWithBuff);
+    // base 13 * 1.3 = 16.9 → floor 16
+    expect(stats.atk).toBe(16);
+    expect(stats.activeBuffs).toHaveLength(1);
   });
 });

@@ -26,7 +26,7 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 
 ## Phase 2: Integrasi Dungeon - 2 hari
 - [x] **2.1** Refactor `dungeon-battle.ts`: hapus semua `if player.class ===`, ganti pake `getPlayerStats()`
-- [ ] **2.2** Refactor skill button: `const skill = SKILLS[stats.skills[0]]` + `skill.use(ctx)`
+- [x] **2.2** Refactor skill button: `const skill = SKILLS[stats.skills[0]]` + `skill.use(ctx)`
 - [ ] **2.3** Drop per monster: pindahin logic drop ke setelah `battleResult.victory`
 - [ ] **2.4** Update `BOSS_DROPS`: kasih `stats: { atk: 25, critRate: 0.1 }` ke equipment
 - [ ] **2.5** Test: equip `iron_sword`, damage harus naik
