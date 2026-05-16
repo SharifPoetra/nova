@@ -12,40 +12,41 @@ export interface EquipmentData {
   stats: IEquipmentStat;
 }
 
+// === PHASE 0.3: 6 WEAPON SESUAI ROADMAP ===
 export const EQUIPMENTS: Record<string, EquipmentData> = {
-  // === UNCOMMON TIER: Early Game ===
-  goblin_dagger: {
-    id: 'goblin_dagger',
-    name: 'Belati Karat',
-    emoji: '🗡️',
-    type: 'equipment',
-    slot: 'weapon',
-    rarity: 'Uncommon',
-    sellPrice: 40,
-    description: 'Belati curian goblin. Ringan, cocok buat rogue. Crit rate naik dikit.',
-    stats: { atk: 8, critRate: 0.03 },
-  },
-  rusted_sword: {
-    id: 'rusted_sword',
-    name: 'Pedang Karat',
+  // === UNCOMMON TIER: Early Game - MATCH ROADMAP ===
+  iron_sword: {
+    id: 'iron_sword',
+    name: 'Iron Sword',
     emoji: '⚔️',
     type: 'equipment',
     slot: 'weapon',
     rarity: 'Uncommon',
     sellPrice: 45,
-    description: 'Pedang prajurit skeleton. Masih bisa diasah. Base weapon warrior.',
+    description: 'Pedang besi standar warrior. Balance ATK.',
     stats: { atk: 12 },
   },
-  war_axe: {
-    id: 'war_axe',
-    name: 'Kapak Perang',
-    emoji: '🪓',
+  mage_staff: {
+    id: 'mage_staff',
+    name: 'Mage Staff',
+    emoji: '🪄',
+    type: 'equipment',
+    slot: 'weapon',
+    rarity: 'Uncommon',
+    sellPrice: 50,
+    description: 'Tongkat mage. Naikin ATK + crit dikit buat early.',
+    stats: { atk: 10, critRate: 0.05 },
+  },
+  hunter_bow: {
+    id: 'hunter_bow',
+    name: 'Hunter Bow',
+    emoji: '🏹',
     type: 'equipment',
     slot: 'weapon',
     rarity: 'Uncommon',
     sellPrice: 70,
-    description: 'Kapak orc berserker. Berat tapi kalau crit sakit banget.',
-    stats: { atk: 18, critDmg: 1.8 },
+    description: 'Busur pemburu. Crit damage tinggi buat rogue.',
+    stats: { atk: 15, critDmg: 1.8 },
   },
 
   // === RARE TIER: Mid Game ===
