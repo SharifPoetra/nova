@@ -1,0 +1,18 @@
+{
+  "usage": "/fish",
+  "examples": "/fish",
+  "extended_help": "Cooldown 30 seconds • cost 10 stamina.\n\n**Fish uses:**\n1. **Sell** — use /sell for instant coins\n2. **Cook** — use /cook to make Fish Soup (+40 HP) or other recipes\n\n**Drop:** 13 fish types from Common to Legendary\n**Rarity:** ⚪ Common 50% • 🟢 Uncommon 28% • 🔵 Rare 14% • 🟣 Epic 6% • 🟡 Legendary 2%\n\nTip: Don't sell Rare+ immediately, save for cooking before /hunt. Average sell ~35💰.\nSee table: /droprate type:fish",
+  "cooldown": "🎣 Rod is still wet! Wait {{wait}}s",
+  "low_stamina": "⚡ Not enough stamina ({{current}}/{{cost}})",
+  "author": "{{username}} is fishing",
+  "caught": "**{{emoji}} {{name}}** caught!\n*{{rarity}}*",
+  "levelup": "🎉 **LEVEL UP! → Lv.{{level}}**",
+  "sell": "💰 Sell",
+  "sell_value": "{{price}} coins",
+  "cook": "🍳 Cook",
+  "cook_value": "Can be used for Fish Soup",
+  "exp": "✨ EXP",
+  "stamina": "⚡ Stamina",
+  "stamina_value": "{{before}} → {{after}}",
+  "footer": "Use /cook to heal before hunt"
+}
