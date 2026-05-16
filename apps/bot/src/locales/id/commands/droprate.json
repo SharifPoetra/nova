@@ -1,6 +1,6 @@
 {
   "usage": "/droprate ",
-  "extended_help": "**Fitur:**\n• Menampilkan chance, harga jual, XP, dan rarity\n• Menghitung expected value\n• Simulasi hingga 10.000x (Admin)\n\n**Tipe:** fish, explore, hunt",
+  "extended_help": "**Fitur:**\n• Menampilkan chance, harga jual, XP, dan rarity\n• Menghitung expected\n\n**Tipe:** fish, explore, hunt",
   "sim_no_perm": "❌ Simulasi hanya untuk Admin.",
   "sim_title": "🎲 Simulasi {{sim}}x — {{type}}",
   "no_drop": "Tidak Dapat",
