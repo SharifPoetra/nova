@@ -78,6 +78,7 @@ const client = new SapphireClient({
         'commands/cook',
         'commands/droprate',
         'commands/dungeon',
+        'commands/explore',
       ],
     },
   },
