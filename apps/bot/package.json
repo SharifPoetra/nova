@@ -8,9 +8,10 @@
   "type": "commonjs",
   "main": "dist/index.js",
   "scripts": {
+    "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
-    "build": "tsc && cp -r src/locales dist/locales",
-    "start": "node dist/index.js"
+    "build": "tsc && npm run copy:locales",
+    "copy:locales": "node -e \"const fs=require('fs'); fs.cpSync('src/locales','dist/locales',{recursive:true,force:true}); console.log('✓ locales copied')\""
   },
   "dependencies": {
     "@nova/db": "file:../../packages/database",

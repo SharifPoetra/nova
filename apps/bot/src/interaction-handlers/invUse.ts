@@ -16,7 +16,10 @@ import { applyPassiveRegen } from '../lib/rpg/buffs';
 const ITEMS_PER_PAGE = 10;
 const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
 
-@ApplyOptions({ interactionHandlerType: InteractionHandlerTypes.MessageComponent })
+@ApplyOptions<InteractionHandler.Options>({
+  name: 'invUse',
+  interactionHandlerType: InteractionHandlerTypes.MessageComponent,
+})
 export class InvUseHandler extends InteractionHandler {
   public override parse(interaction) {
     if (typeof interaction.customId !== 'string') return this.none();
@@ -166,6 +169,7 @@ export class InvUseHandler extends InteractionHandler {
         });
 
       for (const it of pageItems) embed.addFields({ name: it.text, value: it.sub });
+
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId(`inv_prev_${page}_${userId}`)
@@ -185,7 +189,11 @@ export class InvUseHandler extends InteractionHandler {
       const consumables = user.items
         .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
         .slice(0, 25);
-      const components = [row];
+
+      const components: (
+        | ActionRowBuilder<ButtonBuilder>
+        | ActionRowBuilder<StringSelectMenuBuilder>
+      )[] = [row];
 
       if (consumables.length) {
         components.push(

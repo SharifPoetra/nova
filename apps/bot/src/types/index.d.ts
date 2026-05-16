@@ -17,6 +17,7 @@ declare module '@sapphire/pieces' {
         totalValue: number;
         userId: string;
         t: number;
+        locale?: string;
       }
     >;
   }
