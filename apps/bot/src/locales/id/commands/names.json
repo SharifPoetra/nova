@@ -1,10 +1,10 @@
 {
+  "daily": "daily",
   "shop": "shop",
   "start": "start",
-  "sell": "sell"
+  "sell": "sell",
   "inventory": "inventory",
   "fish": "fish",
-  "explore": "explore",
   "dungeon": "dungeon",
   "simdroprate": "simdroprate",
   "droprate": "droprate",
