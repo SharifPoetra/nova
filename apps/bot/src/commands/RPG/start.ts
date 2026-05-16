@@ -7,36 +7,23 @@ import {
   EmbedBuilder,
   MessageFlags,
 } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { CLASSES, getClass } from '../../lib/rpg/classes';
 
 @ApplyOptions<Command.Options>({
   name: 'start',
-  description: 'Mulai petualanganmu di Nova Chronicles dan pilih Class!',
+  description: 'Start your adventure in Nova Chronicles and choose a Class!',
   fullCategory: ['RPG'],
-  detailedDescription: {
-    usage: '/start',
-    extendedHelp: `Pilih 1 dari 3 class (**tidak bisa diganti**):
-
-${Object.values(CLASSES)
-  .map(
-    (c) =>
-      `${c.emoji} **${c.name}**
-> HP ${c.hp} | ATK ${c.atk}
-> Passive: ${c.passive}`,
-  )
-  .join('\n\n')}
-
-Ketik \`/start\` lalu klik tombol class.`,
-  },
 })
 export class StartCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((builder) =>
-      builder.setName(this.name).setDescription(this.description),
+      applyLocalizedBuilder(builder, 'commands/names:start', 'commands/descriptions:start'),
     );
   }
 
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    const t = await fetchT(interaction);
     const userId = interaction.user.id;
     const user = await this.container.db.user.findOne({ discordId: userId });
 
@@ -47,13 +34,19 @@ export class StartCommand extends Command {
           name: interaction.user.username,
           iconURL: interaction.user.displayAvatarURL(),
         })
-        .setTitle('😅 Kamu Sudah Punya Class')
+        .setTitle(
+          t('commands/start:already_title', { defaultValue: '😅 You Already Have a Class' }),
+        )
         .setDescription(
-          `Kamu sudah terdaftar sebagai **${existing?.name ?? user.class}**.\n` +
-            `Class tidak bisa diganti, jadi lanjutkan aja petualanganmu!`,
+          t('commands/start:already_desc', {
+            class: existing?.name ?? user.class,
+            defaultValue: `You are already registered as **${existing?.name ?? user.class}**.\nClass cannot be changed, continue your adventure!`,
+          }),
         )
         .setColor(existing?.color ?? 0x95a5a6)
-        .setFooter({ text: 'Gunakan /profile untuk melihat status' });
+        .setFooter({
+          text: t('commands/start:already_footer', { defaultValue: 'Use /profile to view status' }),
+        });
 
       return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
@@ -61,27 +54,42 @@ export class StartCommand extends Command {
     const classList = Object.values(CLASSES);
 
     const embed = new EmbedBuilder()
-      .setTitle('🛡️ Nova Chronicles — Pilih Takdirmu')
+      .setTitle(
+        t('commands/start:title', { defaultValue: '🛡️ Nova Chronicles — Choose Your Destiny' }),
+      )
       .setDescription(
-        `Selamat datang, **${interaction.user.username}**!\n` +
-          `Dunia Nova lagi kacau, pilih class-mu sekarang dan langsung dapat **1.000 koin** buat modal awal.`,
+        t('commands/start:welcome', {
+          username: interaction.user.username,
+          defaultValue: `Welcome, **${interaction.user.username}**!\nThe world of Nova is in chaos, choose your class now and get **1,000 coins** as starting capital.`,
+        }),
       )
       .addFields(
         classList.map((c) => ({
           name: `${c.emoji} ${c.name}`,
-          value: `**${c.desc}**\n❤️ ${c.hp} HP | 🗡️ ${c.atk} ATK | ⚡ ${c.stamina} Stamina\n*Passive: ${c.passive}*`,
+          value: t('commands/start:class_field', {
+            desc: c.desc,
+            hp: c.hp,
+            atk: c.atk,
+            stamina: c.stamina,
+            passive: c.passive,
+            defaultValue: `**${c.desc}**\n❤️ ${c.hp} HP | 🗡️ ${c.atk} ATK | ⚡ ${c.stamina} Stamina\n*Passive: ${c.passive}*`,
+          }),
           inline: false,
         })),
       )
       .setColor(0xf1c40f)
-      .setFooter({ text: 'Pilih dengan bijak — class tidak bisa diganti!' })
+      .setFooter({
+        text: t('commands/start:footer', {
+          defaultValue: 'Choose wisely — class cannot be changed!',
+        }),
+      })
       .setThumbnail(interaction.user.displayAvatarURL());
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       classList.map((c) =>
         new ButtonBuilder()
           .setCustomId(`class_${c.key}_${userId}`)
-          .setLabel(c.name)
+          .setLabel(t(`commands/start:class_${c.key}`, { defaultValue: c.name }))
           .setEmoji(c.emoji)
           .setStyle(
             c.key === 'warrior'
