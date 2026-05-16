@@ -1,6 +1,7 @@
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ButtonInteraction, EmbedBuilder, MessageFlags } from 'discord.js';
+import { fetchT } from '@sapphire/plugin-i18next';
 import { getClass } from '../lib/rpg/classes';
 
 @ApplyOptions<InteractionHandler.Options>({
@@ -12,11 +13,14 @@ export class ClassSelectHandler extends InteractionHandler {
   }
 
   public async run(i: ButtonInteraction) {
+    const t = await fetchT(i);
     const [, key, ownerId] = i.customId.split('_');
 
     if (i.user.id !== ownerId) {
       return i.reply({
-        content: '😅 Hei, ini bukan tombol kamu! Ketik `/start` aja.',
+        content: t('commands/start:not_yours', {
+          defaultValue: '😅 Hey, this is not your button! Type /start.',
+        }),
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -29,19 +33,21 @@ export class ClassSelectHandler extends InteractionHandler {
           name: i.user.username,
           iconURL: i.user.displayAvatarURL(),
         })
-        .setTitle('😅 Kamu Sudah Punya Class')
+        .setTitle(t('commands/start:already_title'))
         .setDescription(
-          `Kamu sudah terdaftar sebagai **${existingClass?.name ?? exists.class}**.\n` +
-            `Class tidak bisa diganti, jadi lanjutkan aja petualanganmu!`,
+          t('commands/start:already_desc', { class: existingClass?.name ?? exists.class }),
         )
         .setColor(existingClass?.color ?? 0x95a5a6)
-        .setFooter({ text: 'Gunakan /profile untuk melihat status' });
+        .setFooter({ text: t('commands/start:already_footer') });
       return i.update({ embeds: [embed], components: [] });
     }
 
     const data = getClass(key);
     if (!data) {
-      return i.reply({ content: 'Class tidak ditemukan.', flags: MessageFlags.Ephemeral });
+      return i.reply({
+        content: t('commands/start:not_found', { defaultValue: 'Class not found.' }),
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
     await this.container.db.user.findOneAndUpdate(
@@ -68,21 +74,52 @@ export class ClassSelectHandler extends InteractionHandler {
 
     const embed = new EmbedBuilder()
       .setAuthor({
-        name: `${i.user.username} memilih ${data.name}`,
+        name: t('commands/start:chosen_author', {
+          username: i.user.username,
+          class: data.name,
+          defaultValue: `${i.user.username} chose ${data.name}`,
+        }),
         iconURL: i.user.displayAvatarURL(),
       })
-      .setTitle(`${data.emoji} ${data.name} Telah Terbangun!`)
+      .setTitle(
+        t('commands/start:awakened', {
+          emoji: data.emoji,
+          class: data.name,
+          defaultValue: `${data.emoji} ${data.name} Awakened!`,
+        }),
+      )
       .setDescription(
-        `*${data.desc}*\n\nSelamat datang di Nova Chronicles. Perjalananmu baru dimulai.`,
+        t('commands/start:awakened_desc', {
+          desc: data.desc,
+          defaultValue: `*${data.desc}*\n\nWelcome to Nova Chronicles. Your journey begins.`,
+        }),
       )
       .addFields(
-        { name: '❤️ HP', value: `**${data.hp}**`, inline: true },
-        { name: '🗡️ ATK', value: `**${data.atk}**`, inline: true },
-        { name: '⚡ Stamina', value: `**${data.stamina}**`, inline: true },
-        { name: '💰 Modal Awal', value: '**1.000** koin', inline: true },
+        {
+          name: t('commands/start:hp', { defaultValue: '❤️ HP' }),
+          value: `**${data.hp}**`,
+          inline: true,
+        },
+        {
+          name: t('commands/start:atk', { defaultValue: '🗡️ ATK' }),
+          value: `**${data.atk}**`,
+          inline: true,
+        },
+        {
+          name: t('commands/start:stamina', { defaultValue: '⚡ Stamina' }),
+          value: `**${data.stamina}**`,
+          inline: true,
+        },
+        {
+          name: t('commands/start:starting', { defaultValue: '💰 Starting Capital' }),
+          value: `**1,000** ${t('commands/sell:coins', { defaultValue: 'coins' })}`,
+          inline: true,
+        },
       )
       .setColor(data.color)
-      .setFooter({ text: 'Tip: /profile untuk status • /hunt untuk berburu' })
+      .setFooter({
+        text: t('commands/start:tip', { defaultValue: 'Tip: /profile for status • /hunt to hunt' }),
+      })
       .setTimestamp();
 
     return i.update({ embeds: [embed], components: [] });
