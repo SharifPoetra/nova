@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { ComponentType, EmbedBuilder, MessageFlags } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { sleep, ratioBar, colorBar } from '../../lib/utils';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { checkLevelUp } from '../../lib/rpg/leveling';
@@ -35,58 +36,56 @@ import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle';
 @ApplyOptions<Command.Options>({
   name: 'dungeon',
   description: 'Tower of Stars - 100 floor dungeon',
-  detailedDescription: {
-    usage: '/dungeon action:<enter|status|leave>',
-    examples: ['/dungeon action:enter', '/dungeon action:status'],
-    extendedHelp: `
-Tower of Stars — dungeon 100 lantai (5 zona).
-Cost 15 stamina per room.
-
-**Actions:**
-• enter — mulai/lanjutkan run
-• status — cek lantai, HP, stamina, checkpoint
-• leave — keluar & simpan progres
-
-**Isi lantai:**
-• Battle, treasure, trap, heal, merchant, puzzle
-• Boss tiap lantai 10 drop gear Epic+
-• Kalah = respawn di checkpoint kelipatan 10
-
-Tips: masak di /cook dulu, HP >50%, cek /dungeon action:status sebelum boss.
-`.trim(),
-  },
   fullCategory: ['RPG'],
 })
 export class DungeonCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((builder) =>
-      builder
-        .setName(this.name)
-        .setDescription(this.description)
-        .addStringOption((option) =>
-          option
-            .setName('action')
-            .setDescription('Pilih')
-            .setRequired(true)
-            .addChoices(
-              { name: 'Enter', value: 'enter' },
-              { name: 'Status', value: 'status' },
-              { name: 'Leave', value: 'leave' },
-            ),
-        ),
+      applyLocalizedBuilder(
+        builder,
+        'commands/names:dungeon',
+        'commands/descriptions:dungeon',
+      ).addStringOption((option) =>
+        option
+          .setName('action')
+          .setNameLocalizations({ id: 'aksi' })
+          .setDescription('Choose action')
+          .setDescriptionLocalizations({ id: 'Pilih aksi', 'en-US': 'Choose action' })
+          .setRequired(true)
+          .addChoices(
+            {
+              name: 'Enter',
+              value: 'enter',
+              name_localizations: { id: 'Masuk', 'en-US': 'Enter' },
+            },
+            {
+              name: 'Status',
+              value: 'status',
+              name_localizations: { id: 'Status', 'en-US': 'Status' },
+            },
+            {
+              name: 'Leave',
+              value: 'leave',
+              name_localizations: { id: 'Keluar', 'en-US': 'Leave' },
+            },
+          ),
+      ),
     );
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    const t = await fetchT(interaction);
     const { user: userModel, item: itemModel, dungeon: dungeonModel } = this.container.db;
     const action = interaction.options.getString('action', true) as 'enter' | 'status' | 'leave';
 
     const DUNGEON_COST = ACTION_COST.dungeon;
 
-    // Ambil data player
     const player = await userModel.findOne({ discordId: interaction.user.id });
     if (!player)
-      return interaction.reply({ content: 'Gunakan /start', flags: MessageFlags.Ephemeral });
+      return interaction.reply({
+        content: t('common:need_start', { defaultValue: 'Use /start' }),
+        flags: MessageFlags.Ephemeral,
+      });
 
     applyPassiveRegen(player);
 
@@ -94,7 +93,6 @@ export class DungeonCommand extends Command {
       (await dungeonModel.findOne({ discordId: player.discordId })) ??
       (await dungeonModel.create({ discordId: player.discordId }));
 
-    // --- STATUS ---
     if (action === 'status') {
       await player.save();
       const lore = getFloorLore(dungeonData.currentFloor);
@@ -104,39 +102,51 @@ export class DungeonCommand extends Command {
       return interaction.reply({
         embeds: [
           new EmbedBuilder()
-            .setTitle('🗼 Tower of Stars')
+            .setTitle(t('commands/dungeon:title', { defaultValue: '🗼 Tower of Stars' }))
             .setDescription(
-              `**Lantai ${dungeonData.currentFloor}** • ${zone}\n*${lore}*\n\n` +
-                `Highest: ${dungeonData.highestFloor}/100\nCheckpoint: ${checkpoint}\n` +
-                `HP ${ratioBar(player.hp, player.maxHp)} ${player.hp}/${player.maxHp}\n` +
-                `Stamina ${colorBar(player.stamina, player.maxStamina, 10, '🟨', '⬛')} ${player.stamina}/${player.maxStamina}\n` +
-                `${dungeonData.inRun ? '⚠️ Sedang dalam run!' : ''}`,
+              `**${t('commands/dungeon:floor_label', { floor: dungeonData.currentFloor, defaultValue: `Floor ${dungeonData.currentFloor}` })}** • ${zone}
+*${lore}*
+
+` +
+                `${t('commands/dungeon:highest', { defaultValue: 'Highest' })}: ${dungeonData.highestFloor}/100
+${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoint}
+` +
+                `HP ${ratioBar(player.hp, player.maxHp)} ${player.hp}/${player.maxHp}
+` +
+                `Stamina ${colorBar(player.stamina, player.maxStamina, 10, '🟨', '⬛')} ${player.stamina}/${player.maxStamina}
+` +
+                `${dungeonData.inRun ? t('commands/dungeon:in_run', { defaultValue: '⚠️ Currently in a run!' }) : ''}`,
             )
             .setColor(0x9b59b6),
         ],
       });
     }
 
-    // --- LEAVE ---
     if (action === 'leave') {
       dungeonData.inRun = false;
       dungeonData.floorState = null;
       await dungeonData.save();
-      return interaction.reply('Keluar tower. Run dibatalkan.');
+      return interaction.reply(
+        t('commands/dungeon:left', { defaultValue: 'Left tower. Run cancelled.' }),
+      );
     }
 
-    // --- ENTER DUNGEON ---
     let currentFloor = dungeonData.currentFloor;
 
     if (player.stamina < DUNGEON_COST)
       return interaction.reply({
-        content: `⚡ Stamina <${DUNGEON_COST}`,
+        content: t('commands/dungeon:low_stamina', {
+          cost: DUNGEON_COST,
+          defaultValue: `⚡ Stamina <${DUNGEON_COST}`,
+        }),
         flags: MessageFlags.Ephemeral,
       });
     if (player.hp <= 0)
-      return interaction.reply({ content: '❤️ HP 0', flags: MessageFlags.Ephemeral });
+      return interaction.reply({
+        content: t('commands/dungeon:hp_zero', { defaultValue: '❤️ HP 0' }),
+        flags: MessageFlags.Ephemeral,
+      });
 
-    // Buat run baru jika belum ada
     if (!dungeonData.inRun) {
       dungeonData.inRun = true;
       dungeonData.floorState = createRunState(currentFloor);
@@ -149,7 +159,6 @@ export class DungeonCommand extends Command {
     let floorMonster = getMonster(currentFloor);
     let isBossFloor = floorMonster.isBoss;
 
-    // Helper untuk build embed utama
     const buildEmbed = () =>
       buildMainEmbed({
         floor: currentFloor,
@@ -162,16 +171,16 @@ export class DungeonCommand extends Command {
         playerMaxStamina: player.maxStamina,
         highestFloor: dungeonData.highestFloor,
         isBoss: isBossFloor,
+        t,
       });
 
     const response = await interaction.reply({
       embeds: [buildEmbed()],
-      components: [getMainButtons()],
+      components: [getMainButtons(t)],
       withResponse: true,
     });
     const message = response.resource!.message!;
 
-    // Collector hanya untuk tombol navigasi (bukan battle)
     const collector = message.createMessageComponentCollector({
       componentType: ComponentType.Button,
       time: 300_000,
@@ -183,7 +192,6 @@ export class DungeonCommand extends Command {
     collector.on('collect', async (button) => {
       await button.deferUpdate();
 
-      // --- FLEE ---
       if (button.customId === 'flee') {
         const checkpoint = getCheckpoint(currentFloor);
         dungeonData.inRun = false;
@@ -202,11 +210,11 @@ export class DungeonCommand extends Command {
           playerMaxHp: player.maxHp,
           playerStamina: player.stamina,
           playerMaxStamina: player.maxStamina,
+          t,
         });
         return button.editReply({ embeds: [fleeEmbed], components: [] });
       }
 
-      // --- MAP ---
       if (button.customId === 'map') {
         const mapEmbed = buildMapEmbed({
           floor: currentFloor,
@@ -216,15 +224,15 @@ export class DungeonCommand extends Command {
           isBoss: isBossFloor,
           playerHp: player.hp,
           playerMaxHp: player.maxHp,
+          t,
         });
-        return button.editReply({ embeds: [mapEmbed], components: [getMainButtons()] });
+        return button.editReply({ embeds: [mapEmbed], components: [getMainButtons(t)] });
       }
 
-      // --- CONTINUE ---
       if (button.customId === 'continue') {
         if (player.stamina < DUNGEON_COST)
           return button.editReply({
-            content: `⚡ Stamina <${DUNGEON_COST}!`,
+            content: t('commands/dungeon:low_stamina', { cost: DUNGEON_COST }),
             embeds: [],
             components: [],
           });
@@ -238,32 +246,31 @@ export class DungeonCommand extends Command {
         dungeonData.floorState = createRunState(currentFloor);
         await dungeonData.save();
         runState = dungeonData.floorState as RunState;
-        return button.editReply({ embeds: [buildEmbed()], components: [getMainButtons()] });
+        return button.editReply({ embeds: [buildEmbed()], components: [getMainButtons(t)] });
       }
 
-      // --- STOP (Istirahat) ---
       if (button.customId === 'stop') {
         collector.stop();
-
         const restEmbed = buildRestEmbed({
           floor: currentFloor,
           state: runState,
           nextFloor: dungeonData.currentFloor,
           highestFloor: dungeonData.highestFloor,
+          t,
         });
-
         return button.editReply({ embeds: [restEmbed], components: [] });
       }
 
-      // --- NEXT ROOM ---
       if (player.stamina < DUNGEON_COST) {
-        runState.log.push('⚡ Stamina habis!');
+        runState.log.push(
+          t('commands/dungeon:stamina_out', { defaultValue: '⚡ Out of stamina!' }),
+        );
         dungeonData.inRun = false;
         dungeonData.floorState = null;
         await dungeonData.save();
         collector.stop();
         return button.editReply({
-          content: 'Stamina habis!',
+          content: t('commands/dungeon:stamina_out'),
           embeds: [buildEmbed()],
           components: [],
         });
@@ -273,14 +280,18 @@ export class DungeonCommand extends Command {
       runState.current++;
       const isLastRoom = runState.current === runState.rooms;
 
-      // Tentukan event
       let event: DungeonEvent;
       if (isLastRoom && isBossFloor) {
         event = { id: 'boss', type: 'battle', weight: 0, text: `👑 ${floorMonster.name} BOSS!` };
       } else {
         const needForcedBattle = !runState.hasBattle && runState.current >= runState.rooms - 1;
         event = needForcedBattle
-          ? { id: 'forced', type: 'battle', weight: 0, text: 'Musuh menghadang!' }
+          ? {
+              id: 'forced',
+              type: 'battle',
+              weight: 0,
+              text: t('commands/dungeon:forced_battle', { defaultValue: 'Enemy blocks the way!' }),
+            }
           : rollEvent(currentFloor);
       }
 
@@ -306,7 +317,6 @@ export class DungeonCommand extends Command {
         `**R${runState.current}:** ${event.type === 'battle' ? `${currentMonster.emoji} ${currentMonster.name}` : event.text}`,
       );
 
-      // --- HANDLE BATTLE ---
       if (event.type === 'battle') {
         const isElite = !isLastRoom && !isBossFloor && Math.random() < 0.1;
 
@@ -320,11 +330,16 @@ export class DungeonCommand extends Command {
           state: runState,
           msg: message,
           username: interaction.user.username,
+          t,
         });
 
-        // Jika kalah
         if (!battleResult.victory) {
-          runState.log.push(`💀 Dikalahkan ${currentMonster.name}!`);
+          runState.log.push(
+            t('commands/dungeon:defeated', {
+              name: currentMonster.name,
+              defaultValue: `💀 Defeated by ${currentMonster.name}!`,
+            }),
+          );
           dungeonData.inRun = false;
           dungeonData.floorState = null;
           const checkpoint = getCheckpoint(currentFloor);
@@ -334,13 +349,26 @@ export class DungeonCommand extends Command {
           collector.stop();
 
           return button.editReply({
-            embeds: [buildEmbed().setTitle(`💀 Kalah Lantai ${currentFloor}`).setColor(0xe74c3c)],
+            embeds: [
+              buildEmbed()
+                .setTitle(
+                  t('commands/dungeon:lost_title', {
+                    floor: currentFloor,
+                    defaultValue: `💀 Lost Floor ${currentFloor}`,
+                  }),
+                )
+                .setColor(0xe74c3c),
+            ],
             components: [],
           });
         }
 
-        // Reward battle
-        runState.log.push(`✅ ${currentMonster.emoji} kalah`);
+        runState.log.push(
+          t('commands/dungeon:victory', {
+            emoji: currentMonster.emoji,
+            defaultValue: `✅ ${currentMonster.emoji} defeated`,
+          }),
+        );
         const roomGold = 15 + currentFloor * 2 + (isElite ? 25 : 0);
         const roomExp = 5 + currentFloor;
         runState.gold += roomGold;
@@ -351,7 +379,9 @@ export class DungeonCommand extends Command {
         const gold = event.effect?.gold ?? 50 + currentFloor * 3;
         runState.gold += gold;
         player.balance += gold;
-        runState.log.push(`💰 Chest +${gold}g`);
+        runState.log.push(
+          t('commands/dungeon:chest', { gold, defaultValue: `💰 Chest +${gold}g` }),
+        );
 
         if (event.effect?.item) {
           const itemId = event.effect.item;
@@ -369,7 +399,13 @@ export class DungeonCommand extends Command {
           const inv = player.items.find((x) => x.itemId === itemId);
           if (inv) inv.qty++;
           else player.items.push({ itemId, qty: 1 });
-          runState.log.push(`📦 Dapat ${itemData.emoji} ${itemData.name}`);
+          runState.log.push(
+            t('commands/dungeon:got_item', {
+              emoji: itemData.emoji,
+              name: itemData.name,
+              defaultValue: `📦 Got ${itemData.emoji} ${itemData.name}`,
+            }),
+          );
         }
       } else if (event.type === 'trap') {
         const damage = Math.abs(event.effect?.hp ?? 15 + currentFloor);
@@ -377,35 +413,64 @@ export class DungeonCommand extends Command {
         runState.taken += damage;
         if (event.effect?.stamina) {
           player.stamina = Math.max(0, player.stamina + event.effect.stamina);
-          runState.log.push(`🪤 Trap -${damage} HP ${event.effect.stamina} stamina`);
+          runState.log.push(
+            t('commands/dungeon:trap_both', {
+              damage,
+              stamina: event.effect.stamina,
+              defaultValue: `🪤 Trap -${damage} HP ${event.effect.stamina} stamina`,
+            }),
+          );
         } else {
-          runState.log.push(`🪤 Trap -${damage} HP`);
+          runState.log.push(
+            t('commands/dungeon:trap', { damage, defaultValue: `🪤 Trap -${damage} HP` }),
+          );
         }
       } else if (event.type === 'heal') {
         const heal = event.effect?.hp ?? 30;
         player.hp = Math.min(player.maxHp, player.hp + heal);
         if (event.effect?.stamina) {
           player.stamina = Math.min(player.maxStamina, player.stamina + event.effect.stamina);
-          runState.log.push(`💚 Heal +${heal} HP +${event.effect.stamina} stamina`);
+          runState.log.push(
+            t('commands/dungeon:heal_both', {
+              heal,
+              stamina: event.effect.stamina,
+              defaultValue: `💚 Heal +${heal} HP +${event.effect.stamina} stamina`,
+            }),
+          );
         } else {
-          runState.log.push(`💚 Heal +${heal} HP`);
+          runState.log.push(
+            t('commands/dungeon:heal', { heal, defaultValue: `💚 Heal +${heal} HP` }),
+          );
         }
       } else if (event.type === 'puzzle') {
         if (event.effect?.hp) {
           player.hp = Math.min(player.maxHp, player.hp + event.effect.hp);
-          runState.log.push(`🧩 Puzzle +${event.effect.hp} HP`);
+          runState.log.push(
+            t('commands/dungeon:puzzle_hp', {
+              hp: event.effect.hp,
+              defaultValue: `🧩 Puzzle +${event.effect.hp} HP`,
+            }),
+          );
         } else {
           const gold = event.effect?.gold ?? 100 + currentFloor * 2;
           runState.gold += gold;
           player.balance += gold;
-          runState.log.push(`🧩 Puzzle +${gold}g`);
+          runState.log.push(
+            t('commands/dungeon:puzzle_gold', { gold, defaultValue: `🧩 Puzzle +${gold}g` }),
+          );
         }
       } else if (event.type === 'lore') {
         player.stamina = Math.min(player.maxStamina, player.stamina + DUNGEON_COST);
         const loreExp = 3 + Math.floor(currentFloor / 5);
         player.exp += loreExp;
         runState.exp += loreExp;
-        runState.log.push(`📜 ${event.text} (+${loreExp} exp)`);
+        runState.log.push(
+          t('commands/dungeon:lore', {
+            text: event.text,
+            exp: loreExp,
+            defaultValue: `📜 ${event.text} (+${loreExp} exp)`,
+          }),
+        );
       } else if (event.type === 'merchant') {
         const baseCost = Math.abs(event.effect?.gold ?? 100);
         const cost = baseCost + Math.floor(currentFloor * 2.5);
@@ -419,11 +484,12 @@ export class DungeonCommand extends Command {
           floor: currentFloor,
           playerGold: player.balance,
           zone,
+          t,
         });
 
         await button.editReply({
           embeds: [merchantEmbed],
-          components: [getMerchantButtons(cost, canAfford)],
+          components: [getMerchantButtons(cost, canAfford, t)],
         });
 
         const choice = await message
@@ -438,21 +504,35 @@ export class DungeonCommand extends Command {
         if (choice?.customId === 'buy' && player.balance >= cost) {
           player.balance -= cost;
           player.hp = Math.min(player.maxHp, player.hp + heal);
-          runState.log.push(`🛒 Beli ramuan -${cost}g +${heal} HP`);
+          runState.log.push(
+            t('commands/dungeon:bought', {
+              heal,
+              cost,
+              defaultValue: `🛒 Bought potion -${cost}g +${heal} HP`,
+            }),
+          );
           await choice.editReply({
-            embeds: [merchantEmbed.setFooter({ text: `✅ Terbeli! +${heal} HP` })],
+            embeds: [
+              merchantEmbed.setFooter({
+                text: t('commands/dungeon:bought_footer', {
+                  heal,
+                  defaultValue: `✅ Purchased! +${heal} HP`,
+                }),
+              }),
+            ],
             components: [],
           });
           await sleep(800);
         } else {
-          runState.log.push(`🛒 ${event.text} (dilewati)`);
+          runState.log.push(
+            t('commands/dungeon:skipped', { defaultValue: `🛒 ${event.text} (skipped)` }),
+          );
         }
       }
 
       await player.save();
       await dungeonData.save();
 
-      // --- FLOOR CLEAR ---
       if (runState.current >= runState.rooms) {
         const floorGold = 50 + currentFloor * 5 + (isBossFloor ? 300 : 0);
         const floorExp = 20 + currentFloor * 2;
@@ -464,12 +544,11 @@ export class DungeonCommand extends Command {
         dungeonData.currentFloor++;
         if (currentFloor > dungeonData.highestFloor) dungeonData.highestFloor = currentFloor;
 
-        // Drop item
         const pool = isBossFloor
           ? (BOSS_DROPS[floorMonster.base] ?? BOSS_DROPS.guardian)
           : (DUNGEON_DROPS[floorMonster.base] ?? DUNGEON_DROPS.slime);
 
-        if (Math.random() < (isBossFloor ? 1 : 0.35)) {
+        if (Math.random() < (isBossFloor ? 1 : 0.4)) {
           const weights = { Common: 60, Uncommon: 25, Rare: 10, Epic: 4, Legendary: 1 };
           const weighted = pool.flatMap((d) => Array(weights[d.rarity] || 1).fill(d));
           const drop = weighted[Math.floor(Math.random() * weighted.length)];
@@ -490,13 +569,24 @@ export class DungeonCommand extends Command {
           const inv = player.items.find((x) => x.itemId === safeDrop.itemId);
           if (inv) inv.qty++;
           else player.items.push({ itemId: safeDrop.itemId, qty: 1 });
-          runState.log.push(`🎁 ${safeDrop.emoji} ${safeDrop.name}`);
+          runState.log.push(
+            t('commands/dungeon:drop', {
+              emoji: safeDrop.emoji,
+              name: safeDrop.name,
+              defaultValue: `🎁 ${safeDrop.emoji} ${safeDrop.name}`,
+            }),
+          );
         }
 
         const levelUp = checkLevelUp(player);
         if (levelUp) {
           Object.assign(player, levelUp);
-          runState.log.push(`🎉 LEVEL UP ${levelUp.level}!`);
+          runState.log.push(`
+            \n${t('commands/dungeon:levelup', {
+              level: levelUp.level,
+              defaultValue: `🎉 LEVEL UP ${levelUp.level}!`,
+            })}
+          `);
         }
 
         dungeonData.inRun = false;
@@ -506,20 +596,27 @@ export class DungeonCommand extends Command {
         await dungeonData.save();
 
         const clearEmbed = buildEmbed()
-          .setTitle(`✅ Lantai ${currentFloor} Clear!`)
+          .setTitle(
+            t('commands/dungeon:clear_title', {
+              floor: currentFloor,
+              defaultValue: `✅ Floor ${currentFloor} Clear!`,
+            }),
+          )
           .setColor(0x2ecc71)
           .setDescription(
             runState.log.join('\n') +
-              `\n\n**Reward: +${runState.gold} gold • +${runState.exp} exp**\n\n**Mau lanjut?**`,
+              `
+\n\n**${t('commands/dungeon:reward', { gold: runState.gold, exp: runState.exp, defaultValue: `Reward: +${runState.gold} gold • +${runState.exp} exp` })}**
+\n\n**${t('commands/dungeon:continue_q', { defaultValue: 'Continue?' })}**`,
           );
 
         return button.editReply({
           embeds: [clearEmbed],
-          components: [getContinueButtons(dungeonData.currentFloor)],
+          components: [getContinueButtons(dungeonData.currentFloor, t)],
         });
       }
 
-      await button.editReply({ embeds: [buildEmbed()], components: [getMainButtons()] });
+      await button.editReply({ embeds: [buildEmbed()], components: [getMainButtons(t)] });
     });
 
     collector.on('end', async () => {
