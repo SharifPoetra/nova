@@ -1,0 +1,22 @@
+{
+  "usage": "/sell type:<rarity>",
+  "examples": "/sell type:all",
+  "extended_help": "Sell items from inventory for coins.\n\n**Type options:**\n- all — sell all except Legendary (safe)\n- Common / Uncommon — instant sell\n- Rare / Epic / Legendary — requires button confirmation\n\n**Notes:**\n- Items from /fish, /hunt, /explore can be sold\n- Legendary is excluded from 'all' to prevent mistakes\n- Use /inventory first to check total value\n\nTip: save Rare+ for /cook, sell Common/Uncommon for fast farming.",
+  "option_desc": "Rarity to sell",
+  "choice_all": "All (except Legendary)",
+  "type_all": "all",
+  "type_Common": "Common",
+  "type_Uncommon": "Uncommon",
+  "type_Rare": "Rare",
+  "type_Epic": "Epic",
+  "type_Legendary": "Legendary",
+  "empty": "❌ Inventory empty!",
+  "none": "❌ No {{type}} items!",
+  "title": "💰 Sale",
+  "coins": "coins",
+  "total": "Total",
+  "balance": "💰 Balance",
+  "confirm_yes": "Sell",
+  "confirm_no": "Cancel",
+  "cancelled": "❌ Cancelled"
+}
