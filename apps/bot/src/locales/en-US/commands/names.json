@@ -1,4 +1,5 @@
 {
+  "inventory": "inventory",
   "fish": "fish",
   "dungeon": "dungeon",
   "simdroprate": "simdroprate",
