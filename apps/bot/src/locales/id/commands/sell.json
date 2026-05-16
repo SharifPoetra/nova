@@ -1,0 +1,22 @@
+{
+  "usage": "/sell type:<rarity>",
+  "examples": "/sell type:all",
+  "extended_help": "Jual item dari inventory untuk koin.\n\n**Pilihan type:**\n- all — jual semua kecuali Legendary (aman)\n- Common / Uncommon — langsung terjual\n- Rare / Epic / Legendary — perlu konfirmasi tombol\n\n**Catatan:**\n- Item dari /fish, /hunt, /explore bisa dijual\n- Legendary tidak ikut 'all' untuk mencegah salah jual\n- Gunakan /inventory dulu untuk cek total nilai\n\nTip: simpan Rare+ untuk /cook, jual Common/Uncommon saja untuk farming cepat.",
+  "option_desc": "Rarity yang mau dijual",
+  "choice_all": "All (kecuali Legendary)",
+  "type_all": "all",
+  "type_Common": "Common",
+  "type_Uncommon": "Uncommon",
+  "type_Rare": "Rare",
+  "type_Epic": "Epic",
+  "type_Legendary": "Legendary",
+  "empty": "❌ Inventory kosong!",
+  "none": "❌ Tidak ada item {{type}}!",
+  "title": "💰 Penjualan",
+  "coins": "koin",
+  "total": "Total",
+  "balance": "💰 Saldo",
+  "confirm_yes": "Jual",
+  "confirm_no": "Batal",
+  "cancelled": "❌ Dibatalkan"
+}
