@@ -10,6 +10,9 @@ import {
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 
+import sellEn from '../../locales/en-US/commands/sell.json';
+import sellId from '../../locales/id/commands/sell.json';
+
 @ApplyOptions<Command.Options>({
   name: 'sell',
   description: 'Sell fish/materials',
@@ -17,27 +20,26 @@ import { applyPassiveRegen } from '../../lib/rpg/buffs';
 })
 export class SellCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((builder) =>
-      applyLocalizedBuilder(
-        builder
-          .setName(this.name)
-          .setDescription(this.container.i18n.t('commands/descriptions:sell'))
-          .addStringOption((o) =>
-            o
-              .setName('type')
-              .setDescription(this.container.i18n.t('commands/sell:option_desc'))
-              .setRequired(true)
-              .addChoices(
-                { name: this.container.i18n.t('commands/sell:choice_all'), value: 'all' },
-                { name: 'Common', value: 'Common' },
-                { name: 'Uncommon', value: 'Uncommon' },
-                { name: 'Rare', value: 'Rare' },
-                { name: 'Epic', value: 'Epic' },
-                { name: 'Legendary', value: 'Legendary' },
-              ),
-          ),
-        'commands/names:sell',
-        'commands/descriptions:sell',
+    registry.registerChatInputCommand((b) =>
+      applyLocalizedBuilder(b, 'commands/names:sell', 'commands/descriptions:sell').addStringOption(
+        (o) =>
+          o
+            .setName('type')
+            .setDescription(sellEn.option_desc)
+            .setDescriptionLocalizations({ id: sellId.option_desc, 'en-US': sellEn.option_desc })
+            .setRequired(true)
+            .addChoices(
+              {
+                name: sellEn.choice_all,
+                value: 'all',
+                name_localizations: { id: sellId.choice_all },
+              },
+              { name: 'Common', value: 'Common', name_localizations: { id: 'Common' } },
+              { name: 'Uncommon', value: 'Uncommon', name_localizations: { id: 'Uncommon' } },
+              { name: 'Rare', value: 'Rare', name_localizations: { id: 'Rare' } },
+              { name: 'Epic', value: 'Epic', name_localizations: { id: 'Epic' } },
+              { name: 'Legendary', value: 'Legendary', name_localizations: { id: 'Legendary' } },
+            ),
       ),
     );
   }

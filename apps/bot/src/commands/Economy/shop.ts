@@ -10,21 +10,13 @@ import {
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 
+import shopEn from '../../locales/en-US/commands/shop.json';
+import shopId from '../../locales/id/commands/shop.json';
+import shopEnGb from '../../locales/en-GB/commands/shop.json';
+
 const SHOP_ITEMS = [
-  {
-    id: 'potion_stamina',
-    key: 'stamina',
-    emoji: '🧪',
-    price: 150,
-    effect: { stamina: 30 },
-  },
-  {
-    id: 'potion_hp',
-    key: 'hp',
-    emoji: '🍖',
-    price: 100,
-    effect: { hp: 50 },
-  },
+  { id: 'potion_stamina', key: 'stamina', emoji: '🧪', price: 150, effect: { stamina: 30 } },
+  { id: 'potion_hp', key: 'hp', emoji: '🍖', price: 100, effect: { hp: 50 } },
 ];
 
 @ApplyOptions<Command.Options>({
@@ -34,28 +26,30 @@ const SHOP_ITEMS = [
 })
 export class ShopCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((builder) =>
-      applyLocalizedBuilder(
-        builder
-          .setName(this.name)
-          .setDescription(this.container.i18n.t('commands/descriptions:shop'))
-          .addStringOption((option) =>
-            option
-              .setName('item')
-              .setDescription(this.container.i18n.t('commands/shop:option_desc'))
-              .setRequired(false)
-              .addChoices(
-                ...SHOP_ITEMS.map((i) => ({
-                  name: this.container.i18n.t(`commands/shop:item_${i.key}_choice`, {
-                    price: i.price,
-                    defaultValue: `${i.emoji} ${i.key} - ${i.price} coins`,
-                  }),
-                  value: i.id,
-                })),
-              ),
-          ),
-        'commands/names:shop',
-        'commands/descriptions:shop',
+    registry.registerChatInputCommand((b) =>
+      applyLocalizedBuilder(b, 'commands/names:shop', 'commands/descriptions:shop').addStringOption(
+        (o) =>
+          o
+            .setName('item')
+            .setNameLocalizations({ id: 'item', 'en-US': 'item' })
+            .setDescription(shopEn.option_desc)
+            .setDescriptionLocalizations({
+              id: shopId.option_desc,
+              'en-US': shopEn.option_desc,
+              'en-GB': shopEnGb.option_desc,
+            })
+            .setRequired(false)
+            .addChoices(
+              ...SHOP_ITEMS.map((i) => ({
+                name: `${i.emoji} ${shopEn[`item_${i.key}_name`]} - ${i.price} coins`,
+                value: i.id,
+                name_localizations: {
+                  id: `${i.emoji} ${shopId[`item_${i.key}_name`]} - ${i.price} koin`,
+                  'en-US': `${i.emoji} ${shopEn[`item_${i.key}_name`]} - ${i.price} coins`,
+                  'en-GB': `${i.emoji} ${shopEnGb[`item_${i.key}_name`]} - ${i.price} coins`,
+                },
+              })),
+            ),
       ),
     );
   }
@@ -65,7 +59,6 @@ export class ShopCommand extends Command {
     await interaction.deferReply();
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user) return interaction.editReply(t('common:need_start'));
-
     applyPassiveRegen(user);
     await user.save();
 
@@ -113,7 +106,6 @@ export class ShopCommand extends Command {
 
     await interaction.editReply({ embeds: [embed], components: rows });
     const msg = await interaction.fetchReply();
-
     const collector = msg.createMessageComponentCollector({
       componentType: ComponentType.Button,
       time: 30000,
@@ -134,10 +126,7 @@ export class ShopCommand extends Command {
       await btn.deferUpdate();
       await this.handlePurchase(interaction, user, itemId, t, true);
     });
-
-    collector.on('end', () => {
-      interaction.editReply({ components: [] }).catch(() => {});
-    });
+    collector.on('end', () => interaction.editReply({ components: [] }).catch(() => {}));
   }
 
   private async handlePurchase(
@@ -148,7 +137,6 @@ export class ShopCommand extends Command {
     fromButton = false,
   ) {
     const item = SHOP_ITEMS.find((i) => i.id === itemId)!;
-
     if (Number(user.balance) < item.price) {
       const msg = t('commands/shop:no_money', {
         price: item.price,
@@ -159,7 +147,7 @@ export class ShopCommand extends Command {
         ? interaction.editReply({ content: msg, embeds: [], components: [] })
         : interaction.editReply(msg);
     }
-
+    //... sisanya sama seperti file kamu (confirm, success) — tidak diubah
     const confirmEmbed = new EmbedBuilder()
       .setColor(0xe67e22)
       .setTitle(t('commands/shop:confirm_title', { defaultValue: 'Purchase Confirmation' }))
@@ -172,7 +160,6 @@ export class ShopCommand extends Command {
           defaultValue: `${item.emoji} **name**\ndesc\n\nPrice: **${item.price}** coins`,
         }),
       );
-
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId('buy')
@@ -183,9 +170,7 @@ export class ShopCommand extends Command {
         .setLabel(t('commands/shop:cancel', { defaultValue: 'Cancel' }))
         .setStyle(ButtonStyle.Secondary),
     );
-
     await interaction.editReply({ embeds: [confirmEmbed], components: [row] });
-
     const msg = await interaction.fetchReply();
     const col = msg.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -193,7 +178,6 @@ export class ShopCommand extends Command {
       filter: (b: any) => b.user.id === interaction.user.id,
       max: 1,
     });
-
     col.on('collect', async (i: any) => {
       if (i.customId === 'cancel')
         return i.update({
@@ -201,13 +185,11 @@ export class ShopCommand extends Command {
           embeds: [],
           components: [],
         });
-
       user.balance = Number(user.balance) - item.price;
       if (item.effect.stamina)
         user.stamina = Math.min(user.maxStamina ?? 100, (user.stamina ?? 0) + item.effect.stamina);
       if (item.effect.hp) user.hp = Math.min(user.maxHp ?? 100, (user.hp ?? 0) + item.effect.hp);
       await user.save();
-
       const successEmbed = new EmbedBuilder()
         .setColor(0x2ecc71)
         .setTitle(t('commands/shop:success_title', { defaultValue: '✅ Purchase Successful' }))
@@ -235,7 +217,6 @@ export class ShopCommand extends Command {
             inline: true,
           },
         );
-
       await i.update({ embeds: [successEmbed], components: [] });
     });
   }
