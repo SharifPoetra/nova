@@ -1,0 +1,18 @@
+{
+  "usage": "/fish",
+  "examples": "/fish",
+  "extended_help": "Cooldown 30 detik • cost 10 stamina.\n\n**Kegunaan ikan:**\n1. **Jual** — pakai /sell untuk koin instan\n2. **Masak** — pakai /cook untuk jadi Fish Soup (+40 HP) atau resep lain\n\n**Drop:** 13 jenis ikan dari Common sampai Legendary\n**Rarity:** ⚪ Common 50% • 🟢 Uncommon 28% • 🔵 Rare 14% • 🟣 Epic 6% • 🟡 Legendary 2%\n\nTips: ikan Rare+ jangan langsung dijual, simpan untuk masak sebelum /hunt. Rata-rata jual ~35💰.\nLihat tabel: /droprate tipe:fish",
+  "cooldown": "🎣 Joran masih basah! Tunggu {{wait}}s",
+  "low_stamina": "⚡ Stamina kurang ({{current}}/{{cost}})",
+  "author": "{{username}} memancing",
+  "caught": "**{{emoji}} {{name}}** tertangkap!\n*{{rarity}}*",
+  "levelup": "🎉 **LEVEL UP! → Lv.{{level}}**",
+  "sell": "💰 Jual",
+  "sell_value": "{{price}} koin",
+  "cook": "🍳 Masak",
+  "cook_value": "Bisa untuk Fish Soup",
+  "exp": "✨ EXP",
+  "stamina": "⚡ Stamina",
+  "stamina_value": "{{before}} → {{after}}",
+  "footer": "Gunakan /cook untuk heal sebelum hunt"
+}
