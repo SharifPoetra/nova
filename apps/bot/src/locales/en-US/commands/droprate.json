@@ -1,6 +1,6 @@
 {
   "usage": "/droprate ",
-  "extended_help": "**Features:**\n• Shows chance, sell price, XP, and rarity\n• Calculates expected value\n• Simulation up to 10,000 rolls (Admin)\n\n**Types:** fish, explore, hunt",
+  "extended_help": "**Features:**\n• Shows chance, sell price, XP, and rarity\n• Calculates expected value\n\n**Types:** fish, explore, hunt",
   "sim_no_perm": "❌ Simulation only for Admin.",
   "sim_title": "🎲 Simulation {{sim}}x — {{type}}",
   "no_drop": "No Drop",
