@@ -27,7 +27,7 @@ export class HuntCommand extends Command {
     const db = this.container.db;
     const user = await db.user.findOne({ discordId: interaction.user.id });
 
-    if (!user) return interaction.editReply(t('commands/hunt:need_start'));
+    if (!user) return interaction.editReply(t('common:need_start'));
 
     applyPassiveRegen(user);
     const now = Date.now();
