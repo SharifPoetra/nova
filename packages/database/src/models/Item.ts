@@ -5,6 +5,20 @@ export interface IItemEffect {
   value: number;
 }
 
+export type EquipmentSlot = 'weapon' | 'helmet' | 'armor' | 'accessory';
+export type Element = 'phys' | 'fire' | 'ice' | 'light' | 'dark';
+
+export interface IEquipmentStat {
+  atk?: number;
+  hp?: number;
+  def?: number;
+  critRate?: number; // 0.05 = 5%
+  critDmg?: number; // 2.0 = 200%
+  element?: Element;
+  grantsSkill?: string;
+  classLock?: ('warrior' | 'mage' | 'rogue')[];
+}
+
 export interface IItem extends Document {
   itemId: string;
   name: string;
@@ -14,6 +28,8 @@ export interface IItem extends Document {
   type: 'material' | 'equipment' | 'consumable';
   description: string;
   effects?: IItemEffect[];
+  slot?: EquipmentSlot;
+  stats?: IEquipmentStat;
 }
 
 const ItemSchema = new Schema(
@@ -35,6 +51,24 @@ const ItemSchema = new Schema(
         value: { type: Number, required: true },
       },
     ],
+    slot: {
+      type: String,
+      enum: ['weapon', 'helmet', 'armor', 'accessory'],
+      required: function() { return this.type === 'equipment'; },
+    },
+    stats: {
+      type: {
+        atk: Number,
+        hp: Number,
+        def: Number,
+        critRate: Number,
+        critDmg: Number,
+        element: { type: String, enum: ['phys', 'fire', 'ice', 'light', 'dark'] },
+        grantsSkill: String,
+        classLock: [{ type: String, enum: ['warrior', 'mage', 'rogue'] }],
+      },
+      required: false,
+    },
   },
   { timestamps: true },
 );

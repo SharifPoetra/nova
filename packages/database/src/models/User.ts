@@ -9,6 +9,15 @@ export interface IBuff {
   expires: Date;
 }
 
+export type EquipmentSlot = 'weapon' | 'helmet' | 'armor' | 'accessory';
+
+export interface IEquipped {
+  weapon: string | null;
+  helmet: string | null;
+  armor: string | null;
+  accessory: string | null;
+}
+
 export interface IUser extends Document {
   discordId: string;
   username: string;
@@ -30,6 +39,7 @@ export interface IUser extends Document {
   maxStamina: number;
   items: { itemId: string; qty: number }[];
   buffs: IBuff[];
+  equipped: IEquipped;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -72,6 +82,15 @@ const UserSchema = new Schema<IUser>(
         },
       ],
       default: [],
+    },
+    equipped: {
+      type: {
+        weapon: { type: String, default: null },
+        helmet: { type: String, default: null },
+        armor: { type: String, default: null },
+        accessory: { type: String, default: null },
+      },
+      default: { weapon: null, helmet: null, armor: null, accessory: null },
     },
   },
   { timestamps: true },
