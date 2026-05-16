@@ -81,6 +81,7 @@ const client = new SapphireClient({
         'commands/explore',
         'commands/fish',
         'commands/inventory',
+        'commands/sell',
       ],
     },
   },

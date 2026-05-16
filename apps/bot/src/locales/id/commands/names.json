@@ -1,4 +1,5 @@
 {
+  "sell": "sell"
   "inventory": "inventory",
   "fish": "fish",
   "explore": "explore",
@@ -9,6 +10,6 @@
   "profile": "profile",
   "ping": "ping",
   "hunt": "hunt",
-  "lang": "bahasa",
+  "lang": "lang",
   "help": "help"
 }
