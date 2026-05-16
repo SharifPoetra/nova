@@ -4,6 +4,7 @@ import { sleep } from '../../utils';
 import { getAtkBuff } from '../buffs';
 import { RunState } from './dungeon-state';
 import { buildBattleEmbed, getBattleButtons } from './dungeon-ui';
+import type { TFunction } from 'i18next';
 
 interface BattleParams {
   player: IUser;
@@ -15,10 +16,11 @@ interface BattleParams {
   state: RunState;
   msg: Message;
   username: string;
+  t: TFunction;
 }
 
 export async function runInteractiveBattle(params: BattleParams) {
-  const { player, monster, floor, lore, isBoss, isElite, state, msg, username } = params;
+  const { player, monster, floor, lore, isBoss, isElite, state, msg, username, t } = params;
 
   // Hitung stat monster
   const baseHp = 50 + floor * 8;
@@ -40,7 +42,14 @@ export async function runInteractiveBattle(params: BattleParams) {
 
   // Battle log
   const battleLog: string[] = [];
-  battleLog.push(`**${monster.emoji} ${monster.name}** muncul!${isElite ? ' **ELITE!**' : ''}`);
+  battleLog.push(
+    t('commands/dungeon:battle_spawn', {
+      emoji: monster.emoji,
+      name: monster.name,
+      elite: isElite ? t('commands/dungeon:elite_tag', { defaultValue: ' **ELITE!**' }) : '',
+      defaultValue: `**${monster.emoji} ${monster.name}** appeared!${isElite ? ' **ELITE!**' : ''}`,
+    }),
+  );
 
   // Helper untuk update embed battle
   const updateBattle = async (showButtons = true) => {
@@ -57,8 +66,9 @@ export async function runInteractiveBattle(params: BattleParams) {
       isBoss,
       isElite,
       skillCd: skillCooldown,
+      t,
     });
-    const components = showButtons ? [getBattleButtons(skillName, skillCooldown)] : [];
+    const components = showButtons ? [getBattleButtons(skillName, skillCooldown, t)] : [];
     await msg.edit({ embeds: [embed], components });
   };
 
@@ -68,7 +78,7 @@ export async function runInteractiveBattle(params: BattleParams) {
   // Loop turn-based
   while (monsterHp > 0 && playerHp > 0) {
     // --- GILIRAN PLAYER ---
-    await updateBattle(true); // nyalain tombol
+    await updateBattle(true);
 
     const turn = await msg
       .awaitMessageComponent({
@@ -85,7 +95,9 @@ export async function runInteractiveBattle(params: BattleParams) {
         Math.floor(Math.random() * 6) + Math.floor(player.attack / 2.5) + 8 + attackBuff;
       monsterHp -= damage;
       state.dealt += damage;
-      battleLog.push(`⏱️ Auto! 🗡️ **${damage}**`);
+      battleLog.push(
+        t('commands/dungeon:battle_auto', { damage, defaultValue: `⏱️ Auto! 🗡️ **${damage}**` }),
+      );
       await sleep(700);
     } else {
       await turn.deferUpdate();
@@ -98,10 +110,18 @@ export async function runInteractiveBattle(params: BattleParams) {
         if (isCrit) damage = Math.floor(damage * 1.7);
         monsterHp -= damage;
         state.dealt += damage;
-        battleLog.push(`🗡️ Kamu hantam **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
+        battleLog.push(
+          t('commands/dungeon:battle_hit', {
+            damage,
+            crit: isCrit ? t('commands/dungeon:crit', { defaultValue: ' 💥CRIT!' }) : '',
+            defaultValue: `🗡️ You hit **${damage}**${isCrit ? ' 💥CRIT!' : ''}`,
+          }),
+        );
       } else if (turn.customId === 'def') {
         isDefending = true;
-        battleLog.push('🛡️ Kamu bertahan! Damage -60%');
+        battleLog.push(
+          t('commands/dungeon:battle_defend', { defaultValue: '🛡️ You defend! Damage -60%' }),
+        );
       } else if (turn.customId === 'skl' && skillCooldown === 0) {
         skillCooldown = 3;
 
@@ -113,34 +133,49 @@ export async function runInteractiveBattle(params: BattleParams) {
           if (isCrit) damage = Math.floor(damage * 1.7);
           monsterHp -= damage;
           state.dealt += damage;
-          battleLog.push(`✨ Backstab! **${damage}**${isCrit ? ' 💥' : ''}`);
+          battleLog.push(
+            t('commands/dungeon:battle_backstab', {
+              damage,
+              crit: isCrit ? ' 💥' : '',
+              defaultValue: `✨ Backstab! **${damage}**${isCrit ? ' 💥' : ''}`,
+            }),
+          );
         } else if (player.class === 'warrior') {
           const damage =
             Math.floor(Math.random() * 4) + Math.floor(player.attack / 3) + 6 + attackBuff;
           monsterHp -= damage;
           state.dealt += damage;
-          isDefending = true; // efek stun
-          battleLog.push(`✨ Shield Bash! **${damage}** & musuh terhuyung`);
+          isDefending = true;
+          battleLog.push(
+            t('commands/dungeon:battle_bash', {
+              damage,
+              defaultValue: `✨ Shield Bash! **${damage}** & enemy staggered`,
+            }),
+          );
         } else {
-          // mage
           const heal = Math.floor(player.maxHp * 0.32);
           playerHp = Math.min(player.maxHp, playerHp + heal);
           const damage =
             Math.floor(Math.random() * 5) + Math.floor(player.attack / 2.8) + 7 + attackBuff;
           monsterHp -= damage;
           state.dealt += damage;
-          battleLog.push(`✨ Fireball **${damage}** + heal +${heal}`);
+          battleLog.push(
+            t('commands/dungeon:battle_fireball', {
+              damage,
+              heal,
+              defaultValue: `✨ Fireball **${damage}** + heal +${heal}`,
+            }),
+          );
         }
       }
     }
 
-    // update log sekali untuk kedua jalur
     await updateBattle(false);
     await sleep(700);
     if (monsterHp <= 0) break;
 
     // --- GILIRAN MONSTER ---
-    await updateBattle(false); // matiin tombol
+    await updateBattle(false);
     let monsterDamage = Math.floor(Math.random() * 5) + monsterAtk;
     if (isDefending) monsterDamage = Math.floor(monsterDamage * 0.4);
     if (player.class === 'warrior' && Math.random() < 0.2)
@@ -150,15 +185,22 @@ export async function runInteractiveBattle(params: BattleParams) {
     state.taken += monsterDamage;
     isDefending = false;
 
-    battleLog.push(`💢 ${monster.name} balas **${monsterDamage}**`);
+    battleLog.push(
+      t('commands/dungeon:battle_enemy', {
+        name: monster.name,
+        damage: monsterDamage,
+        defaultValue: `💢 ${monster.name} strikes **${monsterDamage}**`,
+      }),
+    );
     await updateBattle(false);
     await sleep(800);
 
-    // Passive mage
     if (player.class === 'mage' && Math.random() < 0.15) {
       const heal = Math.floor((player.attack + attackBuff) * 0.25);
       playerHp = Math.min(player.maxHp, playerHp + heal);
-      battleLog.push(`✨ Lifesteal +${heal} HP`);
+      battleLog.push(
+        t('commands/dungeon:battle_lifesteal', { heal, defaultValue: `✨ Lifesteal +${heal} HP` }),
+      );
       await updateBattle(false);
       await sleep(500);
     }
@@ -166,7 +208,6 @@ export async function runInteractiveBattle(params: BattleParams) {
     if (skillCooldown > 0) skillCooldown--;
   }
 
-  // Update HP player di DB object
   player.hp = Math.max(0, playerHp);
 
   return {
