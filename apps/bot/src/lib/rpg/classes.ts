@@ -43,7 +43,7 @@ export const CLASSES: Record<string, ClassData> = {
 // === JANGAN DIHAPUS: Function ini dipake command lama ===
 export function getClass(className: 'warrior' | 'mage' | 'rogue' | null): ClassData | null {
   if (!className) return null;
-  return CLASSES[className]?? null;
+  return CLASSES[className] ?? null;
 }
 
 // === HELPER BARU buat Phase 2 ===

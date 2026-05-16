@@ -35,8 +35,8 @@ describe('getPlayerStats()', () => {
 
   it('1.7: equip iron_sword {atk:12} harus nambah atk', () => {
     const userWithSword = {
-     ...mockUser,
-      equipped: {...mockUser.equipped, weapon: 'iron_sword' },
+      ...mockUser,
+      equipped: { ...mockUser.equipped, weapon: 'iron_sword' },
     };
     const stats = getPlayerStats(userWithSword);
 
@@ -47,8 +47,8 @@ describe('getPlayerStats()', () => {
 
   it('equip obsidian_plate {hp:50, def:5} harus nambah maxHp + def', () => {
     const userWithArmor = {
-     ...mockUser,
-      equipped: {...mockUser.equipped, armor: 'obsidian_plate' },
+      ...mockUser,
+      equipped: { ...mockUser.equipped, armor: 'obsidian_plate' },
     };
     const stats = getPlayerStats(userWithArmor);
 
@@ -60,9 +60,9 @@ describe('getPlayerStats()', () => {
 
   it('equip hunter_bow {atk:15, critDmg:1.8} harus stack critDmg', () => {
     const userWithBow = {
-     ...mockUser,
+      ...mockUser,
       class: 'rogue', // rogue baseCritDmg 1.5
-      equipped: {...mockUser.equipped, weapon: 'hunter_bow' },
+      equipped: { ...mockUser.equipped, weapon: 'hunter_bow' },
     };
     const stats = getPlayerStats(userWithBow);
 
@@ -77,7 +77,7 @@ describe('getPlayerStats()', () => {
   // === Buff harus ke-apply ===
   it('buff atk +30% harus naikin atk', () => {
     const userWithBuff = {
-     ...mockUser,
+      ...mockUser,
       buffs: [{ type: 'atk', value: 0.3, expires: new Date(Date.now() + 10000) }],
     };
     const stats = getPlayerStats(userWithBuff);

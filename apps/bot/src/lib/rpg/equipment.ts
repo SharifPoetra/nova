@@ -88,7 +88,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
 };
 
 export function getEquipment(id: string): EquipmentData | null {
-  return EQUIPMENTS[id]?? null;
+  return EQUIPMENTS[id] ?? null;
 }
 
 export function getAllEquipments(): EquipmentData[] {
@@ -96,5 +96,5 @@ export function getAllEquipments(): EquipmentData[] {
 }
 
 export function getEquipmentsBySlot(slot: EquipmentSlot): EquipmentData[] {
-  return getAllEquipments().filter(e => e.slot === slot);
+  return getAllEquipments().filter((e) => e.slot === slot);
 }

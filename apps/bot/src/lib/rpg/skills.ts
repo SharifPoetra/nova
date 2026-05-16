@@ -74,7 +74,7 @@ export const SKILLS: Record<string, SkillData> = {
     use: (ctx) => {
       const mult = parseValue('1.5*atk', ctx.stats.atk) / ctx.stats.atk;
       const { damage, isCrit } = calculateDamage(ctx.stats, ctx.enemy, mult);
-      ctx.addLog(`✨ 🔥 Fireball! **${damage}**${isCrit? ' 💥CRIT!' : ''}`);
+      ctx.addLog(`✨ 🔥 Fireball! **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
       return { damage, heal: 0, isCrit };
     },
   },
@@ -94,9 +94,9 @@ export const SKILLS: Record<string, SkillData> = {
     ],
     use: (ctx) => {
       // Temporarily boost crit buat hit ini
-      const boostedStats = {...ctx.stats, critRate: ctx.stats.critRate + 0.2 };
+      const boostedStats = { ...ctx.stats, critRate: ctx.stats.critRate + 0.2 };
       const { damage, isCrit } = calculateDamage(boostedStats, ctx.enemy, 2.0);
-      ctx.addLog(`✨ 🗡️ Backstab! **${damage}**${isCrit? ' 💥CRIT!' : ''}`);
+      ctx.addLog(`✨ 🗡️ Backstab! **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
       return { damage, heal: 0, isCrit };
     },
   },
@@ -118,20 +118,21 @@ export const SKILLS: Record<string, SkillData> = {
 };
 
 export function getSkill(id: string): SkillData | null {
-  return SKILLS[id]?? null;
+  return SKILLS[id] ?? null;
 }
 
 export function getSkillsByClass(className: 'warrior' | 'mage' | 'rogue'): SkillData[] {
   return Object.values(SKILLS).filter(
-    s =>!s.passive && (!s.classLock || s.classLock.includes(className))
+    (s) => !s.passive && (!s.classLock || s.classLock.includes(className)),
   );
 }
 
 export function getPassiveSkills(user: IUser): SkillData[] {
   if (!user.class) return [];
   return Object.values(SKILLS).filter(
-    s => s.passive &&
-    s.classLock?.includes(user.class!) &&
-    (!s.requiredLevel || user.level >= s.requiredLevel)
+    (s) =>
+      s.passive &&
+      s.classLock?.includes(user.class!) &&
+      (!s.requiredLevel || user.level >= s.requiredLevel),
   );
 }

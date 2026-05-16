@@ -27,16 +27,16 @@ export async function runInteractiveBattle(params: BattleParams) {
   const baseHp = 50 + floor * 8;
   const baseAtk = 8 + floor * 1.5;
   const monsterMaxHp = Math.floor(
-    isBoss? baseHp * 3.5 : isElite? baseHp * 1.8 : baseHp * (0.8 + Math.random() * 0.4),
+    isBoss ? baseHp * 3.5 : isElite ? baseHp * 1.8 : baseHp * (0.8 + Math.random() * 0.4),
   );
-  const monsterAtk = Math.floor(isBoss? baseAtk * 2.2 : baseAtk);
+  const monsterAtk = Math.floor(isBoss ? baseAtk * 2.2 : baseAtk);
   const monsterDef = Math.floor(floor * 0.5);
 
   let monsterHp = monsterMaxHp;
   let playerHp = stats.hp;
 
-  const playerSkillId = stats.availableSkills[0]?? null;
-  const playerSkill = playerSkillId? getSkill(playerSkillId) : null;
+  const playerSkillId = stats.availableSkills[0] ?? null;
+  const playerSkill = playerSkillId ? getSkill(playerSkillId) : null;
   let skillCooldown = 0;
   let isDefending = false;
 
@@ -45,8 +45,8 @@ export async function runInteractiveBattle(params: BattleParams) {
     t('commands/dungeon:battle_spawn', {
       emoji: monster.emoji,
       name: monster.name,
-      elite: isElite? t('commands/dungeon:elite_tag', { defaultValue: ' **ELITE!**' }) : '',
-      defaultValue: `**${monster.emoji} ${monster.name}** appeared!${isElite? ' **ELITE!**' : ''}`,
+      elite: isElite ? t('commands/dungeon:elite_tag', { defaultValue: ' **ELITE!**' }) : '',
+      defaultValue: `**${monster.emoji} ${monster.name}** appeared!${isElite ? ' **ELITE!**' : ''}`,
     }),
   );
 
@@ -67,7 +67,7 @@ export async function runInteractiveBattle(params: BattleParams) {
       t,
     });
     const components = showButtons
-    ? [getBattleButtons(playerSkill?.name?? 'Skill', skillCooldown, t)]
+      ? [getBattleButtons(playerSkill?.name ?? 'Skill', skillCooldown, t)]
       : [];
     await msg.edit({ embeds: [embed], components });
   };
@@ -79,12 +79,12 @@ export async function runInteractiveBattle(params: BattleParams) {
     await updateBattle(true);
 
     const turn = await msg
-    .awaitMessageComponent({
+      .awaitMessageComponent({
         filter: (i) => i.user.id === player.discordId && ['atk', 'def', 'skl'].includes(i.customId),
         time: 30_000,
         componentType: ComponentType.Button,
       })
-    .catch(() => null);
+      .catch(() => null);
 
     if (!turn) {
       await updateBattle(false);
@@ -101,7 +101,7 @@ export async function runInteractiveBattle(params: BattleParams) {
         const { damage, isCrit } = calculateDamage(stats, { def: monsterDef }, 1.0);
         monsterHp -= damage;
         state.dealt += damage;
-        battleLog.push(`🗡️ You hit **${damage}**${isCrit? ' 💥CRIT!' : ''}`);
+        battleLog.push(`🗡️ You hit **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
       } else if (turn.customId === 'def') {
         isDefending = true;
         battleLog.push(`🛡️ You defend! Damage -60%`);

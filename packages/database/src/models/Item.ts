@@ -54,7 +54,9 @@ const ItemSchema = new Schema(
     slot: {
       type: String,
       enum: ['weapon', 'helmet', 'armor', 'accessory'],
-      required: function() { return this.type === 'equipment'; },
+      required: function () {
+        return this.type === 'equipment';
+      },
     },
     stats: {
       type: {
