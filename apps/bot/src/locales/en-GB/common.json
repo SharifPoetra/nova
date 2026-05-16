@@ -6,5 +6,6 @@
     "economy": "ECONOMY",
     "general": "GENERAL",
     "owner": "OWNER"
-  }
+  },
+  "need_start": "❌ Use `/start` first.'"
 }

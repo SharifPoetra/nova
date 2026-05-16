@@ -6,5 +6,6 @@
     "economy": "EKONOMI",
     "general": "UMUM",
     "owner": "OWNER"
-  }
+  },
+  "need_start": "❌ Gunakan `/start` dulu."
 }
