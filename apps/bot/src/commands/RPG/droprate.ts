@@ -1,9 +1,10 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';
-import { FISHES, catchFish } from '../../lib/rpg/fishes';
-import { EXPLORES, rollExplore } from '../../lib/rpg/explorations';
-import { BASE_MONSTERS, getScaledMonster } from '../../lib/rpg/monsters';
+import { EmbedBuilder } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
+import { FISHES } from '../../lib/rpg/fishes';
+import { EXPLORES } from '../../lib/rpg/explorations';
+import { BASE_MONSTERS } from '../../lib/rpg/monsters';
 import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 
 const groupByRarity = <T extends { rarity: string }>(arr: T[]) => {
@@ -18,116 +19,42 @@ const groupByRarity = <T extends { rarity: string }>(arr: T[]) => {
 
 @ApplyOptions<Command.Options>({
   name: 'droprate',
-  description: 'Lihat drop rate detail untuk fish, explore, dan hunt',
-  detailedDescription: {
-    usage: '/droprate <tipe> [sim]',
-    examples: [
-      '/droprate tipe:fish',
-      '/droprate tipe:explore',
-      '/droprate tipe:hunt',
-      '/droprate tipe:fish sim:1000 (Admin only)',
-    ],
-    extendedHelp: `
-**Fitur:**
-• Menampilkan chance, harga jual, XP, dan rarity untuk setiap drop
-• Menghitung expected value (rata-rata koin per aksi)
-• Simulasi hingga 10.000x roll untuk validasi balance (khusus Admin)
-
-**Tipe:**
-🎣 fish — 13 jenis ikan dari Common sampai Legendary
-🗺️ explore — 15 outcome petualangan
-⚔️ hunt — 5 monster dengan drop independen
-
-Gunakan ini untuk balance ekonomi Nova RPG tanpa buka kode.
-    `.trim(),
-  },
+  description: 'View detailed drop rates for fish, explore, and hunt',
   fullCategory: ['RPG'],
 })
 export class DroprateCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((b) =>
-      b
-        .setName(this.name)
-        .setDescription(this.description)
-        .addStringOption((o) =>
-          o
-            .setName('tipe')
-            .setDescription('Pilih tabel yang mau dilihat')
-            .setRequired(true)
-            .addChoices(
-              { name: 'Fish 🎣', value: 'fish' },
-              { name: 'Explore 🗺️', value: 'explore' },
-              { name: 'Hunt ⚔️', value: 'hunt' },
-            ),
-        )
-        .addIntegerOption((o) =>
-          o
-            .setName('sim')
-            .setDescription('Jalankan simulasi (Admin only, 100-10000)')
-            .setMinValue(100)
-            .setMaxValue(10000),
-        ),
+      applyLocalizedBuilder(
+        b,
+        'commands/names:droprate',
+        'commands/descriptions:droprate',
+      ).addStringOption((o) =>
+        o
+          .setName('type')
+          .setNameLocalizations({ id: 'tipe' })
+          .setDescription('Choose table to view')
+          .setDescriptionLocalizations({ id: 'Pilih tabel', 'en-US': 'Choose table' })
+          .setRequired(true)
+          .addChoices(
+            { name: 'Fish 🎣', value: 'fish' },
+            { name: 'Explore 🗺️', value: 'explore' },
+            { name: 'Hunt ⚔️', value: 'hunt' },
+          ),
+      ),
     );
   }
 
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-    const tipe = interaction.options.getString('tipe', true);
-    const sim = interaction.options.getInteger('sim');
-
-    if (sim) {
-      const isAdmin = interaction.memberPermissions?.has(PermissionFlagsBits.Administrator);
-      const isDev = process.env.OWNER_ID?.split(',').includes(interaction.user.id);
-      if (!isAdmin && !isDev)
-        return interaction.reply({ content: '❌ Simulasi hanya untuk Admin.', ephemeral: true });
-
-      await interaction.deferReply();
-      const counts: Record<string, { c: number; emoji: string }> = {};
-      for (let i = 0; i < sim; i++) {
-        let key = '',
-          emoji = '';
-        if (tipe === 'fish') {
-          const f = catchFish();
-          key = f.name;
-          emoji = f.emoji;
-        }
-        if (tipe === 'explore') {
-          const e = rollExplore();
-          key = e.text;
-          emoji = e.emoji;
-        }
-        if (tipe === 'hunt') {
-          const m = getScaledMonster(5);
-          const roll = Math.random() * 100;
-          let cum = 0;
-          const d = m.drops.find((x) => (cum += x.chance) >= roll);
-          key = d ? d.name : 'No Drop';
-          emoji = d?.emoji ?? '❌';
-        }
-
-        if (!counts[key]) counts[key] = { c: 0, emoji };
-        counts[key].c++;
-      }
-      const sorted = Object.entries(counts)
-        .sort((a, b) => b[1].c - a[1].c)
-        .slice(0, 20);
-      const desc = sorted
-        .map(([k, v]) => `${v.emoji} **${k}** — ${v.c}x (${((v.c / sim) * 100).toFixed(2)}%)`)
-        .join('\n');
-      return interaction.editReply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(RARITY_COLOR.Epic)
-            .setTitle(`🎲 Simulasi ${sim.toLocaleString()}x — ${tipe}`)
-            .setDescription(desc),
-        ],
-      });
-    }
+    const t = await fetchT(interaction);
+    const tipe =
+      interaction.options.getString('type', true) ?? interaction.options.getString('tipe', true)!;
 
     if (tipe === 'fish') {
       const total = FISHES.reduce((a, f) => a + f.chance, 0);
       const desc = FISHES.map(
         (f) =>
-          `${f.emoji} **${f.name}** ${RARITY_EMOJI[f.rarity]}\n> Chance: \`${f.chance}%\` • Jual: \`${f.sellPrice}💰\` • XP: \`${f.xp}\``,
+          `${f.emoji} **${f.name}** ${RARITY_EMOJI[f.rarity]}\n> ${t('commands/droprate:chance')}: \`${f.chance}%\` • ${t('commands/droprate:sell')}: \`${f.sellPrice}💰\` • XP: \`${f.xp}\``,
       ).join('\n\n');
 
       const byRarity = groupByRarity(FISHES);
@@ -143,10 +70,21 @@ export class DroprateCommand extends Command {
         embeds: [
           new EmbedBuilder()
             .setColor(RARITY_COLOR.Rare)
-            .setTitle('🎣 Drop Rate Detail — Fish')
+            .setTitle(
+              t('commands/droprate:fish_title', { defaultValue: '🎣 Drop Rate Detail — Fish' }),
+            )
             .setDescription(desc)
-            .addFields({ name: '📊 Rarity', value: summary })
-            .setFooter({ text: `EV: ~${ev}💰 per catch • Total: ${total}%` }),
+            .addFields({
+              name: t('commands/droprate:rarity', { defaultValue: '📊 Rarity' }),
+              value: summary,
+            })
+            .setFooter({
+              text: t('commands/droprate:fish_footer', {
+                ev,
+                total,
+                defaultValue: `EV: ~${ev}💰 per catch • Total: ${total}%`,
+              }),
+            }),
         ],
       });
     }
@@ -154,8 +92,10 @@ export class DroprateCommand extends Command {
     if (tipe === 'explore') {
       const total = EXPLORES.reduce((a, e) => a + e.chance, 0);
       const desc = EXPLORES.map((e) => {
-        const item = e.item ? `\n> Drop: ${e.item.qty}x ${e.item.emoji} ${e.item.name}` : '';
-        return `${e.emoji} **${e.text}** ${RARITY_EMOJI[e.rarity]}\n> Chance: \`${e.chance}%\` • +${e.coins}💰 • +${e.exp}XP${item}`;
+        const item = e.item
+          ? `\n> ${t('commands/droprate:drop')}: ${e.item.qty}x ${e.item.emoji} ${e.item.name}`
+          : '';
+        return `${e.emoji} **${e.text}** ${RARITY_EMOJI[e.rarity]}\n> ${t('commands/droprate:chance')}: \`${e.chance}%\` • +${e.coins}💰 • +${e.exp}XP${item}`;
       }).join('\n\n');
 
       const byRarity = groupByRarity(EXPLORES);
@@ -171,11 +111,18 @@ export class DroprateCommand extends Command {
         embeds: [
           new EmbedBuilder()
             .setColor(RARITY_COLOR.Epic)
-            .setTitle('🗺️ Drop Rate Detail — Explore')
+            .setTitle(
+              t('commands/droprate:explore_title', {
+                defaultValue: '🗺️ Drop Rate Detail — Explore',
+              }),
+            )
             .setDescription(desc)
             .addFields(
               { name: '📊', value: summary },
-              { name: '💡 Rata-rata', value: `+${avgC}💰 per explore` },
+              {
+                name: t('commands/droprate:average', { defaultValue: '💡 Average' }),
+                value: `+${avgC}💰 ${t('commands/droprate:per_explore', { defaultValue: 'per explore' })}`,
+              },
             )
             .setFooter({ text: `Total: ${total}%` }),
         ],
@@ -196,7 +143,9 @@ export class DroprateCommand extends Command {
         embeds: [
           new EmbedBuilder()
             .setColor(RARITY_COLOR.Legendary)
-            .setTitle('⚔️ Drop Rate Detail — Hunt')
+            .setTitle(
+              t('commands/droprate:hunt_title', { defaultValue: '⚔️ Drop Rate Detail — Hunt' }),
+            )
             .setDescription(desc),
         ],
       });

@@ -1,0 +1,22 @@
+{
+  "usage": "/inventory",
+  "examples": "/inventory",
+  "extended_help": "Lihat semua item, equipment, dan consumable yang kamu miliki.\n\n**Fitur:**\n- Auto-sort by rarity (Legendary → Common)\n- Hitung total nilai jual semua item\n- Pagination otomatis (10 item/halaman)\n- Dropdown untuk pakai consumable langsung\n\n**Info yang ditampilkan:**\n- ⚡ Stamina saat ini\n- 📦 Jumlah jenis item unik\n- 💰 Total nilai inventory\n- Deskripsi & harga jual per item\n\nPakai setelah /explore, /hunt, atau /fish untuk cek hasil grinding.",
+  "empty": "📦 Inventory kosong. Coba /fish atau /explore!",
+  "author": "Inventory {{username}}",
+  "header": "⚡ Stamina: {{stamina}}/{{maxStamina}}\n📦 {{count}} jenis item",
+  "footer": "Total nilai: {{total}} koin | Hal {{page}}/{{totalPages}}",
+  "prev": "◀ Sebelumnya",
+  "next": "Selanjutnya ▶",
+  "use_placeholder": "Gunakan consumable...",
+  "expired": "⏰ Waktu habis — ketik /inventory lagi",
+  "not_yours": "Bukan inventory kamu!",
+  "item_not_found": "Item tidak ditemukan",
+  "out_of_stock": "Habis!",
+  "cannot_use": "❌ Item ini tidak bisa dipakai",
+  "used": "✅ Pakai {{emoji}} **{{name}}**",
+  "heal": "❤️ +{{amount}} HP",
+  "stamina_gain": "⚡ +{{amount}} Stamina",
+  "buff": "⚔️ ATK +{{value}} (10m)",
+  "no_effect": "❌ {{emoji}} **{{name}}** tidak berpengaruh (HP/Stamina sudah penuh)"
+}

@@ -7,6 +7,7 @@ import {
   EmbedBuilder,
   StringSelectMenuBuilder,
 } from 'discord.js';
+import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR } from '../../lib/utils';
 
@@ -19,45 +20,34 @@ const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0
 
 @ApplyOptions<Command.Options>({
   name: 'inventory',
-  description: 'Lihat semua item kamu',
-  detailedDescription: {
-    usage: '/inventory',
-    examples: ['/inventory'],
-    extendedHelp: `
-Lihat semua item, equipment, dan consumable yang kamu miliki.
-
-**Fitur:**
-- Auto-sort by rarity (Legendary → Common)
-- Hitung total nilai jual semua item
-- Pagination otomatis (10 item/halaman)
-- Dropdown untuk pakai consumable langsung
-
-**Info yang ditampilkan:**
-- ⚡ Stamina saat ini
-- 📦 Jumlah jenis item unik
-- 💰 Total nilai inventory
-- Deskripsi & harga jual per item
-
-Pakai setelah /explore, /hunt, atau /fish untuk cek hasil grinding.
-`.trim(),
-  },
+  description: 'View all your items',
   fullCategory: ['RPG'],
 })
 export class InventoryCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((b) => b.setName(this.name).setDescription(this.description));
+    registry.registerChatInputCommand((b) =>
+      applyLocalizedBuilder(b, 'commands/names:inventory', 'commands/descriptions:inventory'),
+    );
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    const t = await fetchT(interaction);
     await interaction.deferReply();
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
-    if (!user) return interaction.editReply('❌ Gunakan /start dulu!');
+    if (!user)
+      return interaction.editReply(
+        t('common:need_start', { defaultValue: '❌ Use /start first!' }),
+      );
 
     applyPassiveRegen(user);
     await user.save();
 
     if (!user.items?.length) {
-      return interaction.editReply('📦 Inventory kosong. Coba /fish atau /explore!');
+      return interaction.editReply(
+        t('commands/inventory:empty', {
+          defaultValue: '📦 Inventory empty. Try /fish or /explore!',
+        }),
+      );
     }
 
     const itemIds = user.items.map((i) => i.itemId);
@@ -75,7 +65,7 @@ export class InventoryCommand extends Command {
       allItems.push({
         id: inv.itemId,
         text: `${data.emoji} **${data.name}** x${inv.qty}`,
-        sub: `> ${value.toLocaleString('id-ID')} 💰 • ${data.description || '-'}`,
+        sub: `> ${value.toLocaleString(interaction.locale)} 💰 • ${data.description || '-'}`,
         value,
         rarity: data.rarity || 'Common',
       });
@@ -94,15 +84,28 @@ export class InventoryCommand extends Command {
 
     const embed = new EmbedBuilder()
       .setAuthor({
-        name: `${interaction.user.username}'s Inventory`,
+        name: t('commands/inventory:author', {
+          username: interaction.user.username,
+          defaultValue: `${interaction.user.username}'s Inventory`,
+        }),
         iconURL: interaction.user.displayAvatarURL(),
       })
       .setColor(RARITY_COLOR[topRarity as keyof typeof RARITY_COLOR])
       .setDescription(
-        `⚡ Stamina: ${user.stamina}/${user.maxStamina}\n📦 ${allItems.length} jenis item`,
+        t('commands/inventory:header', {
+          stamina: user.stamina,
+          maxStamina: user.maxStamina,
+          count: allItems.length,
+          defaultValue: `⚡ Stamina: ${user.stamina}/${user.maxStamina}\n📦 ${allItems.length} item types`,
+        }),
       )
       .setFooter({
-        text: `Total nilai: ${totalValue.toLocaleString('id-ID')} koin | Hal ${page + 1}/${totalPages}`,
+        text: t('commands/inventory:footer', {
+          total: totalValue.toLocaleString(interaction.locale),
+          page: page + 1,
+          totalPages,
+          defaultValue: `Total value: ${totalValue.toLocaleString()} coins | Page ${page + 1}/${totalPages}`,
+        }),
       });
 
     for (const it of pageItems) embed.addFields({ name: it.text, value: it.sub });
@@ -113,12 +116,12 @@ export class InventoryCommand extends Command {
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
             .setCustomId(`inv_prev_${page}_${interaction.user.id}`)
-            .setLabel('◀ Sebelumnya')
+            .setLabel(t('commands/inventory:prev', { defaultValue: '◀ Previous' }))
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(true),
           new ButtonBuilder()
             .setCustomId(`inv_next_${page}_${interaction.user.id}`)
-            .setLabel('Selanjutnya ▶')
+            .setLabel(t('commands/inventory:next', { defaultValue: 'Next ▶' }))
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(totalPages <= 1),
         ),
@@ -134,7 +137,9 @@ export class InventoryCommand extends Command {
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
           new StringSelectMenuBuilder()
             .setCustomId(`inv_use_${interaction.user.id}`)
-            .setPlaceholder('Gunakan consumable...')
+            .setPlaceholder(
+              t('commands/inventory:use_placeholder', { defaultValue: 'Use consumable...' }),
+            )
             .addOptions(
               consumables.map((c) => {
                 const d = itemMap.get(c.itemId)!;
@@ -158,13 +163,18 @@ export class InventoryCommand extends Command {
       totalValue,
       userId: interaction.user.id,
       t: Date.now(),
+      locale: interaction.locale,
     });
 
     setTimeout(
       async () => {
         try {
           const expiredEmbed = EmbedBuilder.from(embed)
-            .setFooter({ text: `⏰ Waktu habis — ketik /inventory lagi` })
+            .setFooter({
+              text: t('commands/inventory:expired', {
+                defaultValue: '⏰ Expired — type /inventory again',
+              }),
+            })
             .setColor(0x808080);
 
           await interaction.editReply({ embeds: [expiredEmbed], components: [] });

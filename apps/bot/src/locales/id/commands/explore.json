@@ -1,0 +1,13 @@
+{
+  "usage": "/explore",
+  "examples": "/explore",
+  "extended_help": "Cooldown 30 detik • cost 15 stamina.\n\n**Hasil:**\n• Koin & EXP acak\n• Kadang dapat material untuk /cook (Herb, Chili, Ore, dll)\n• 15 outcome unik\n\n**Rarity:** ⚪ Common 55% • 🟢 Uncommon 25% • 🔵 Rare 12% • 🟣 Epic 6% • 🟡 Legendary 2%\n\nRata-rata: ~42💰 per explore.\nLihat tabel lengkap: /droprate tipe:explore",
+  "low_stamina": "⚡ Stamina kurang ({{current}}/{{cost}})",
+  "cooldown": "⏳ Tunggu {{s}}s lagi.",
+  "title": "{{emoji}} Penjelajahan",
+  "coins": "+{{coins}} koin",
+  "exp": "+{{exp}} EXP",
+  "item": "+{{qty}}x {{emoji}} {{name}}",
+  "levelup": "🎉 **LEVEL UP → Lv.{{level}}**",
+  "footer": "Stamina -{{cost}} • {{current}}/{{max}}"
+}

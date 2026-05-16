@@ -1,0 +1,12 @@
+{
+  "usage": "/reset target:<items|me|all>",
+  "examples": "/reset target:items",
+  "extended_help": "Owner-only maintenance.\n\n**Target:**\n• items — delete items collection\n• users — delete users collection\n• all — WIPE TOTAL all users (DANGER!)\n\nRequires OwnerOnly permission.\nRun 'items' after updating /fish or /hunt.",
+  "option_desc": "what to reset",
+  "choice_items": "Delete items collection",
+  "choice_users": "Delete users collection",
+  "choice_all": "ALL DATA (danger!)",
+  "done_items": "✅ Collection `items` deleted.",
+  "done_users": "✅ Collection `users` deleted.",
+  "done_all": "💥 ALL data wiped. Fresh start!"
+}

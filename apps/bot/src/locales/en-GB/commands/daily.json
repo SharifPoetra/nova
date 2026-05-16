@@ -1,0 +1,17 @@
+{
+  "usage": "/daily",
+  "examples": "/daily",
+  "extended_help": "Claim daily reward every 24 hours.\n\n**Reward:**\n- +1,000 coins\n- +20 stamina\n\n**Rules:**\n- Must /start first\n- 24 hour cooldown\n- Stamina will not exceed max\n\nUse for consistent farming before /hunt or /explore.",
+  "not_registered_title": "❌ Not Registered",
+  "not_registered_desc": "Use `/start` first to create a character before claiming daily.",
+  "cooldown_title": "⏳ Daily Cooldown",
+  "cooldown_desc": "You already claimed today.\nTry again in **{{h}}h {{m}}m**.",
+  "cooldown_footer": "Resets every 24 hours",
+  "title": "💰 Daily Reward",
+  "desc": "Daily reward claimed successfully!",
+  "coins": "Coins",
+  "stamina": "Stamina",
+  "new_balance": "New Balance",
+  "footer": "Stamina: {{stamina}}/{{max}} • Come back tomorrow",
+  "error": "❌ Failed to process daily."
+}

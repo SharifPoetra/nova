@@ -1,0 +1,11 @@
+{
+  "main_title": "📖 Bantuan Nova",
+  "main_desc": "Kamu bisa pakai **{{count}}** command",
+  "select_placeholder": "Pilih command untuk detail",
+  "not_found": "Tidak ditemukan",
+  "not_yours": "Ini menu help orang lain 🙂",
+  "back": "← Kembali",
+  "timeout": "⏰ Waktu habis (2 menit) — ketik /help lagi",
+  "usage": "/help [command]",
+  "extended_help": "Pusat bantuan interaktif Nova.\n\n**Cara pakai:**\n- /help — lihat daftar\n- /help command:fish — detail langsung\n\n**Fitur:**\n- Hanya tampilkan command yang bisa dipakai\n- Tampilkan usage dan contoh\n- Dikelompokkan per kategori"
+}

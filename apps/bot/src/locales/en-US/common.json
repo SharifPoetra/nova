@@ -1,0 +1,11 @@
+{
+  "usage": "Usage",
+  "category": "Category",
+  "categories": {
+    "rpg": "RPG",
+    "economy": "ECONOMY",
+    "general": "GENERAL",
+    "owner": "OWNER"
+  },
+  "need_start": "❌ Use `/start` first.'"
+}

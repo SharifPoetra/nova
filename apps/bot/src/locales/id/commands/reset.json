@@ -1,0 +1,12 @@
+{
+  "usage": "/reset target:<items|me|all>",
+  "examples": "/reset target:items",
+  "extended_help": "Maintenance khusus Owner.\n\n**Target:**\n• items — hapus collection items\n• users — hapus collection users\n• all — WIPE TOTAL semua user (DANGER!)\n\nButuh permission OwnerOnly.\nJalankan 'items' setelah update /fish atau /hunt.",
+  "option_desc": "apa yang direset",
+  "choice_items": "Hapus collection items",
+  "choice_users": "Hapus collection users",
+  "choice_all": "ALL DATA (bahaya!)",
+  "done_items": "✅ Collection `items` dihapus.",
+  "done_users": "✅ Collection `users` dihapus.",
+  "done_all": "💥 SEMUA data diwipe. Fresh start!"
+}

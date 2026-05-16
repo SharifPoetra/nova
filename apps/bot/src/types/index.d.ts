@@ -1,4 +1,4 @@
-import type { User, Item, Dungeon } from '@nova/db';
+import type { User, Item, Dungeon, Guild } from '@nova/db';
 import type { Connection } from 'mongoose';
 
 declare module '@sapphire/pieces' {
@@ -7,6 +7,7 @@ declare module '@sapphire/pieces' {
       user: typeof User;
       item: typeof Item;
       dungeon: typeof Dungeon;
+      guild: typeof Guild;
       connection: Connection;
     };
     invCache: Map<
@@ -16,6 +17,7 @@ declare module '@sapphire/pieces' {
         totalValue: number;
         userId: string;
         t: number;
+        locale?: string;
       }
     >;
   }
