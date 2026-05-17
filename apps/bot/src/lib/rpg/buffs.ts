@@ -1,5 +1,4 @@
-import type { HydratedDocument } from 'mongoose';
-import type { IUser, IBuff } from '@nova/db';
+import type { IUser } from '@nova/db';
 
 export function applyPassiveRegen(user: IUser) {
   const now = new Date();
