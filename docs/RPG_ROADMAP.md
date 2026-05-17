@@ -32,17 +32,17 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 - [x] **2.6** Commit: `feat(dungeon): integrate equipment stats and per-monster drops`
 
 ## Phase 3: Command Inventory & Equip - 1 hari
-- [ ] **3.1** `/inventory` tambah subcommand: `equip`, `unequip`, `stats`
+- [x] **3.1** `/inventory` tambah select menu: `equip`, `unequip`, dan tampilin `stats`
 - [x] **2.5** Test: equip `iron_sword`, damage harus naik
-- [ ] **3.2** `/inventory equip weapon:iron_sword` → validasi `classLock`, `type === 'weapon'`
+- [x] **3.2** `/inventory equip weapon:iron_sword` → validasi `classLock`, `type === 'weapon'`
 - [ ] **3.3** `/profile` tampilin equipment + total atk
-- [ ] **3.4** Commit: `feat(inventory): add equip system`
+- [x] **3.4** Commit: `feat(inventory): add equip system`
 
 ## Phase 4: Hunt, Fish, Explore - 2 hari
 - [x] **4.1** `hunt.ts`: ganti dmg calc pake `getPlayerStats()`. Hapus hardcoded crit
 - [x] **4.1b** `hunt.ts`: fix HP calc pake `stats.maxHp` bukan `user.maxHp`
 - [x] **4.1c** `combat.ts`: fix infinite loop di `applyPassives`, fix `availableSkills.push` undefined
-- [ ] **4.2** `monsters.ts`: tambah drop `type: 'equipment'` buat monster rare + kasih `stats`
+- [ ] **4.2** `monsters.ts`: tambah drop `type: 'equipment'` buat monster rare + kasih `stats` dan `slot`
 - [ ] **4.3** `fish.ts` & `explorations.ts`: siapin buat fishing rod nanti
 - [ ] **4.4** Test: `/hunt` pake `reaper_scythe` harus crit lebih sering
 - [ ] **4.5** Commit: `refactor(rpg): use unified combat stats in all commands`
