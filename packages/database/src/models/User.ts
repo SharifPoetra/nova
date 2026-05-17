@@ -11,8 +11,6 @@ export interface IBuff {
   battle?: boolean;
 }
 
-export type EquipmentSlot = 'weapon' | 'helmet' | 'armor' | 'accessory';
-
 export interface IEquipped {
   weapon: string | null;
   helmet: string | null;
