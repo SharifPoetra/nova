@@ -112,7 +112,7 @@ export class InventoryCommand extends Command {
 
     const components: ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[] = [];
 
-    // ROW 1: Pagination - LOGIC LAMA JANGAN DIUBAH
+    // ROW 1: Pagination
     if (totalPages > 1) {
       components.push(
         new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -130,23 +130,18 @@ export class InventoryCommand extends Command {
       );
     }
 
-    // ROW 2: BARU - Equipment + Stats Button
+    // ROW 2: Equipment View
     components.push(
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId(`inv_equip_view_${interaction.user.id}`)
-          .setLabel(t('commands/inventory:equipment', { defaultValue: 'Equipment' }))
+          .setLabel(t('commands/inventory:equipment', { defaultValue: 'Equipments' }))
           .setStyle(ButtonStyle.Primary)
           .setEmoji('⚔️'),
-        new ButtonBuilder()
-          .setCustomId(`inv_stats_${interaction.user.id}`)
-          .setLabel(t('commands/inventory:stats', { defaultValue: 'Stats' }))
-          .setStyle(ButtonStyle.Secondary)
-          .setEmoji('📊'),
       ),
     );
 
-    // ROW 3: Consumable Select - LOGIC LAMA JANGAN DIUBAH
+    // ROW 3: Consumable Select
     const consumables = user.items
       .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
       .slice(0, 25);

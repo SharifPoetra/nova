@@ -31,8 +31,7 @@ export class InvUseHandler extends InteractionHandler {
       interaction.customId.startsWith('inv_use_') ||
       interaction.customId.startsWith('inv_equip_view_') ||
       interaction.customId.startsWith('inv_equip_select_') ||
-      interaction.customId.startsWith('inv_unequip_select_') ||
-      interaction.customId.startsWith('inv_stats_')
+      interaction.customId.startsWith('inv_unequip_select_')
     ) {
       return this.some();
     }
@@ -52,19 +51,13 @@ export class InvUseHandler extends InteractionHandler {
     if (!user) return;
     applyPassiveRegen(user);
 
-    // === 1. TOMBOL STATS ===
-    if (interaction.customId.startsWith('inv_stats_')) {
-      await interaction.deferUpdate();
-      return this.renderStatsView(interaction, user, t);
-    }
-
-    // === 2. TOMBOL EQUIPMENT VIEW ===
+    // === 1. TOMBOL EQUIPMENT VIEW ===
     if (interaction.customId.startsWith('inv_equip_view_')) {
       await interaction.deferUpdate();
       return this.renderEquipmentView(interaction, user, t);
     }
 
-    // === 3. SELECT EQUIP ===
+    // === 2. SELECT EQUIP ===
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith('inv_equip_select_')) {
       await interaction.deferUpdate();
       const [slot, itemId] = interaction.values[0].split(':') as [EquipmentSlot, string];
@@ -78,7 +71,6 @@ export class InvUseHandler extends InteractionHandler {
         user.equipped = { weapon: null, helmet: null, armor: null, accessory: null };
       }
 
-      // Unequip lama
       const oldItemId = user.equipped[slot];
       if (oldItemId) {
         const oldInv = user.items.find((i) => i.itemId === oldItemId);
@@ -86,9 +78,8 @@ export class InvUseHandler extends InteractionHandler {
         else user.items.push({ itemId: oldItemId, qty: 1 });
       }
 
-      // Equip baru - FIX: set ke slot yang bener
       user.equipped[slot] = itemId;
-      user.markModified('equipped'); // <-- WAJIB
+      user.markModified('equipped');
 
       const invItem = user.items.find((i) => i.itemId === itemId)!;
       invItem.qty -= 1;
@@ -102,7 +93,7 @@ export class InvUseHandler extends InteractionHandler {
       return this.renderEquipmentView(interaction, user, t);
     }
 
-    // === 4. SELECT UNEQUIP ===
+    // === 3. SELECT UNEQUIP ===
     if (
       interaction.isStringSelectMenu() &&
       interaction.customId.startsWith('inv_unequip_select_')
@@ -122,8 +113,8 @@ export class InvUseHandler extends InteractionHandler {
       if (invItem) invItem.qty += 1;
       else user.items.push({ itemId, qty: 1 });
 
-      user.equipped[slot] = null; // <-- FIX: set null per slot
-      user.markModified('equipped'); // <-- WAJIB
+      user.equipped[slot] = null;
+      user.markModified('equipped');
       await user.save();
       await interaction.followUp({
         content: `📤 Unequipped **${itemData?.name}**`,
@@ -132,7 +123,7 @@ export class InvUseHandler extends InteractionHandler {
       return this.renderEquipmentView(interaction, user, t);
     }
 
-    // === 5. CONSUMABLE USE - LOGIC LAMA JANGAN DIUBAH ===
+    // === 4. CONSUMABLE USE ===
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith('inv_use_')) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       const itemId = interaction.values[0];
@@ -163,6 +154,7 @@ export class InvUseHandler extends InteractionHandler {
         defaultValue: `✅ Used ${item.emoji} **${item.name}**`,
       });
       let applied = 0;
+      const stats = await getPlayerStats(user);
 
       for (const eff of effects) {
         if (eff.type === 'heal') {
@@ -213,7 +205,7 @@ export class InvUseHandler extends InteractionHandler {
       return interaction.followUp({ content: msg });
     }
 
-    // === 6. PAGINATION - LOGIC LAMA JANGAN DIUBAH ===
+    // === 5. PAGINATION ===
     if (interaction.isButton()) {
       await interaction.deferUpdate();
       const [, dir, pageStr] = interaction.customId.split('_');
@@ -259,7 +251,6 @@ export class InvUseHandler extends InteractionHandler {
         | ActionRowBuilder<StringSelectMenuBuilder>
       )[] = [];
 
-      // ROW 1: Pagination
       components.push(
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
@@ -275,23 +266,16 @@ export class InvUseHandler extends InteractionHandler {
         ),
       );
 
-      // ROW 2: Equipment + Stats
       components.push(
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
             .setCustomId(`inv_equip_view_${userId}`)
-            .setLabel(t('commands/inventory:equipment', { defaultValue: 'Equipment' }))
+            .setLabel(t('commands/inventory:equipment', { defaultValue: 'Equipments' }))
             .setStyle(ButtonStyle.Primary)
             .setEmoji('⚔️'),
-          new ButtonBuilder()
-            .setCustomId(`inv_stats_${userId}`)
-            .setLabel(t('commands/inventory:stats', { defaultValue: 'Stats' }))
-            .setStyle(ButtonStyle.Secondary)
-            .setEmoji('📊'),
         ),
       );
 
-      // ROW 3: Consumable
       const itemIds = user.items.map((i) => i.itemId);
       const itemsData = await this.container.db.item.find({ itemId: { $in: itemIds } }).lean();
       const itemMap = new Map(itemsData.map((i) => [i.itemId, i]));
@@ -325,82 +309,16 @@ export class InvUseHandler extends InteractionHandler {
     }
   }
 
-  private async renderStatsView(
-    interaction: ButtonInteraction | StringSelectMenuInteraction,
-    user: any,
-    t: any,
-  ) {
-    const stats = await getPlayerStats(user);
-    const equippedIds = [
-      user.equipped?.weapon,
-      user.equipped?.armor,
-      user.equipped?.helmet,
-      user.equipped?.accessory,
-    ].filter(Boolean) as string[];
-    const equippedData = await this.container.db.item.find({ itemId: { $in: equippedIds } }).lean();
-    const eqMap = new Map(equippedData.map((i) => [i.itemId, i]));
-
-    const weapon = user.equipped?.weapon ? eqMap.get(user.equipped.weapon) : null;
-    const armor = user.equipped?.armor ? eqMap.get(user.equipped.armor) : null;
-    const helmet = user.equipped?.helmet ? eqMap.get(user.equipped.helmet) : null;
-    const accessory = user.equipped?.accessory ? eqMap.get(user.equipped.accessory) : null;
-
-    const embed = new EmbedBuilder()
-      .setAuthor({
-        name: `${interaction.user.username}'s Stats`,
-        iconURL: interaction.user.displayAvatarURL(),
-      })
-      .setColor(0x00ae86)
-      .addFields(
-        { name: '⚔️ ATK', value: `${stats.atk}`, inline: true },
-        { name: '🛡️ DEF', value: `${stats.def}`, inline: true },
-        { name: '❤️ HP', value: `${user.hp}/${stats.maxHp}`, inline: true },
-        { name: '💥 Crit Rate', value: `${(stats.critRate * 100).toFixed(1)}%`, inline: true },
-        { name: '💢 Crit DMG', value: `${(stats.critDmg * 100).toFixed(0)}%`, inline: true },
-        { name: '\u200b', value: '\u200b', inline: true },
-        {
-          name: 'Weapon',
-          value: weapon
-            ? `${weapon.emoji} **${weapon.name}**\n> ${this.formatStats(weapon.stats)}`
-            : '❌ None',
-          inline: false,
-        },
-        {
-          name: 'Armor',
-          value: armor
-            ? `${armor.emoji} **${armor.name}**\n> ${this.formatStats(armor.stats)}`
-            : '❌ None',
-          inline: false,
-        },
-        {
-          name: 'Helmet',
-          value: helmet
-            ? `${helmet.emoji} **${helmet.name}**\n> ${this.formatStats(helmet.stats)}`
-            : '❌ None',
-          inline: false,
-        },
-        {
-          name: 'Accessory',
-          value: accessory
-            ? `${accessory.emoji} **${accessory.name}**\n> ${this.formatStats(accessory.stats)}`
-            : '❌ None',
-          inline: false,
-        },
-      );
-
-    return interaction.editReply({ embeds: [embed], components: [] });
-  }
-
   private async renderEquipmentView(
     interaction: ButtonInteraction | StringSelectMenuInteraction,
     user: any,
     t: any,
   ) {
+    const stats = await getPlayerStats(user);
     const allItemIds = user.items.map((i) => i.itemId);
     const itemsData = await this.container.db.item.find({ itemId: { $in: allItemIds } }).lean();
     const itemMap = new Map(itemsData.map((i) => [i.itemId, i]));
 
-    // Filter cuma equipment
     const equipments = user.items
       .filter((i) => itemMap.get(i.itemId)?.type === 'equipment')
       .slice(0, 25);
@@ -416,49 +334,49 @@ export class InvUseHandler extends InteractionHandler {
 
     const embed = new EmbedBuilder()
       .setAuthor({
-        name: `${interaction.user.username}'s Equipment`,
+        name: `${interaction.user.username}'s Equipment & Stats`,
         iconURL: interaction.user.displayAvatarURL(),
       })
       .setColor(0x3498db)
-      .setDescription('**Currently Equipped:**')
       .addFields(
+        { name: '⚔️ ATK', value: `${stats.atk}`, inline: true },
+        { name: '🛡️ DEF', value: `${stats.def}`, inline: true },
+        { name: '❤️ HP', value: `${user.hp}/${stats.maxHp}`, inline: true },
+        { name: '💥 Crit Rate', value: `${(stats.critRate * 100).toFixed(1)}%`, inline: true },
+        { name: '💢 Crit DMG', value: `${(stats.critDmg * 100).toFixed(0)}%`, inline: true },
+        { name: '\u200b', value: '\u200b', inline: true },
         {
           name: 'Weapon',
           value: user.equipped?.weapon
-            ? `${eqMap.get(user.equipped.weapon)?.emoji} ${eqMap.get(user.equipped.weapon)?.name}`
+            ? `${eqMap.get(user.equipped.weapon)?.emoji} **${eqMap.get(user.equipped.weapon)?.name}**\n> ${this.formatStats(eqMap.get(user.equipped.weapon)?.stats)}`
             : '❌ None',
-          inline: true,
+          inline: false,
         },
         {
           name: 'Armor',
           value: user.equipped?.armor
-            ? `${eqMap.get(user.equipped.armor)?.emoji} ${eqMap.get(user.equipped.armor)?.name}`
+            ? `${eqMap.get(user.equipped.armor)?.emoji} **${eqMap.get(user.equipped.armor)?.name}**\n> ${this.formatStats(eqMap.get(user.equipped.armor)?.stats)}`
             : '❌ None',
-          inline: true,
+          inline: false,
         },
         {
           name: 'Helmet',
           value: user.equipped?.helmet
-            ? `${eqMap.get(user.equipped.helmet)?.emoji} ${eqMap.get(user.equipped.helmet)?.name}`
+            ? `${eqMap.get(user.equipped.helmet)?.emoji} **${eqMap.get(user.equipped.helmet)?.name}**\n> ${this.formatStats(eqMap.get(user.equipped.helmet)?.stats)}`
             : '❌ None',
-          inline: true,
+          inline: false,
         },
         {
           name: 'Accessory',
           value: user.equipped?.accessory
-            ? `${eqMap.get(user.equipped.accessory)?.emoji} ${eqMap.get(user.equipped.accessory)?.name}`
+            ? `${eqMap.get(user.equipped.accessory)?.emoji} **${eqMap.get(user.equipped.accessory)?.name}**\n> ${this.formatStats(eqMap.get(user.equipped.accessory)?.stats)}`
             : '❌ None',
-          inline: true,
+          inline: false,
         },
       );
 
-    if (equipments.length === 0) {
-      embed.addFields({ name: 'Inventory', value: 'No equipment items' });
-    }
-
     const components: ActionRowBuilder<StringSelectMenuBuilder>[] = [];
 
-    // Select Equip
     if (equipments.length > 0) {
       const equipOptions = equipments.map((i) => {
         const d = itemMap.get(i.itemId)!;
@@ -480,7 +398,6 @@ export class InvUseHandler extends InteractionHandler {
       );
     }
 
-    // Select Unequip
     const unequipOptions = [];
     if (user.equipped?.weapon)
       unequipOptions.push({ label: 'Weapon', value: 'weapon', emoji: '⚔️' });
