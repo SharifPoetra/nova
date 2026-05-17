@@ -1,4 +1,5 @@
 import type { Rarity } from '../utils';
+import type { EquipmentSlot, IEquipmentStat, IItemEffect } from '@nova/db';
 
 export interface Drop {
   id: string;
@@ -9,9 +10,9 @@ export interface Drop {
   sellPrice: number;
   type: 'material' | 'equipment' | 'consumable';
   description: string;
-  effects?: { type: 'heal' | 'stamina' | 'mana' | 'buff'; value: number }[];
-  stats?: { atk?: number; def?: number; hp?: number; critRate?: number; critDmg?: number };
-  classLock?: ('warrior' | 'mage' | 'rogue')[];
+  slot?: EquipmentSlot;
+  effects?: IItemEffect[];
+  stats?: IEquipmentStat;
 }
 
 export interface BaseMonster {
@@ -53,6 +54,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 80,
         type: 'equipment',
         description: 'Helm dari taring babi. +HP',
+        slot: 'helmet',
         stats: { hp: 15, def: 1 },
       },
       {
@@ -114,8 +116,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 40,
         type: 'equipment',
         description: 'Belati curian, masih bisa dipakai',
-        stats: { atk: 6, critRate: 0.03 },
-        classLock: ['rogue'],
+        slot: 'weapon',
+        stats: { atk: 6, critRate: 0.03, classLock: ['rogue'] }
       },
     ],
   },
@@ -146,6 +148,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 90,
         type: 'equipment',
         description: 'Armor ringan dari sisik kadal. +HP +DEF',
+        slot: 'armor',
         stats: { hp: 12, def: 2 },
       },
       {
@@ -197,6 +200,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 150,
         type: 'equipment',
         description: 'Kalung dari taring alpha. +ATK +Crit',
+        slot: 'accessory',
         stats: { atk: 8, critRate: 0.05 },
       },
       {
@@ -258,8 +262,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 180,
         type: 'equipment',
         description: 'Sarung tangan dari cakar beruang. +ATK +HP',
-        stats: { atk: 10, hp: 20 },
-        classLock: ['warrior'],
+        slot: 'accessory',
+        stats: { atk: 10, hp: 20, classLock: ['warrior'] }
       },
       {
         id: 'honey',
@@ -322,8 +326,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 45,
         type: 'equipment',
         description: 'Masih bisa diasah',
-        stats: { atk: 8 },
-        classLock: ['warrior'],
+        slot: 'weapon',
+        stats: { atk: 8, classLock: ['warrior'] }
       },
       {
         id: 'bone_helm',
@@ -334,6 +338,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 160,
         type: 'equipment',
         description: 'Helm dari tengkorak. +DEF +HP',
+        slot: 'helmet',
         stats: { def: 3, hp: 15 },
       },
       {
@@ -385,8 +390,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 200,
         type: 'equipment',
         description: 'Belati beracun. +ATK +CritDmg',
-        stats: { atk: 14, critDmg: 0.3 },
-        classLock: ['rogue'],
+        slot: 'weapon',
+        stats: { atk: 14, critDmg: 0.3, classLock: ['rogue'] }
       },
       {
         id: 'venom_sac',
@@ -448,8 +453,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 220,
         type: 'equipment',
         description: 'Busur dari sayap harpy. +ATK +CritRate',
-        stats: { atk: 16, critRate: 0.06 },
-        classLock: ['rogue'],
+        slot: 'weapon',
+        stats: { atk: 16, critRate: 0.06, classLock: ['rogue'] }
       },
       {
         id: 'talon',
@@ -512,8 +517,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 70,
         type: 'equipment',
         description: 'Berat tapi mematikan',
-        stats: { atk: 12 },
-        classLock: ['warrior'],
+        slot: 'weapon',
+        stats: { atk: 12, classLock: ['warrior'] }
       },
       {
         id: 'berserker_armor',
@@ -524,8 +529,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 400,
         type: 'equipment',
         description: 'Armor orc berserk. +ATK +HP +DEF',
-        stats: { atk: 15, hp: 30, def: 4 },
-        classLock: ['warrior'],
+        slot: 'armor',
+        stats: { atk: 15, hp: 30, def: 4, classLock: ['warrior'], }
       },
       {
         id: 'berserk_blood',
@@ -547,6 +552,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 520,
         type: 'equipment',
         description: 'Mahkota para orc',
+        slot: 'helmet',
         stats: { hp: 35, def: 5, critRate: 0.05 },
       },
     ],
@@ -578,8 +584,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 450,
         type: 'equipment',
         description: 'Jubah panther. +CritRate +ATK',
-        stats: { critRate: 0.08, atk: 12 },
-        classLock: ['rogue'],
+        slot: 'armor',
+        stats: { critRate: 0.08, atk: 12, classLock: ['rogue'] }
       },
       {
         id: 'shadow_claw',
@@ -642,6 +648,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 200,
         type: 'equipment',
         description: 'Sepatu tahan lava. +HP +DEF',
+        slot: 'armor', // TODO: make boots slot
         stats: { hp: 25, def: 3 },
       },
       {
@@ -705,8 +712,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 95,
         type: 'equipment',
         description: 'Membekukan musuh',
-        stats: { atk: 18, def: 2 },
-        classLock: ['warrior'],
+        slot: 'weapon',
+        stats: { atk: 18, def: 2, classLock: ['warrior'] }
       },
       {
         id: 'frost_cape',
@@ -717,6 +724,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 480,
         type: 'equipment',
         description: 'Jubah troll es. +HP +DEF +CritDmg',
+        slot: 'armor',
         stats: { hp: 45, def: 6, critDmg: 0.2 },
       },
       {
@@ -781,6 +789,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 550,
         type: 'equipment',
         description: 'Armor cacing gurun. +HP +DEF +ATK',
+        slot: 'armor',
         stats: { hp: 40, def: 7, atk: 10 },
       },
       {
@@ -832,8 +841,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 240,
         type: 'equipment',
         description: 'Haus darah',
-        stats: { atk: 22, critRate: 0.06 },
-        classLock: ['warrior'],
+        slot: 'weapon',
+        stats: { atk: 22, critRate: 0.06, classLock: ['warrior'] }
       },
       {
         id: 'void_armor',
@@ -844,6 +853,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 900,
         type: 'equipment',
         description: 'Armor kegelapan. +DEF +HP +ATK',
+        slot: 'armor',
         stats: { def: 10, hp: 50, atk: 15 },
       },
       {
@@ -906,8 +916,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 600,
         type: 'equipment',
         description: 'Busur elang petir. +ATK +CritRate +CritDmg',
-        stats: { atk: 25, critRate: 0.08, critDmg: 0.3 },
-        classLock: ['rogue'],
+        slot: 'weapon',
+        stats: { atk: 25, critRate: 0.08, critDmg: 0.3, classLock: ['rogue'] }
       },
       {
         id: 'thunder_egg',
@@ -970,8 +980,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 1100,
         type: 'equipment',
         description: 'Tongkat golem kristal. +ATK +CritDmg +HP',
-        stats: { atk: 28, critDmg: 0.4, hp: 30 },
-        classLock: ['mage'],
+        slot: 'weapon',
+        stats: { atk: 28, critDmg: 0.4, hp: 30, classLock: ['mage'] }
       },
       {
         id: 'prism',
@@ -1033,8 +1043,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 1200,
         type: 'equipment',
         description: 'Belati dari kepala hydra. +ATK +Crit +CritDmg',
-        stats: { atk: 35, critRate: 0.1, critDmg: 0.4 },
-        classLock: ['rogue'],
+        slot: 'weapon',
+        stats: { atk: 35, critRate: 0.1, critDmg: 0.4, classLock: ['rogue'] }
       },
       {
         id: 'venom_blood',
@@ -1097,8 +1107,8 @@ export const BASE_MONSTERS: BaseMonster[] = [
         sellPrice: 3000,
         type: 'equipment',
         description: 'Sayap phoenix. +ATK +CritDmg +HP +Stamina',
-        stats: { atk: 40, critDmg: 0.5, hp: 60 },
-        classLock: ['mage'],
+        slot: 'armor',
+        stats: { atk: 40, critDmg: 0.5, hp: 60, classLock: ['mage'] }
       },
       {
         id: 'phoenix_tear',

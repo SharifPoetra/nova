@@ -1,4 +1,5 @@
 import type { Rarity } from '../utils';
+import type { IItemEffect } from '@nova/db';
 
 export interface ExploreItem {
   id: string;
@@ -9,7 +10,7 @@ export interface ExploreItem {
   sellPrice: number;
   type: 'material' | 'consumable';
   description: string;
-  effects?: { type: 'heal' | 'stamina' | 'mana' | 'buff'; value: number }[];
+  effects?: IItemEffect[];
 }
 
 export interface ExploreOutcome {

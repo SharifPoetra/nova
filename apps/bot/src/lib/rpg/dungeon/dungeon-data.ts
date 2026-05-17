@@ -1,4 +1,5 @@
 import type { Rarity } from '../../utils';
+import type { IEquipmentStat, EquipmentSlot } from '@nova/db';
 
 export type DropItem = {
   id: string;
@@ -9,8 +10,8 @@ export type DropItem = {
   type: 'material' | 'equipment' | 'consumable';
   description: string;
   effects?: { type: 'heal' | 'stamina' | 'mana' | 'buff'; value: number }[];
-  stats?: { atk?: number; def?: number; hp?: number; critRate?: number; critDmg?: number };
-  classLock?: ('warrior' | 'mage' | 'rogue')[];
+  slot?: EquipmentSlot;
+  stats?: IEquipmentStat;
 };
 
 export const FLOOR_LORE: Record<number, string> = {
@@ -175,6 +176,7 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       sellPrice: 60,
       type: 'equipment',
       description: 'Sepatu dari lendir. Licin tapi nambah HP.',
+      slot: 'armor', // <-- TODO: bikin slot boots
       stats: { hp: 10 },
     },
     {
@@ -215,8 +217,8 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       sellPrice: 120,
       type: 'equipment',
       description: 'Sarung tangan besi. +ATK',
-      stats: { atk: 5, def: 1 },
-      classLock: ['warrior'],
+      slot: 'accessory',
+      stats: { atk: 5, def: 1, classLock: ['warrior'] },
     },
     {
       id: 'golem_heart',
@@ -246,8 +248,8 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       sellPrice: 200,
       type: 'equipment',
       description: 'Tudung hantu. +Crit Rate',
-      stats: { critRate: 0.08, hp: 15 },
-      classLock: ['rogue', 'mage'],
+      slot: 'helmet',
+      stats: { critRate: 0.08, hp: 15, classLock: ['rogue', 'mage'] }
     },
     {
       id: 'ectoplasm',
@@ -277,8 +279,8 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       sellPrice: 250,
       type: 'equipment',
       description: 'Belati dari cakar drake. +ATK +Crit',
-      stats: { atk: 12, critRate: 0.05, critDmg: 0.2 },
-      classLock: ['rogue'],
+      slot: 'weapon',
+      stats: { atk: 12, critRate: 0.05, critDmg: 0.2, classLock: ['rogue'] }
     },
     {
       id: 'charred_bone',
@@ -308,8 +310,8 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       sellPrice: 500,
       type: 'equipment',
       description: 'Jubah warden. +HP +DEF',
-      stats: { hp: 40, def: 6 },
-      classLock: ['warrior', 'mage'],
+      slot: 'armor',
+      stats: { hp: 40, def: 6, classLock: ['warrior', 'mage'] },
     },
     {
       id: 'ice_shard',
@@ -339,8 +341,8 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       sellPrice: 800,
       type: 'equipment',
       description: 'Pedang dari bintang. +ATK +CritDmg',
-      stats: { atk: 20, critRate: 0.05, critDmg: 0.3 },
-      classLock: ['warrior', 'rogue'],
+      slot: 'weapon',
+      stats: { atk: 20, critRate: 0.05, critDmg: 0.3, classLock: ['warrior', 'rogue'] },
     },
     {
       id: 'stardust',
@@ -365,6 +367,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 150,
       type: 'equipment',
       description: 'Mahkota asli Raja Slime. Lengket tapi bawa hoki + HP.',
+      slot: 'helmet',
       stats: { hp: 20, critRate: 0.05 },
     },
     {
@@ -387,6 +390,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 280,
       type: 'equipment',
       description: 'Pelat obsidian super keras',
+      slot: 'armor',
       stats: { hp: 50, def: 5 },
     },
     {
@@ -408,8 +412,8 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 450,
       type: 'equipment',
       description: 'Sabit pencabut nyawa',
-      stats: { atk: 25, critRate: 0.1, critDmg: 0.5 },
-      classLock: ['rogue'],
+      slot: 'weapon',
+      stats: { atk: 25, critRate: 0.1, critDmg: 0.5, classLock: ['rogue'] },
     },
     {
       id: 'void_crown',
@@ -419,6 +423,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 800,
       type: 'equipment',
       description: 'Mahkota kehampaan',
+      slot: 'helmet',
       stats: { atk: 15, critRate: 0.15, hp: 30 },
     },
   ],
@@ -450,8 +455,8 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 1000,
       type: 'equipment',
       description: 'Tongkat api naga. +ATK +CritDmg',
-      stats: { atk: 30, critDmg: 0.4 },
-      classLock: ['mage'],
+      slot: 'weapon',
+      stats: { atk: 30, critDmg: 0.4, classLock: ['mage'] },
     },
   ],
   warden: [
@@ -463,6 +468,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 500,
       type: 'equipment',
       description: 'Rantai penjaga yang tak terpatahkan',
+      slot: 'accessory',
       stats: { def: 8, hp: 40 },
     },
     {
@@ -525,6 +531,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 5000,
       type: 'equipment',
       description: 'Pedang dari inti nova. +ATK +Crit +HP',
+      slot: 'weapon',
       stats: { atk: 40, critRate: 0.1, critDmg: 0.5, hp: 50 },
     },
   ],
@@ -542,8 +549,8 @@ export function getMonster(floor: number) {
 
 export function getFloorLore(floor: number): string {
   const loreFloor = Object.keys(FLOOR_LORE)
-  .map(Number)
-  .reverse()
-  .find((f) => floor >= f);
+.map(Number)
+.reverse()
+.find((f) => floor >= f);
   return FLOOR_LORE[loreFloor?? 1];
 }
