@@ -1,12 +1,28 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { EmbedBuilder } from 'discord.js';
+import {
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+} from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { sleep, ratioBar, RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { checkLevelUp } from '../../lib/rpg/leveling';
-import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
+import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { getScaledMonster } from '../../lib/rpg/monsters';
 import { ACTION_COST } from '../../lib/rpg/actions';
+import {
+  getPlayerStats,
+  calculateDamage,
+  getSkillCooldown,
+  setSkillCooldown,
+  resetSkillCooldowns,
+  tickBuffs,
+  tickSkillCooldowns,
+} from '../../lib/rpg/combat';
+import { getSkill, SkillContext } from '../../lib/rpg/skills';
 
 @ApplyOptions<Command.Options>({
   name: 'hunt',
@@ -32,20 +48,21 @@ export class HuntCommand extends Command {
     applyPassiveRegen(user);
     const now = Date.now();
 
-    if (now - (user.lastHunt?.getTime() ?? 0) < 45000) {
+    // === FIX: Typo ) di sini ===
+    if (now - (user.lastHunt?.getTime()?? 0) < 45000) {
       await user.save();
       const s = Math.ceil((45000 - (now - user.lastHunt!.getTime())) / 1000);
       return interaction.editReply(t('commands/hunt:cooldown', { s }));
     }
 
-    if ((user.stamina ?? 0) < ACTION_COST.hunt) {
+    if ((user.stamina?? 0) < ACTION_COST.hunt) {
       await user.save();
       return interaction.editReply(
         t('commands/hunt:low_stamina', { current: user.stamina, need: ACTION_COST.hunt }),
       );
     }
 
-    if ((user.hp ?? 0) < 20) {
+    if ((user.hp?? 0) < 20) {
       await user.save();
       return interaction.editReply(t('commands/hunt:low_hp', { hp: user.hp }));
     }
@@ -53,89 +70,208 @@ export class HuntCommand extends Command {
     user.stamina -= ACTION_COST.hunt;
     user.lastHunt = new Date();
 
-    const monster = getScaledMonster(user.level ?? 1);
+    resetSkillCooldowns(user);
+
+    const baseMonster = getScaledMonster(user.level?? 1);
+
+    const isElite = Math.random() < 0.05;
+    const monster = {
+    ...baseMonster,
+      name: isElite? `Elite ${baseMonster.name}` : baseMonster.name,
+      emoji: isElite? `💀${baseMonster.emoji}` : baseMonster.emoji,
+      hp: isElite? Math.floor(baseMonster.hp * 1.8) : baseMonster.hp,
+      dmg: isElite
+      ? ([Math.floor(baseMonster.dmg[0] * 1.5), Math.floor(baseMonster.dmg[1] * 1.5)] as [
+            number,
+            number,
+          ])
+        : baseMonster.dmg,
+      xp: isElite? Math.floor(baseMonster.xp * 2.5) : baseMonster.xp,
+      isElite,
+    };
+
     let mHp = monster.hp,
       uHp = user.hp;
-    const mMax = monster.hp,
-      uMax = user.maxHp;
+    const mMax = monster.hp;
     let totalDealt = 0,
       totalTaken = 0;
     const log: string[] = [];
 
-    const bonusAtk = getAtkBuff(user);
-    const buffInfo = bonusAtk ? ` • 🔥 ATK +${bonusAtk}` : '';
+    if (isElite) {
+      log.push(
+        t('commands/hunt:elite_spawn', {
+          emoji: monster.emoji,
+          name: baseMonster.name,
+          defaultValue: `💀 **ELITE ${baseMonster.name}** appeared! HP & ATK boosted!`,
+        }),
+      );
+    }
 
-    const userClass = user.class ?? 'warrior';
-    const isRogue = userClass === 'rogue';
-    const isMage = userClass === 'mage';
+    const userClass = user.class?? 'warrior';
     const isWarrior = userClass === 'warrior';
-    const critChance = isRogue ? 0.18 : 0.1;
-    const classIcon = isWarrior ? '🛡️' : isMage ? '🪄' : '🏹';
+    const isMage = userClass === 'mage';
+    const classIcon = isWarrior? '🛡️' : isMage? '🪄' : '🏹';
 
     const embed = new EmbedBuilder()
-      .setColor(0xe67e22)
-      .setAuthor({
+    .setColor(isElite? 0x8e44ad : 0xe67e22)
+    .setAuthor({
         name: t('commands/hunt:author', { user: interaction.user.username }),
         iconURL: interaction.user.displayAvatarURL(),
       })
-      .setTitle(t('commands/hunt:found_title', { emoji: monster.emoji, name: monster.name }))
-      .setDescription(
-        t('commands/hunt:battle_start', {
-          buff: buffInfo,
-          icon: classIcon,
-          class: userClass,
+    .setTitle(
+        t('commands/hunt:found_title', {
+          emoji: monster.emoji,
+          name: monster.name,
+          elite: isElite? t('commands/dungeon:elite_tag', { defaultValue: ' **ELITE!**' }) : '',
         }),
       );
 
-    await interaction.editReply({ embeds: [embed] });
+    const updateEmbed = async (showButtons = true) => {
+      const stats = getPlayerStats(user);
+
+      // === FIX: Display % langsung, bukan flat ===
+      const atkBuff = stats.activeBuffs.find(b => b.type === 'atk');
+      const buffInfo = atkBuff? ` • 🔥 ATK +${Math.floor(atkBuff.value * 100)}%` : '';
+
+      const playerSkillId = stats.availableSkills[0]?? null;
+      const playerSkill = playerSkillId? getSkill(playerSkillId) : null;
+      const skillCd = playerSkill? getSkillCooldown(user, playerSkill.id) : 0;
+
+      embed
+      .setDescription(
+          log.slice(-4).join('\n') ||
+            t('commands/hunt:battle_start', {
+              buff: buffInfo,
+              icon: classIcon,
+              class: userClass,
+            }),
+        )
+      .setFields(
+          {
+            name: `${monster.emoji} ${monster.name}`,
+            value: `${ratioBar(mHp, mMax)} \`${mHp}/${mMax}\``,
+            inline: false,
+          },
+          {
+            name: t('commands/hunt:field_you'),
+            value: `${ratioBar(uHp, user.maxHp)} \`${uHp}/${user.maxHp}\` • ⚡${user.stamina}/${user.maxStamina?? 100}`,
+            inline: false,
+          },
+        );
+
+      const components: ActionRowBuilder<ButtonBuilder>[] = [];
+      if (showButtons && mHp > 0 && uHp > 0) {
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+          .setCustomId('hunt_atk')
+          .setLabel(t('commands/dungeon:btn_attack', { defaultValue: 'Attack' }))
+          .setEmoji('🗡️')
+          .setStyle(ButtonStyle.Danger),
+          new ButtonBuilder()
+          .setCustomId('hunt_skl')
+          .setLabel(
+              playerSkill? `${playerSkill.name}${skillCd > 0? ` (${skillCd})` : ''}` : 'Skill',
+            )
+          .setEmoji(playerSkill?.emoji?? '✨')
+          .setStyle(ButtonStyle.Primary)
+          .setDisabled(
+            !playerSkill || skillCd > 0 || user.stamina < (playerSkill?.staminaCost?? 999),
+            ),
+        );
+        components.push(row);
+      }
+
+      await interaction.editReply({ embeds: [embed], components });
+      return stats;
+    };
+
+    let currentStats = await updateEmbed(true);
     await sleep(1000);
 
     while (mHp > 0 && uHp > 0) {
-      // PLAYER TURN
-      const isCrit = Math.random() < critChance;
-      let pDmg =
-        Math.floor(Math.random() * 15) + 10 + Math.floor((user.attack ?? 10) / 3) + bonusAtk;
-      if (isCrit) pDmg = Math.floor(pDmg * 1.8);
-      mHp = Math.max(0, mHp - pDmg);
-      totalDealt += pDmg;
+      currentStats = getPlayerStats(user);
 
-      let playerLog = t('commands/hunt:player_hit', {
-        icon: isCrit ? '💥' : '🗡️',
-        crit: isCrit ? t('commands/hunt:player_crit') : '',
-        dmg: pDmg,
-      });
+      await updateEmbed(true);
 
-      if (isMage && Math.random() < 0.15 && uHp < uMax) {
-        const heal = Math.floor(pDmg * 0.25);
-        uHp = Math.min(uMax, uHp + heal);
-        playerLog += t('commands/hunt:mage_heal', { heal });
+      const turn = await interaction.channel
+      ?.awaitMessageComponent({
+          filter: (i) =>
+            i.user.id === user.discordId && ['hunt_atk', 'hunt_skl'].includes(i.customId),
+          time: 30_000,
+          componentType: ComponentType.Button,
+        })
+      .catch(() => null);
+
+      if (!turn) {
+        const { damage, isCrit } = calculateDamage(
+          currentStats,
+          { def: Math.floor(monster.level * 0.5) },
+          1.0,
+        );
+        mHp = Math.max(0, mHp - damage);
+        totalDealt += damage;
+        log.push(`⏱️ Auto! 🗡️ **${damage}**${isCrit? ' 💥CRIT!' : ''}`);
+        await updateEmbed(false);
+        await sleep(850);
+      } else {
+        await turn.deferUpdate();
+
+        if (turn.customId === 'hunt_atk') {
+          const { damage, isCrit } = calculateDamage(
+            currentStats,
+            { def: Math.floor(monster.level * 0.5) },
+            1.0,
+          );
+          mHp = Math.max(0, mHp - damage);
+          totalDealt += damage;
+          log.push(`🗡️ You hit **${damage}**${isCrit? ' 💥CRIT!' : ''}`);
+        } else if (turn.customId === 'hunt_skl' && getSkill(currentStats.availableSkills[0])) {
+          const playerSkill = getSkill(currentStats.availableSkills[0])!;
+          const cdLeft = getSkillCooldown(user, playerSkill.id);
+          if (cdLeft > 0) {
+            log.push(`⏳ ${playerSkill.name} cooldown ${cdLeft} turn lagi!`);
+          } else if (user.stamina < playerSkill.staminaCost) {
+            log.push(`😩 Stamina kurang! Butuh ${playerSkill.staminaCost} ⚡`);
+          } else {
+            const ctx: SkillContext = {
+              user,
+              stats: currentStats,
+              enemy: { hp: mHp, def: Math.floor(monster.level * 0.5) },
+              t,
+              addBuff: (type, value, durationTurns) => {
+                user.buffs.push({
+                  type: type as any,
+                  value,
+                  turnsLeft: durationTurns,
+                  battle: true
+                });
+              },
+              addLog: (text) => log.push(text),
+            };
+
+            const result = playerSkill.use(ctx);
+            mHp = Math.max(0, mHp - result.damage);
+            uHp = Math.min(user.maxHp, uHp + result.heal);
+            totalDealt += result.damage;
+
+            user.stamina = Math.max(0, user.stamina - playerSkill.staminaCost);
+            setSkillCooldown(user, playerSkill);
+          }
+        }
+
+        await updateEmbed(false);
+        await sleep(700);
       }
-
-      log.push(playerLog);
-
-      embed.setDescription(log.slice(-4).join('\n')).setFields(
-        {
-          name: `${monster.emoji} ${monster.name}`,
-          value: `${ratioBar(mHp, mMax)} \`${mHp}/${mMax}\``,
-          inline: false,
-        },
-        {
-          name: t('commands/hunt:field_you'),
-          value: `${ratioBar(uHp, uMax)} \`${uHp}/${uMax}\``,
-          inline: false,
-        },
-      );
-      await interaction.editReply({ embeds: [embed] });
-      await sleep(850);
+      
       if (mHp <= 0) break;
 
-      // MONSTER TURN
       let mDmg = Math.floor(Math.random() * (monster.dmg[1] - monster.dmg[0])) + monster.dmg[0];
       let blocked = 0;
       if (isWarrior && Math.random() < 0.2) {
         blocked = Math.floor(mDmg * 0.3);
         mDmg -= blocked;
       }
+      mDmg = Math.max(1, mDmg - currentStats.def);
       uHp = Math.max(0, uHp - mDmg);
       totalTaken += mDmg;
 
@@ -143,23 +279,16 @@ export class HuntCommand extends Command {
         t('commands/hunt:monster_hit', {
           emoji: monster.emoji,
           dmg: mDmg,
-          block: blocked ? t('commands/hunt:block_suffix', { blocked }) : '',
+          block: blocked? t('commands/hunt:block_suffix', { blocked }) : '',
         }),
       );
 
-      embed.setDescription(log.slice(-4).join('\n')).setFields(
-        {
-          name: `${monster.emoji} ${monster.name}`,
-          value: `${ratioBar(mHp, mMax)} \`${mHp}/${mMax}\``,
-          inline: false,
-        },
-        {
-          name: t('commands/hunt:field_you'),
-          value: `${ratioBar(uHp, uMax)} \`${uHp}/${uMax}\``,
-          inline: false,
-        },
-      );
-      await interaction.editReply({ embeds: [embed] });
+      uHp = Math.min(uHp, user.maxHp);
+      
+      tickBuffs(user);
+      tickSkillCooldowns(user);
+
+      await updateEmbed(false);
       await sleep(850);
     }
 
@@ -167,38 +296,47 @@ export class HuntCommand extends Command {
     const summary = log.slice(-7).join('\n');
 
     if (uHp <= 0) {
-      user.exp = (user.exp ?? 0) + Math.floor(monster.xp / 3);
+      user.exp = (user.exp?? 0) + Math.floor(monster.xp / 3);
       await user.save();
 
+      const finalStats = getPlayerStats(user);
+      const atkBuff = finalStats.activeBuffs.find(b => b.type === 'atk');
+      const finalBuffInfo = atkBuff? ` • 🔥 ATK +${Math.floor(atkBuff.value * 100)}%` : '';
+
       embed
-        .setColor(0xe74c3c)
-        .setTitle(t('commands/hunt:lose_title', { name: monster.name }))
-        .setDescription(
+      .setColor(0xe74c3c)
+      .setTitle(t('commands/hunt:lose_title', { name: monster.name }))
+      .setDescription(
           t('commands/hunt:lose_desc', {
             emoji: monster.emoji,
             name: monster.name,
-            buff: buffInfo,
+            buff: finalBuffInfo,
             summary,
             dealt: totalDealt,
             taken: totalTaken,
             exp: Math.floor(monster.xp / 3),
           }),
         )
-        .setFields();
-      return interaction.editReply({ embeds: [embed] });
+      .setFields();
+      return interaction.editReply({ embeds: [embed], components: [] });
     }
 
-    // WIN
     const roll = Math.random() * 100;
     let cum = 0;
-    const drop = monster.drops.find((d) => (cum += d.chance) >= roll)!;
+    let drop = monster.drops.find((d) => {
+      const chance = d.type === 'equipment' && monster.isElite? d.chance * 5 : d.chance;
+      cum += chance;
+      return roll <= cum;
+    });
+
+    if (!drop) drop = monster.drops[0];
 
     const inv = user.items.find((i) => i.itemId === drop.id);
     if (inv) inv.qty += 1;
     else user.items.push({ itemId: drop.id, qty: 1 });
 
     user.balance += monster.xp * 2;
-    user.exp = (user.exp ?? 0) + monster.xp;
+    user.exp = (user.exp?? 0) + monster.xp;
 
     await db.item.updateOne(
       { itemId: drop.id },
@@ -210,6 +348,8 @@ export class HuntCommand extends Command {
           rarity: drop.rarity,
           sellPrice: drop.sellPrice,
           description: drop.description,
+        ...(drop.stats && { stats: drop.stats }),
+        ...(drop.classLock && { classLock: drop.classLock }),
         },
       },
       { upsert: true },
@@ -222,16 +362,27 @@ export class HuntCommand extends Command {
       levelUpText = t('commands/hunt:levelup', { level: lvl.level });
     }
 
+    resetSkillCooldowns(user);
+    user.buffs = user.buffs.filter(b => !b.battle);
     await user.save();
 
+    const finalStats = getPlayerStats(user);
+    const atkBuff = finalStats.activeBuffs.find(b => b.type === 'atk');
+    const finalBuffInfo = atkBuff? ` • 🔥 ATK +${Math.floor(atkBuff.value * 100)}%` : '';
+
     embed
-      .setColor(RARITY_COLOR[drop.rarity as keyof typeof RARITY_COLOR])
-      .setTitle(t('commands/hunt:win_title', { name: monster.name }))
-      .setDescription(
+    .setColor(RARITY_COLOR[drop.rarity as keyof typeof RARITY_COLOR])
+    .setTitle(
+        t('commands/hunt:win_title', {
+          name: monster.name,
+          elite: isElite? ' **ELITE!**' : '',
+        }),
+      )
+    .setDescription(
         t('commands/hunt:win_desc', {
           emoji: monster.emoji,
           name: monster.name,
-          buff: buffInfo,
+          buff: finalBuffInfo,
           levelup: levelUpText,
           dropEmoji: drop.emoji,
           dropName: drop.name,
@@ -242,17 +393,17 @@ export class HuntCommand extends Command {
           taken: totalTaken,
         }),
       )
-      .setFields(
+    .setFields(
         { name: t('commands/hunt:field_coin'), value: `+${monster.xp * 2}`, inline: true },
         { name: t('commands/hunt:field_exp'), value: `+${monster.xp}`, inline: true },
         { name: t('commands/hunt:field_hp'), value: `${user.hp}/${user.maxHp}`, inline: true },
         {
           name: t('commands/hunt:field_stamina'),
-          value: `${user.stamina}/${user.maxStamina}`,
+          value: `${user.stamina}/${user.maxStamina?? 100}`,
           inline: true,
         },
       );
 
-    await interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed], components: [] });
   }
 }

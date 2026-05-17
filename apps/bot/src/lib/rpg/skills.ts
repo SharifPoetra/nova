@@ -1,4 +1,4 @@
-import type { IUser } from '@nova/database';
+import type { IUser } from '@nova/db';
 import { calculateDamage, PlayerStats } from './combat';
 
 export type SkillTarget = 'self' | 'enemy' | 'all_enemies' | 'ally';
@@ -17,7 +17,7 @@ export interface SkillContext {
   stats: PlayerStats;
   enemy: { hp: number; def: number; element?: string };
   t: (key: string, opts?: any) => string;
-  addBuff: (type: string, value: number, duration: number) => void;
+  addBuff: (type: string, value: number, durationTurns: number) => void;
   addLog: (text: string) => void;
 }
 
@@ -26,7 +26,7 @@ export interface SkillData {
   name: string;
   emoji: string;
   description: string;
-  cooldown: number;
+  cooldownTurns: number;
   staminaCost: number;
   target: SkillTarget;
   effects: SkillEffect[];
@@ -36,7 +36,6 @@ export interface SkillData {
   use: (ctx: SkillContext) => { damage: number; heal: number; isCrit: boolean };
 }
 
-// Helper parse '1.5*atk' jadi number
 function parseValue(value: string | number, atk: number): number {
   if (typeof value === 'number') return value;
   if (value.includes('*atk')) return parseFloat(value.replace('*atk', '')) * atk;
@@ -48,15 +47,15 @@ export const SKILLS: Record<string, SkillData> = {
     id: 'rage',
     name: 'Rage',
     emoji: '😡',
-    description: 'Amarah warrior. +30% ATK selama 10 detik. Cooldown 30s.',
-    cooldown: 30000,
+    description: 'Amarah warrior. +30% ATK selama 3 turn. Cooldown 5 turn.',
+    cooldownTurns: 5,
     staminaCost: 20,
     target: 'self',
     classLock: ['warrior'],
-    effects: [{ type: 'buff', value: 'buff:atk:0.3', duration: 10000 }],
+    effects: [{ type: 'buff', value: 'buff:atk:0.3', duration: 3 }],
     use: (ctx) => {
-      ctx.addBuff('atk', 0.3, 10000); // +30% atk 10s
-      ctx.addLog(`✨ 😡 Rage! ATK up 30% for 10s`);
+      ctx.addBuff('atk', 0.3, 3); // 0.3 = 30% multiplier
+      ctx.addLog(`✨ 😡 Rage! +30% ATK for 3 turns`);
       return { damage: 0, heal: 0, isCrit: false };
     },
   },
@@ -65,8 +64,8 @@ export const SKILLS: Record<string, SkillData> = {
     id: 'fireball',
     name: 'Fireball',
     emoji: '🔥',
-    description: 'Bola api mage. Damage 150% ATK. Cooldown 20s.',
-    cooldown: 20000,
+    description: 'Bola api mage. Damage 150% ATK. Cooldown 3 turn.',
+    cooldownTurns: 3,
     staminaCost: 25,
     target: 'enemy',
     classLock: ['mage'],
@@ -74,7 +73,7 @@ export const SKILLS: Record<string, SkillData> = {
     use: (ctx) => {
       const mult = parseValue('1.5*atk', ctx.stats.atk) / ctx.stats.atk;
       const { damage, isCrit } = calculateDamage(ctx.stats, ctx.enemy, mult);
-      ctx.addLog(`✨ 🔥 Fireball! **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
+      ctx.addLog(`✨ 🔥 Fireball! **${damage}**${isCrit? ' 💥CRIT!' : ''}`);
       return { damage, heal: 0, isCrit };
     },
   },
@@ -83,8 +82,8 @@ export const SKILLS: Record<string, SkillData> = {
     id: 'backstab',
     name: 'Backstab',
     emoji: '🗡️',
-    description: 'Tusukan dari belakang. Damage 200% ATK + crit chance naik 20%. Cooldown 25s.',
-    cooldown: 25000,
+    description: 'Tusukan dari belakang. Damage 200% ATK + crit chance naik 20%. Cooldown 4 turn.',
+    cooldownTurns: 4,
     staminaCost: 15,
     target: 'enemy',
     classLock: ['rogue'],
@@ -93,10 +92,9 @@ export const SKILLS: Record<string, SkillData> = {
       { type: 'buff', value: 'buff:critRate:0.2', duration: 0 },
     ],
     use: (ctx) => {
-      // Temporarily boost crit buat hit ini
-      const boostedStats = { ...ctx.stats, critRate: ctx.stats.critRate + 0.2 };
+      const boostedStats = {...ctx.stats, critRate: ctx.stats.critRate + 0.2 };
       const { damage, isCrit } = calculateDamage(boostedStats, ctx.enemy, 2.0);
-      ctx.addLog(`✨ 🗡️ Backstab! **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
+      ctx.addLog(`✨ 🗡️ Backstab! **${damage}**${isCrit? ' 💥CRIT!' : ''}`);
       return { damage, heal: 0, isCrit };
     },
   },
@@ -106,24 +104,24 @@ export const SKILLS: Record<string, SkillData> = {
     name: 'Berserker Blood',
     emoji: '🩸',
     description: 'Passive: +1% ATK tiap 10% HP hilang.',
-    cooldown: 0,
+    cooldownTurns: 0,
     staminaCost: 0,
     target: 'self',
     classLock: ['warrior'],
     passive: true,
     requiredLevel: 10,
     effects: [{ type: 'buff', value: 'passive:atk_per_hp_loss' }],
-    use: () => ({ damage: 0, heal: 0, isCrit: false }), // passive gak dipanggil manual
+    use: () => ({ damage: 0, heal: 0, isCrit: false }),
   },
 };
 
 export function getSkill(id: string): SkillData | null {
-  return SKILLS[id] ?? null;
+  return SKILLS[id]?? null;
 }
 
 export function getSkillsByClass(className: 'warrior' | 'mage' | 'rogue'): SkillData[] {
   return Object.values(SKILLS).filter(
-    (s) => !s.passive && (!s.classLock || s.classLock.includes(className)),
+    (s) =>!s.passive && (!s.classLock || s.classLock.includes(className)),
   );
 }
 

@@ -29,17 +29,17 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 - [x] **2.2** Refactor skill button: `const skill = SKILLS[stats.skills[0]]` + `skill.use(ctx)`
 - [x] **2.3** Drop per monster: pindahin logic drop ke setelah `battleResult.victory`
 - [x] **2.4** Update `BOSS_DROPS`: kasih `stats: { atk: 25, critRate: 0.1 }` ke equipment
-- [ ] **2.5** Test: equip `iron_sword`, damage harus naik
 - [ ] **2.6** Commit: `feat(dungeon): integrate equipment stats and per-monster drops`
 
 ## Phase 3: Command Inventory & Equip - 1 hari
 - [ ] **3.1** `/inventory` tambah subcommand: `equip`, `unequip`, `stats`
+- [ ] **2.5** Test: equip `iron_sword`, damage harus naik
 - [ ] **3.2** `/inventory equip weapon:iron_sword` → validasi `classLock`, `type === 'weapon'`
 - [ ] **3.3** `/profile` tampilin equipment + total atk
 - [ ] **3.4** Commit: `feat(inventory): add equip system`
 
 ## Phase 4: Hunt, Fish, Explore - 2 hari
-- [ ] **4.1** `hunt.ts`: ganti dmg calc pake `getPlayerStats()`. Hapus hardcoded crit
+- [x] **4.1** `hunt.ts`: ganti dmg calc pake `getPlayerStats()`. Hapus hardcoded crit
 - [ ] **4.2** `monsters.ts`: tambah drop `type: 'equipment'` buat monster rare + kasih `stats`
 - [ ] **4.3** `fish.ts` & `explorations.ts`: siapin buat fishing rod nanti
 - [ ] **4.4** Test: `/hunt` pake `reaper_scythe` harus crit lebih sering

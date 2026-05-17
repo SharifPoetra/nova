@@ -6,7 +6,9 @@ export type BuffType = (typeof BUFF_TYPES)[number] | (string & {});
 export interface IBuff {
   type: BuffType;
   value: number;
-  expires: Date;
+  expires?: Date;
+  turnsLeft?: number;
+  battle?: boolean;
 }
 
 export type EquipmentSlot = 'weapon' | 'helmet' | 'armor' | 'accessory';
@@ -40,6 +42,7 @@ export interface IUser extends Document {
   items: { itemId: string; qty: number }[];
   buffs: IBuff[];
   equipped: IEquipped;
+  skillCooldowns: Map<string, number>; // <-- TAMBAH: { rage: 3, fireball: 0 }
   createdAt: Date;
   updatedAt: Date;
 }
@@ -78,7 +81,9 @@ const UserSchema = new Schema<IUser>(
         {
           type: { type: String, enum: BUFF_TYPES, required: true },
           value: { type: Number, required: true },
-          expires: { type: Date, required: true },
+          expires: { type: Date, required: false },
+          turnsLeft: { type: Number, required: false },
+          battle: { type: Boolean, required: false }
         },
       ],
       default: [],
@@ -91,6 +96,11 @@ const UserSchema = new Schema<IUser>(
         accessory: { type: String, default: null },
       },
       default: { weapon: null, helmet: null, armor: null, accessory: null },
+    },
+    skillCooldowns: {
+      type: Map,
+      of: Number,
+      default: {},
     },
   },
   { timestamps: true },

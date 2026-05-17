@@ -10,6 +10,7 @@ export type DropItem = {
   description: string;
   effects?: { type: 'heal' | 'stamina' | 'mana' | 'buff'; value: number }[];
   stats?: { atk?: number; def?: number; hp?: number; critRate?: number; critDmg?: number };
+  classLock?: ('warrior' | 'mage' | 'rogue')[];
 };
 
 export const FLOOR_LORE: Record<number, string> = {
@@ -145,6 +146,7 @@ export const BOSSES: Record<number, { name: string; emoji: string; title: string
   100: { name: 'Nova Prime', emoji: '🌟', title: 'Puncak Menara' },
 };
 
+// === DROP NORMAL MONSTER: 3% chance equipment ===
 export const DUNGEON_DROPS: Record<string, DropItem[]> = {
   slime: [
     {
@@ -166,13 +168,14 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       description: 'Inti berlendir sumber kehidupan slime',
     },
     {
-      id: 'cracked_crown',
-      name: 'Cracked Crown',
-      emoji: '👑💔',
+      id: 'slime_boots',
+      name: 'Slime Boots',
+      emoji: '👢🟢',
       rarity: 'Common',
-      sellPrice: 25,
-      type: 'material',
-      description: 'Mahkota imitasi, retak di tengah',
+      sellPrice: 60,
+      type: 'equipment',
+      description: 'Sepatu dari lendir. Licin tapi nambah HP.',
+      stats: { hp: 10 },
     },
     {
       id: 'gooey_jelly',
@@ -205,6 +208,17 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       description: 'Pecahan batu biasa',
     },
     {
+      id: 'iron_gauntlet',
+      name: 'Iron Gauntlet',
+      emoji: '🧤⚙️',
+      rarity: 'Uncommon',
+      sellPrice: 120,
+      type: 'equipment',
+      description: 'Sarung tangan besi. +ATK',
+      stats: { atk: 5, def: 1 },
+      classLock: ['warrior'],
+    },
+    {
       id: 'golem_heart',
       name: 'Golem Heart',
       emoji: '🗿',
@@ -225,6 +239,17 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       description: 'Esensi kehampaan dari specter',
     },
     {
+      id: 'specter_hood',
+      name: 'Specter Hood',
+      emoji: '👻🎩',
+      rarity: 'Rare',
+      sellPrice: 200,
+      type: 'equipment',
+      description: 'Tudung hantu. +Crit Rate',
+      stats: { critRate: 0.08, hp: 15 },
+      classLock: ['rogue', 'mage'],
+    },
+    {
       id: 'ectoplasm',
       name: 'Ectoplasm',
       emoji: '🟢👻',
@@ -232,15 +257,6 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       sellPrice: 60,
       type: 'material',
       description: 'Lendir hantu',
-    },
-    {
-      id: 'soul_wisp',
-      name: 'Soul Wisp',
-      emoji: '👻',
-      rarity: 'Epic',
-      sellPrice: 300,
-      type: 'material',
-      description: 'Gumpalan jiwa yang bergentayangan',
     },
   ],
   drake: [
@@ -254,6 +270,17 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       description: 'Sisik drake tahan api',
     },
     {
+      id: 'drake_claw_dagger',
+      name: 'Drake Claw Dagger',
+      emoji: '🗡️🐲',
+      rarity: 'Rare',
+      sellPrice: 250,
+      type: 'equipment',
+      description: 'Belati dari cakar drake. +ATK +Crit',
+      stats: { atk: 12, critRate: 0.05, critDmg: 0.2 },
+      classLock: ['rogue'],
+    },
+    {
       id: 'charred_bone',
       name: 'Charred Bone',
       emoji: '🦴🔥',
@@ -261,15 +288,6 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       sellPrice: 70,
       type: 'material',
       description: 'Tulang hangus',
-    },
-    {
-      id: 'drake_claw',
-      name: 'Drake Claw',
-      emoji: '🦖',
-      rarity: 'Rare',
-      sellPrice: 200,
-      type: 'material',
-      description: 'Cakar tajam',
     },
   ],
   warden: [
@@ -283,6 +301,17 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       description: 'Kristal es abadi',
     },
     {
+      id: 'warden_cape',
+      name: 'Warden Cape',
+      emoji: '🧥❄️',
+      rarity: 'Epic',
+      sellPrice: 500,
+      type: 'equipment',
+      description: 'Jubah warden. +HP +DEF',
+      stats: { hp: 40, def: 6 },
+      classLock: ['warrior', 'mage'],
+    },
+    {
       id: 'ice_shard',
       name: 'Ice Shard',
       emoji: '🧊',
@@ -290,15 +319,6 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       sellPrice: 90,
       type: 'material',
       description: 'Pecahan es',
-    },
-    {
-      id: 'frozen_chain',
-      name: 'Frozen Chain',
-      emoji: '⛓️❄️',
-      rarity: 'Rare',
-      sellPrice: 250,
-      type: 'material',
-      description: 'Rantai beku',
     },
   ],
   guardian: [
@@ -312,6 +332,17 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       description: 'Fragmen dari bintang jatuh',
     },
     {
+      id: 'star_blade',
+      name: 'Star Blade',
+      emoji: '⚔️⭐',
+      rarity: 'Epic',
+      sellPrice: 800,
+      type: 'equipment',
+      description: 'Pedang dari bintang. +ATK +CritDmg',
+      stats: { atk: 20, critRate: 0.05, critDmg: 0.3 },
+      classLock: ['warrior', 'rogue'],
+    },
+    {
       id: 'stardust',
       name: 'Stardust',
       emoji: '✨',
@@ -320,18 +351,10 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       type: 'material',
       description: 'Debu bintang murni',
     },
-    {
-      id: 'cosmic_dust',
-      name: 'Cosmic Dust',
-      emoji: '🌌',
-      rarity: 'Epic',
-      sellPrice: 600,
-      type: 'material',
-      description: 'Debu kosmik',
-    },
   ],
 };
 
+// === BOSS DROP: 100% equipment + stats lengkap ===
 export const BOSS_DROPS: Record<string, DropItem[]> = {
   slime: [
     {
@@ -385,7 +408,8 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       sellPrice: 450,
       type: 'equipment',
       description: 'Sabit pencabut nyawa',
-      stats: { atk: 25, critRate: 0.1, critDmg: 2.0 },
+      stats: { atk: 25, critRate: 0.1, critDmg: 0.5 },
+      classLock: ['rogue'],
     },
     {
       id: 'void_crown',
@@ -417,6 +441,17 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       type: 'consumable',
       description: 'Jantung naga, pulihkan 80 stamina',
       effects: [{ type: 'stamina', value: 80 }],
+    },
+    {
+      id: 'inferno_staff',
+      name: 'Inferno Staff',
+      emoji: '🔥🪄',
+      rarity: 'Legendary',
+      sellPrice: 1000,
+      type: 'equipment',
+      description: 'Tongkat api naga. +ATK +CritDmg',
+      stats: { atk: 30, critDmg: 0.4 },
+      classLock: ['mage'],
     },
   ],
   warden: [
@@ -482,6 +517,16 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
         { type: 'stamina', value: 50 },
       ],
     },
+    {
+      id: 'nova_blade',
+      name: 'Nova Blade',
+      emoji: '🌟⚔️',
+      rarity: 'Mythic',
+      sellPrice: 5000,
+      type: 'equipment',
+      description: 'Pedang dari inti nova. +ATK +Crit +HP',
+      stats: { atk: 40, critRate: 0.1, critDmg: 0.5, hp: 50 },
+    },
   ],
 };
 
@@ -489,16 +534,16 @@ export function getMonster(floor: number) {
   const boss = BOSSES[floor];
   if (boss) {
     const baseData = DUNGEON_MONSTERS.find((m) => m.name === boss.name);
-    return { ...boss, isBoss: true, base: baseData?.base ?? 'guardian', title: boss.title };
+    return {...boss, isBoss: true, base: baseData?.base?? 'guardian', title: boss.title };
   }
-  const monster = DUNGEON_MONSTERS[floor - 1] ?? DUNGEON_MONSTERS[0];
-  return { ...monster, isBoss: false, title: monster.name };
+  const monster = DUNGEON_MONSTERS[floor - 1]?? DUNGEON_MONSTERS[0];
+  return {...monster, isBoss: false, title: monster.name };
 }
 
 export function getFloorLore(floor: number): string {
   const loreFloor = Object.keys(FLOOR_LORE)
-    .map(Number)
-    .reverse()
-    .find((f) => floor >= f);
-  return FLOOR_LORE[loreFloor ?? 1];
+  .map(Number)
+  .reverse()
+  .find((f) => floor >= f);
+  return FLOOR_LORE[loreFloor?? 1];
 }

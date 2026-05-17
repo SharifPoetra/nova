@@ -1,21 +1,9 @@
 import type { HydratedDocument } from 'mongoose';
+import type { IUser, IBuff } from '@nova/db';
 
-interface Buff {
-  type: 'atk' | 'stamina_regen' | string;
-  value: number;
-  expires: Date;
-}
-
-interface RPGUser {
-  buffs?: Buff[];
-  stamina: number;
-  maxStamina: number;
-  lastPassive?: Date | null;
-}
-
-export function applyPassiveRegen(user: HydratedDocument<RPGUser> | RPGUser) {
+export function applyPassiveRegen(user: IUser) {
   const now = new Date();
-  const last = user.lastPassive ?? now;
+  const last = user.lastPassive?? now;
 
   if (now <= last) {
     user.lastPassive = now;
@@ -45,8 +33,8 @@ export function applyPassiveRegen(user: HydratedDocument<RPGUser> | RPGUser) {
 
   // 3. Tambah ke stamina, tapi JANGAN PERNAH lewat maxStamina
   if (totalRegen > 0) {
-    const current = user.stamina ?? 0;
-    const max = user.maxStamina ?? 100;
+    const current = user.stamina?? 0;
+    const max = user.maxStamina?? 100;
     user.stamina = Math.min(max, current + totalRegen);
   }
 
@@ -59,8 +47,12 @@ export function applyPassiveRegen(user: HydratedDocument<RPGUser> | RPGUser) {
   }
 }
 
-export function getAtkBuff(user: HydratedDocument<RPGUser> | RPGUser): number {
+export function getAtkBuff(user: IUser): number {
   const now = new Date();
+  // Clean expired
   user.buffs = (user.buffs || []).filter((b) => new Date(b.expires) > now);
-  return user.buffs.filter((b) => b.type === 'atk').reduce((s, b) => s + b.value, 0);
+  // Sum buff yang punya turnsLeft > 0 atau expires > now
+  return user.buffs
+   .filter((b) => b.type === 'atk' && ((b.turnsLeft?? 0) > 0 || new Date(b.expires) > now))
+   .reduce((s, b) => s + b.value, 0);
 }

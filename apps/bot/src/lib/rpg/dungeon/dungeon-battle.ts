@@ -3,7 +3,14 @@ import { IUser } from '@nova/db';
 import { sleep } from '../../utils';
 import { RunState } from './dungeon-state';
 import { buildBattleEmbed, getBattleButtons } from './dungeon-ui';
-import { getPlayerStats, calculateDamage } from '../combat';
+import {
+  getPlayerStats,
+  calculateDamage,
+  getSkillCooldown,
+  setSkillCooldown,
+  tickSkillCooldowns,
+  tickBuffs,
+} from '../combat';
 import { getSkill, SkillContext } from '../skills';
 import type { TFunction } from 'i18next';
 
@@ -22,7 +29,7 @@ interface BattleParams {
 
 export async function runInteractiveBattle(params: BattleParams) {
   const { player, monster, floor, lore, isBoss, isElite, state, msg, username, t } = params;
-  const stats = getPlayerStats(player);
+  let stats = getPlayerStats(player);
 
   const baseHp = 50 + floor * 8;
   const baseAtk = 8 + floor * 1.5;
@@ -37,7 +44,6 @@ export async function runInteractiveBattle(params: BattleParams) {
 
   const playerSkillId = stats.availableSkills[0] ?? null;
   const playerSkill = playerSkillId ? getSkill(playerSkillId) : null;
-  let skillCooldown = 0;
   let isDefending = false;
 
   const battleLog: string[] = [];
@@ -51,6 +57,7 @@ export async function runInteractiveBattle(params: BattleParams) {
   );
 
   const updateBattle = async (showButtons = true) => {
+    const skillCd = playerSkill ? getSkillCooldown(player, playerSkill.id) : 0;
     const embed = buildBattleEmbed({
       monsterName: monster.name,
       monsterEmoji: monster.emoji,
@@ -63,11 +70,11 @@ export async function runInteractiveBattle(params: BattleParams) {
       action: battleLog.slice(-5).join('\n'),
       isBoss,
       isElite,
-      skillCd: skillCooldown,
+      skillCd,
       t,
     });
     const components = showButtons
-      ? [getBattleButtons(playerSkill?.name ?? 'Skill', skillCooldown, t)]
+      ? [getBattleButtons(playerSkill?.name ?? 'Skill', skillCd, t)]
       : [];
     await msg.edit({ embeds: [embed], components });
   };
@@ -105,32 +112,43 @@ export async function runInteractiveBattle(params: BattleParams) {
       } else if (turn.customId === 'def') {
         isDefending = true;
         battleLog.push(`🛡️ You defend! Damage -60%`);
-      } else if (turn.customId === 'skl' && skillCooldown === 0 && playerSkill) {
-        skillCooldown = Math.ceil(playerSkill.cooldown / 1000);
+      } else if (turn.customId === 'skl' && playerSkill) {
+        const cdLeft = getSkillCooldown(player, playerSkill.id);
+        if (cdLeft > 0) {
+          battleLog.push(`⏳ ${playerSkill.name} cooldown ${cdLeft} turn lagi!`);
+        } else if (player.stamina < playerSkill.staminaCost) {
+          battleLog.push(`😩 Stamina kurang! Butuh ${playerSkill.staminaCost} ⚡`);
+        } else {
+          const ctx: SkillContext = {
+            user: player,
+            stats,
+            enemy: { hp: monsterHp, def: monsterDef },
+            t,
+            addBuff: (type, value, durationTurns) => {
+              player.buffs.push({
+                type: type as any,
+                value,
+                turnsLeft: durationTurns,
+                battle: true
+              });
+            },
+            addLog: (text) => battleLog.push(text),
+          };
 
-        const ctx: SkillContext = {
-          user: player,
-          stats,
-          enemy: { hp: monsterHp, def: monsterDef },
-          t,
-          addBuff: (type, value, duration) => {
-            // Push ke player.buffs, nanti getPlayerStats() bakal ke-apply
-            player.buffs.push({
-              type: type as any,
-              value,
-              expires: new Date(Date.now() + duration),
-            });
-          },
-          addLog: (text) => battleLog.push(text),
-        };
+          const result = playerSkill.use(ctx);
+          monsterHp -= result.damage;
+          playerHp = Math.min(stats.maxHp, playerHp + result.heal);
+          state.dealt += result.damage;
 
-        const result = playerSkill.use(ctx);
-        monsterHp -= result.damage;
-        playerHp = Math.min(stats.maxHp, playerHp + result.heal);
-        state.dealt += result.damage;
+          // Stamina cost
+          player.stamina = Math.max(0, player.stamina - playerSkill.staminaCost);
 
-        // Stamina cost
-        player.stamina = Math.max(0, player.stamina - playerSkill.staminaCost);
+          // Set cooldown
+          setSkillCooldown(player, playerSkill);
+
+          // Recalc stats kalo ada buff baru
+          stats = getPlayerStats(player);
+        }
       }
     }
 
@@ -151,7 +169,12 @@ export async function runInteractiveBattle(params: BattleParams) {
     await updateBattle(false);
     await sleep(800);
 
-    if (skillCooldown > 0) skillCooldown--;
+    // Akhir turn: kurangin cooldown + buff duration
+    tickSkillCooldowns(player);
+    tickBuffs(player);
+
+    stats = getPlayerStats(player); // refresh stats kalo buff abis
+    playerHp = Math.min(playerHp, stats.maxHp); // clamp HP kalo maxHp turun
   }
 
   player.hp = Math.max(0, playerHp);
