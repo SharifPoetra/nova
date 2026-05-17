@@ -29,7 +29,7 @@ interface BattleParams {
 
 export async function runInteractiveBattle(params: BattleParams) {
   const { player, monster, floor, lore, isBoss, isElite, state, msg, username, t } = params;
-  let stats = getPlayerStats(player);
+  let stats = await getPlayerStats(player);
 
   const baseHp = 50 + floor * 8;
   const baseAtk = 8 + floor * 1.5;
@@ -129,7 +129,7 @@ export async function runInteractiveBattle(params: BattleParams) {
                 type: type as any,
                 value,
                 turnsLeft: durationTurns,
-                battle: true
+                battle: true,
               });
             },
             addLog: (text) => battleLog.push(text),
@@ -147,7 +147,7 @@ export async function runInteractiveBattle(params: BattleParams) {
           setSkillCooldown(player, playerSkill);
 
           // Recalc stats kalo ada buff baru
-          stats = getPlayerStats(player);
+          stats = await getPlayerStats(player);
         }
       }
     }
@@ -173,7 +173,7 @@ export async function runInteractiveBattle(params: BattleParams) {
     tickSkillCooldowns(player);
     tickBuffs(player);
 
-    stats = getPlayerStats(player); // refresh stats kalo buff abis
+    stats = await getPlayerStats(player); // refresh stats kalo buff abis
     playerHp = Math.min(playerHp, stats.maxHp); // clamp HP kalo maxHp turun
   }
 

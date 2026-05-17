@@ -249,7 +249,7 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       type: 'equipment',
       description: 'Tudung hantu. +Crit Rate',
       slot: 'helmet',
-      stats: { critRate: 0.08, hp: 15, classLock: ['rogue', 'mage'] }
+      stats: { critRate: 0.08, hp: 15, classLock: ['rogue', 'mage'] },
     },
     {
       id: 'ectoplasm',
@@ -280,7 +280,7 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       type: 'equipment',
       description: 'Belati dari cakar drake. +ATK +Crit',
       slot: 'weapon',
-      stats: { atk: 12, critRate: 0.05, critDmg: 0.2, classLock: ['rogue'] }
+      stats: { atk: 12, critRate: 0.05, critDmg: 0.2, classLock: ['rogue'] },
     },
     {
       id: 'charred_bone',
@@ -541,16 +541,16 @@ export function getMonster(floor: number) {
   const boss = BOSSES[floor];
   if (boss) {
     const baseData = DUNGEON_MONSTERS.find((m) => m.name === boss.name);
-    return {...boss, isBoss: true, base: baseData?.base?? 'guardian', title: boss.title };
+    return { ...boss, isBoss: true, base: baseData?.base ?? 'guardian', title: boss.title };
   }
-  const monster = DUNGEON_MONSTERS[floor - 1]?? DUNGEON_MONSTERS[0];
-  return {...monster, isBoss: false, title: monster.name };
+  const monster = DUNGEON_MONSTERS[floor - 1] ?? DUNGEON_MONSTERS[0];
+  return { ...monster, isBoss: false, title: monster.name };
 }
 
 export function getFloorLore(floor: number): string {
   const loreFloor = Object.keys(FLOOR_LORE)
-.map(Number)
-.reverse()
-.find((f) => floor >= f);
-  return FLOOR_LORE[loreFloor?? 1];
+    .map(Number)
+    .reverse()
+    .find((f) => floor >= f);
+  return FLOOR_LORE[loreFloor ?? 1];
 }

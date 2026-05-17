@@ -1,6 +1,7 @@
 import { getClass } from './classes';
 import { getEquipment } from './equipment';
 import { getPassiveSkills, getSkill, SkillData } from './skills';
+import { Item } from '@nova/db';
 import type { IUser, IEquipmentStat } from '@nova/db';
 
 export interface PlayerStats {
@@ -16,19 +17,23 @@ export interface PlayerStats {
 }
 
 // === HELPER: Gabungin semua stat dari equipment ===
-function sumEquipmentStats(equipIds: (string | null)[]): IEquipmentStat {
+async function sumEquipmentStats(equipIds: (string | null)[]): Promise<IEquipmentStat> {
   const total: IEquipmentStat = { atk: 0, hp: 0, def: 0, critRate: 0, critDmg: 0 };
 
-  for (const id of equipIds) {
-    if (!id) continue;
-    const eq = getEquipment(id);
+  const validIds = equipIds.filter(Boolean) as string[];
+  if (validIds.length === 0) return total;
+
+  // Ambil dari DB, bukan static getEquipment
+  const items = await Item.find({ itemId: { $in: validIds } }).lean();
+
+  for (const eq of items) {
     if (!eq?.stats) continue;
 
-    total.atk = (total.atk?? 0) + (eq.stats.atk?? 0);
-    total.hp = (total.hp?? 0) + (eq.stats.hp?? 0);
-    total.def = (total.def?? 0) + (eq.stats.def?? 0);
-    total.critRate = (total.critRate?? 0) + (eq.stats.critRate?? 0);
-    total.critDmg = (total.critDmg?? 0) + (eq.stats.critDmg?? 0);
+    total.atk = (total.atk ?? 0) + (eq.stats.atk ?? 0);
+    total.hp = (total.hp ?? 0) + (eq.stats.hp ?? 0);
+    total.def = (total.def ?? 0) + (eq.stats.def ?? 0);
+    total.critRate = (total.critRate ?? 0) + (eq.stats.critRate ?? 0);
+    total.critDmg = (total.critDmg ?? 0) + (eq.stats.critDmg ?? 0);
     if (eq.slot === 'weapon' && eq.stats.element) {
       total.element = eq.stats.element;
     }
@@ -43,7 +48,7 @@ function applyBuffs(base: number, buffs: IUser['buffs'], buffType: string): numb
     // Cek turnsLeft dulu kalo battle buff
     const isActive = buff.battle
       ? (buff.turnsLeft ?? 0) > 0 // buff battle harus ada turnsLeft
-      : buff.expires 
+      : buff.expires
         ? buff.expires.getTime() > Date.now() // buff passive pake expires
         : false; // kalo dua-duanya nggak ada, anggap inactive
 
@@ -56,13 +61,15 @@ function applyBuffs(base: number, buffs: IUser['buffs'], buffType: string): numb
 
 // === HELPER: Apply passive skill ===
 function applyPassives(baseStats: PlayerStats, user: IUser): PlayerStats {
-  const passives = getPassiveSkills(user);
-  const newStats = {...baseStats };
+  const passives = getPassiveSkills(user) ?? [];
+  const newStats = { ...baseStats };
+
+  if (!newStats.availableSkills) newStats.availableSkills = [];
 
   for (const passive of passives) {
     for (const effect of passive.effects) {
       if (effect.type === 'buff' && effect.value === 'passive:atk_per_hp_loss') {
-        const hpLostPercent = 1 - user.hp / user.maxHp;
+        const hpLostPercent = 1 - baseStats.hp / baseStats.maxHp; // +1% ATK per 10% HP lost
         const atkBonus = Math.floor(hpLostPercent * 10) * 0.01;
         newStats.atk = Math.floor(newStats.atk * (1 + atkBonus));
       }
@@ -72,12 +79,12 @@ function applyPassives(baseStats: PlayerStats, user: IUser): PlayerStats {
 }
 
 // === MAIN FUNCTION: Dipake semua command ===
-export function getPlayerStats(user: IUser): PlayerStats {
+export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
   const classData = getClass(user.class);
 
-  const baseAtk = (classData?.baseAtk?? 10) + Math.floor(user.level * 1.5);
-  const baseHp = (classData?.baseHp?? 100) + Math.floor(user.level * 10);
-  const baseCritRate = classData?.baseCritRate?? 0.05;
+  const baseAtk = (classData?.baseAtk ?? 10) + Math.floor(user.level * 1.5);
+  const baseHp = (classData?.baseHp ?? 100) + Math.floor(user.level * 10);
+  const baseCritRate = classData?.baseCritRate ?? 0.05;
 
   let stats: PlayerStats = {
     hp: user.hp,
@@ -91,15 +98,15 @@ export function getPlayerStats(user: IUser): PlayerStats {
     availableSkills: [],
   };
 
-  const eq = user.equipped?? { weapon: null, helmet: null, armor: null, accessory: null };
+  const eq = user.equipped ?? { weapon: null, helmet: null, armor: null, accessory: null };
   const equipIds = [eq.weapon, eq.helmet, eq.armor, eq.accessory];
-  const eqStats = sumEquipmentStats(equipIds);
+  const eqStats = await sumEquipmentStats(equipIds); // <-- hapus user.db
 
-  stats.atk += eqStats.atk?? 0;
-  stats.maxHp += eqStats.hp?? 0;
-  stats.def += eqStats.def?? 0;
-  stats.critRate += eqStats.critRate?? 0;
-  stats.critDmg += eqStats.critDmg?? 0;
+  stats.atk += eqStats.atk ?? 0;
+  stats.maxHp += eqStats.hp ?? 0;
+  stats.def += eqStats.def ?? 0;
+  stats.critRate += eqStats.critRate ?? 0;
+  stats.critDmg += eqStats.critDmg ?? 0;
   if (eqStats.element) stats.element = eqStats.element;
 
   stats.atk = applyBuffs(stats.atk, user.buffs, 'atk');
@@ -110,10 +117,10 @@ export function getPlayerStats(user: IUser): PlayerStats {
   if (classData?.skillId) {
     stats.availableSkills.push(classData.skillId);
   }
-  for (const id of equipIds) {
-    if (!id) continue;
-    const eq = getEquipment(id);
-    if (eq?.stats.grantsSkill) {
+
+  const equippedItems = await Item.find({ itemId: { $in: equipIds.filter(Boolean) } }).lean();
+  for (const eq of equippedItems) {
+    if (eq?.stats?.grantsSkill) {
       stats.availableSkills.push(eq.stats.grantsSkill);
     }
   }
@@ -122,16 +129,15 @@ export function getPlayerStats(user: IUser): PlayerStats {
   stats.critRate = Math.min(stats.critRate, 1);
   stats.def = Math.max(0, stats.def);
 
-  // === FIX: ACTIVE BUFFS pake turnsLeft ===
   stats.activeBuffs = user.buffs
-   .filter((b) => {
-      if (b.turnsLeft!== undefined) return b.turnsLeft > 0;
+    .filter((b) => {
+      if (b.turnsLeft !== undefined) return b.turnsLeft > 0;
       return b.expires.getTime() > Date.now();
     })
-   .map((b) => ({
+    .map((b) => ({
       type: b.type,
       value: b.value,
-      turnsLeft: b.turnsLeft?? Math.ceil((b.expires.getTime() - Date.now()) / 6000),
+      turnsLeft: b.turnsLeft ?? Math.ceil((b.expires.getTime() - Date.now()) / 6000),
     }));
 
   return stats;
@@ -160,7 +166,7 @@ export function calculateDamage(
     light: { dark: 1.5 },
     dark: { light: 1.5 },
   };
-  const eleMult = elementTable[attacker.element]?.[defender.element?? 'phys']?? 1.0;
+  const eleMult = elementTable[attacker.element]?.[defender.element ?? 'phys'] ?? 1.0;
   dmg *= eleMult;
 
   dmg = Math.max(1, dmg - defender.def);
@@ -170,7 +176,7 @@ export function calculateDamage(
 
 // === SKILL COOLDOWN HELPERS ===
 export function getSkillCooldown(user: IUser, skillId: string): number {
-  return user.skillCooldowns?.get(skillId)?? 0;
+  return user.skillCooldowns?.get(skillId) ?? 0;
 }
 
 export function setSkillCooldown(user: IUser, skill: SkillData): void {

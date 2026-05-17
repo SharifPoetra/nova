@@ -81,7 +81,7 @@ const UserSchema = new Schema<IUser>(
           value: { type: Number, required: true },
           expires: { type: Date, required: false },
           turnsLeft: { type: Number, required: false },
-          battle: { type: Boolean, required: false }
+          battle: { type: Boolean, required: false },
         },
       ],
       default: [],

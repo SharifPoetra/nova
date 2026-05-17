@@ -29,7 +29,7 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 - [x] **2.2** Refactor skill button: `const skill = SKILLS[stats.skills[0]]` + `skill.use(ctx)`
 - [x] **2.3** Drop per monster: pindahin logic drop ke setelah `battleResult.victory`
 - [x] **2.4** Update `BOSS_DROPS`: kasih `stats: { atk: 25, critRate: 0.1 }` ke equipment
-- [ ] **2.6** Commit: `feat(dungeon): integrate equipment stats and per-monster drops`
+- [x] **2.6** Commit: `feat(dungeon): integrate equipment stats and per-monster drops`
 
 ## Phase 3: Command Inventory & Equip - 1 hari
 - [ ] **3.1** `/inventory` tambah subcommand: `equip`, `unequip`, `stats`

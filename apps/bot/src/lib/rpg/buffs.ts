@@ -3,7 +3,7 @@ import type { IUser, IBuff } from '@nova/db';
 
 export function applyPassiveRegen(user: IUser) {
   const now = new Date();
-  const last = user.lastPassive?? now;
+  const last = user.lastPassive ?? now;
 
   if (now <= last) {
     user.lastPassive = now;
@@ -33,8 +33,8 @@ export function applyPassiveRegen(user: IUser) {
 
   // 3. Tambah ke stamina, tapi JANGAN PERNAH lewat maxStamina
   if (totalRegen > 0) {
-    const current = user.stamina?? 0;
-    const max = user.maxStamina?? 100;
+    const current = user.stamina ?? 0;
+    const max = user.maxStamina ?? 100;
     user.stamina = Math.min(max, current + totalRegen);
   }
 
@@ -53,6 +53,6 @@ export function getAtkBuff(user: IUser): number {
   user.buffs = (user.buffs || []).filter((b) => new Date(b.expires) > now);
   // Sum buff yang punya turnsLeft > 0 atau expires > now
   return user.buffs
-   .filter((b) => b.type === 'atk' && ((b.turnsLeft?? 0) > 0 || new Date(b.expires) > now))
-   .reduce((s, b) => s + b.value, 0);
+    .filter((b) => b.type === 'atk' && ((b.turnsLeft ?? 0) > 0 || new Date(b.expires) > now))
+    .reduce((s, b) => s + b.value, 0);
 }

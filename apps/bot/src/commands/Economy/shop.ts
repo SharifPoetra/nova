@@ -9,6 +9,7 @@ import {
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
+import { getPlayerStats } from '../../lib/rpg/combat';
 
 import shopEn from '../../locales/en-US/commands/shop.json';
 import shopId from '../../locales/id/commands/shop.json';
@@ -61,6 +62,8 @@ export class ShopCommand extends Command {
     if (!user) return interaction.editReply(t('common:need_start'));
     applyPassiveRegen(user);
     await user.save();
+
+    const stats = await getPlayerStats(user);
 
     const choice = interaction.options.getString('item');
     if (choice) return this.handlePurchase(interaction, user, choice, t);
@@ -188,7 +191,7 @@ export class ShopCommand extends Command {
       user.balance = Number(user.balance) - item.price;
       if (item.effect.stamina)
         user.stamina = Math.min(user.maxStamina ?? 100, (user.stamina ?? 0) + item.effect.stamina);
-      if (item.effect.hp) user.hp = Math.min(user.maxHp ?? 100, (user.hp ?? 0) + item.effect.hp);
+      if (item.effect.hp) user.hp = Math.min(stats.maxHp ?? 100, (user.hp ?? 0) + item.effect.hp);
       await user.save();
       const successEmbed = new EmbedBuilder()
         .setColor(0x2ecc71)
@@ -213,7 +216,7 @@ export class ShopCommand extends Command {
           },
           {
             name: t('commands/shop:field_hp', { defaultValue: '❤️ HP' }),
-            value: `${user.hp}/${user.maxHp}`,
+            value: `${stats.hp}/${stats.maxHp}`,
             inline: true,
           },
         );

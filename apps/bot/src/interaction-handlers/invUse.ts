@@ -12,6 +12,8 @@ import {
 import { fetchT } from '@sapphire/plugin-i18next';
 import { RARITY_COLOR } from '../lib/utils';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
+import { getPlayerStats } from '../lib/rpg/combat';
+import type { EquipmentSlot, IEquipmentStat, IItem, IUser } from '@nova/db';
 
 const ITEMS_PER_PAGE = 10;
 const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
@@ -26,7 +28,11 @@ export class InvUseHandler extends InteractionHandler {
     if (
       interaction.customId.startsWith('inv_prev_') ||
       interaction.customId.startsWith('inv_next_') ||
-      interaction.customId.startsWith('inv_use_')
+      interaction.customId.startsWith('inv_use_') ||
+      interaction.customId.startsWith('inv_equip_view_') ||
+      interaction.customId.startsWith('inv_equip_select_') ||
+      interaction.customId.startsWith('inv_unequip_select_') ||
+      interaction.customId.startsWith('inv_stats_')
     ) {
       return this.some();
     }
@@ -42,17 +48,93 @@ export class InvUseHandler extends InteractionHandler {
         flags: MessageFlags.Ephemeral,
       });
 
-    if (interaction.isStringSelectMenu()) {
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    } else {
-      await interaction.deferUpdate();
-    }
-
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (!user) return;
     applyPassiveRegen(user);
 
+    // === 1. TOMBOL STATS ===
+    if (interaction.customId.startsWith('inv_stats_')) {
+      await interaction.deferUpdate();
+      return this.renderStatsView(interaction, user, t);
+    }
+
+    // === 2. TOMBOL EQUIPMENT VIEW ===
+    if (interaction.customId.startsWith('inv_equip_view_')) {
+      await interaction.deferUpdate();
+      return this.renderEquipmentView(interaction, user, t);
+    }
+
+    // === 3. SELECT EQUIP ===
+    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('inv_equip_select_')) {
+      await interaction.deferUpdate();
+      const [slot, itemId] = interaction.values[0].split(':') as [EquipmentSlot, string];
+      const itemData = await this.container.db.item.findOne({ itemId });
+      if (!itemData) return interaction.followUp({ content: 'Item not found', ephemeral: true });
+
+      const error = this.validateEquip(user, itemData, slot);
+      if (error) return interaction.followUp({ content: error, ephemeral: true });
+
+      if (!user.equipped) {
+        user.equipped = { weapon: null, helmet: null, armor: null, accessory: null };
+      }
+
+      // Unequip lama
+      const oldItemId = user.equipped[slot];
+      if (oldItemId) {
+        const oldInv = user.items.find((i) => i.itemId === oldItemId);
+        if (oldInv) oldInv.qty += 1;
+        else user.items.push({ itemId: oldItemId, qty: 1 });
+      }
+
+      // Equip baru - FIX: set ke slot yang bener
+      user.equipped[slot] = itemId;
+      user.markModified('equipped'); // <-- WAJIB
+
+      const invItem = user.items.find((i) => i.itemId === itemId)!;
+      invItem.qty -= 1;
+      if (invItem.qty <= 0) user.items = user.items.filter((i) => i.itemId !== itemId);
+
+      await user.save();
+      await interaction.followUp({
+        content: `✅ Equipped ${itemData.emoji} **${itemData.name}**!`,
+        ephemeral: true,
+      });
+      return this.renderEquipmentView(interaction, user, t);
+    }
+
+    // === 4. SELECT UNEQUIP ===
+    if (
+      interaction.isStringSelectMenu() &&
+      interaction.customId.startsWith('inv_unequip_select_')
+    ) {
+      await interaction.deferUpdate();
+      const slot = interaction.values[0] as EquipmentSlot;
+
+      if (!user.equipped) {
+        user.equipped = { weapon: null, helmet: null, armor: null, accessory: null };
+      }
+
+      const itemId = user.equipped[slot];
+      if (!itemId) return interaction.followUp({ content: 'Slot kosong', ephemeral: true });
+
+      const itemData = await this.container.db.item.findOne({ itemId });
+      const invItem = user.items.find((i) => i.itemId === itemId);
+      if (invItem) invItem.qty += 1;
+      else user.items.push({ itemId, qty: 1 });
+
+      user.equipped[slot] = null; // <-- FIX: set null per slot
+      user.markModified('equipped'); // <-- WAJIB
+      await user.save();
+      await interaction.followUp({
+        content: `📤 Unequipped **${itemData?.name}**`,
+        ephemeral: true,
+      });
+      return this.renderEquipmentView(interaction, user, t);
+    }
+
+    // === 5. CONSUMABLE USE - LOGIC LAMA JANGAN DIUBAH ===
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith('inv_use_')) {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       const itemId = interaction.values[0];
       const item = await this.container.db.item.findOne({ itemId }).lean();
       if (!item)
@@ -85,7 +167,7 @@ export class InvUseHandler extends InteractionHandler {
       for (const eff of effects) {
         if (eff.type === 'heal') {
           const before = user.hp ?? 0;
-          const maxHp = user.maxHp ?? 100;
+          const maxHp = stats.maxHp;
           if (before >= maxHp) continue;
           user.hp = Math.min(maxHp, before + eff.value);
           const gained = user.hp - before;
@@ -131,7 +213,9 @@ export class InvUseHandler extends InteractionHandler {
       return interaction.followUp({ content: msg });
     }
 
+    // === 6. PAGINATION - LOGIC LAMA JANGAN DIUBAH ===
     if (interaction.isButton()) {
+      await interaction.deferUpdate();
       const [, dir, pageStr] = interaction.customId.split('_');
       let page = Number.parseInt(pageStr, 10);
       page = dir === 'next' ? page + 1 : page - 1;
@@ -170,30 +254,50 @@ export class InvUseHandler extends InteractionHandler {
 
       for (const it of pageItems) embed.addFields({ name: it.text, value: it.sub });
 
-      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(`inv_prev_${page}_${userId}`)
-          .setLabel(t('commands/inventory:prev', { defaultValue: '◀ Previous' }))
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page <= 0),
-        new ButtonBuilder()
-          .setCustomId(`inv_next_${page}_${userId}`)
-          .setLabel(t('commands/inventory:next', { defaultValue: 'Next ▶' }))
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(page >= totalPages - 1),
+      const components: (
+        | ActionRowBuilder<ButtonBuilder>
+        | ActionRowBuilder<StringSelectMenuBuilder>
+      )[] = [];
+
+      // ROW 1: Pagination
+      components.push(
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId(`inv_prev_${page}_${userId}`)
+            .setLabel(t('commands/inventory:prev', { defaultValue: '◀ Previous' }))
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page <= 0),
+          new ButtonBuilder()
+            .setCustomId(`inv_next_${page}_${userId}`)
+            .setLabel(t('commands/inventory:next', { defaultValue: 'Next ▶' }))
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page >= totalPages - 1),
+        ),
       );
 
+      // ROW 2: Equipment + Stats
+      components.push(
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId(`inv_equip_view_${userId}`)
+            .setLabel(t('commands/inventory:equipment', { defaultValue: 'Equipment' }))
+            .setStyle(ButtonStyle.Primary)
+            .setEmoji('⚔️'),
+          new ButtonBuilder()
+            .setCustomId(`inv_stats_${userId}`)
+            .setLabel(t('commands/inventory:stats', { defaultValue: 'Stats' }))
+            .setStyle(ButtonStyle.Secondary)
+            .setEmoji('📊'),
+        ),
+      );
+
+      // ROW 3: Consumable
       const itemIds = user.items.map((i) => i.itemId);
       const itemsData = await this.container.db.item.find({ itemId: { $in: itemIds } }).lean();
       const itemMap = new Map(itemsData.map((i) => [i.itemId, i]));
       const consumables = user.items
         .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
         .slice(0, 25);
-
-      const components: (
-        | ActionRowBuilder<ButtonBuilder>
-        | ActionRowBuilder<StringSelectMenuBuilder>
-      )[] = [row];
 
       if (consumables.length) {
         components.push(
@@ -219,5 +323,208 @@ export class InvUseHandler extends InteractionHandler {
       }
       await interaction.editReply({ embeds: [embed], components });
     }
+  }
+
+  private async renderStatsView(
+    interaction: ButtonInteraction | StringSelectMenuInteraction,
+    user: any,
+    t: any,
+  ) {
+    const stats = await getPlayerStats(user);
+    const equippedIds = [
+      user.equipped?.weapon,
+      user.equipped?.armor,
+      user.equipped?.helmet,
+      user.equipped?.accessory,
+    ].filter(Boolean) as string[];
+    const equippedData = await this.container.db.item.find({ itemId: { $in: equippedIds } }).lean();
+    const eqMap = new Map(equippedData.map((i) => [i.itemId, i]));
+
+    const weapon = user.equipped?.weapon ? eqMap.get(user.equipped.weapon) : null;
+    const armor = user.equipped?.armor ? eqMap.get(user.equipped.armor) : null;
+    const helmet = user.equipped?.helmet ? eqMap.get(user.equipped.helmet) : null;
+    const accessory = user.equipped?.accessory ? eqMap.get(user.equipped.accessory) : null;
+
+    const embed = new EmbedBuilder()
+      .setAuthor({
+        name: `${interaction.user.username}'s Stats`,
+        iconURL: interaction.user.displayAvatarURL(),
+      })
+      .setColor(0x00ae86)
+      .addFields(
+        { name: '⚔️ ATK', value: `${stats.atk}`, inline: true },
+        { name: '🛡️ DEF', value: `${stats.def}`, inline: true },
+        { name: '❤️ HP', value: `${user.hp}/${stats.maxHp}`, inline: true },
+        { name: '💥 Crit Rate', value: `${(stats.critRate * 100).toFixed(1)}%`, inline: true },
+        { name: '💢 Crit DMG', value: `${(stats.critDmg * 100).toFixed(0)}%`, inline: true },
+        { name: '\u200b', value: '\u200b', inline: true },
+        {
+          name: 'Weapon',
+          value: weapon
+            ? `${weapon.emoji} **${weapon.name}**\n> ${this.formatStats(weapon.stats)}`
+            : '❌ None',
+          inline: false,
+        },
+        {
+          name: 'Armor',
+          value: armor
+            ? `${armor.emoji} **${armor.name}**\n> ${this.formatStats(armor.stats)}`
+            : '❌ None',
+          inline: false,
+        },
+        {
+          name: 'Helmet',
+          value: helmet
+            ? `${helmet.emoji} **${helmet.name}**\n> ${this.formatStats(helmet.stats)}`
+            : '❌ None',
+          inline: false,
+        },
+        {
+          name: 'Accessory',
+          value: accessory
+            ? `${accessory.emoji} **${accessory.name}**\n> ${this.formatStats(accessory.stats)}`
+            : '❌ None',
+          inline: false,
+        },
+      );
+
+    return interaction.editReply({ embeds: [embed], components: [] });
+  }
+
+  private async renderEquipmentView(
+    interaction: ButtonInteraction | StringSelectMenuInteraction,
+    user: any,
+    t: any,
+  ) {
+    const allItemIds = user.items.map((i) => i.itemId);
+    const itemsData = await this.container.db.item.find({ itemId: { $in: allItemIds } }).lean();
+    const itemMap = new Map(itemsData.map((i) => [i.itemId, i]));
+
+    // Filter cuma equipment
+    const equipments = user.items
+      .filter((i) => itemMap.get(i.itemId)?.type === 'equipment')
+      .slice(0, 25);
+
+    const equippedIds = [
+      user.equipped?.weapon,
+      user.equipped?.armor,
+      user.equipped?.helmet,
+      user.equipped?.accessory,
+    ].filter(Boolean) as string[];
+    const equippedData = await this.container.db.item.find({ itemId: { $in: equippedIds } }).lean();
+    const eqMap = new Map(equippedData.map((i) => [i.itemId, i]));
+
+    const embed = new EmbedBuilder()
+      .setAuthor({
+        name: `${interaction.user.username}'s Equipment`,
+        iconURL: interaction.user.displayAvatarURL(),
+      })
+      .setColor(0x3498db)
+      .setDescription('**Currently Equipped:**')
+      .addFields(
+        {
+          name: 'Weapon',
+          value: user.equipped?.weapon
+            ? `${eqMap.get(user.equipped.weapon)?.emoji} ${eqMap.get(user.equipped.weapon)?.name}`
+            : '❌ None',
+          inline: true,
+        },
+        {
+          name: 'Armor',
+          value: user.equipped?.armor
+            ? `${eqMap.get(user.equipped.armor)?.emoji} ${eqMap.get(user.equipped.armor)?.name}`
+            : '❌ None',
+          inline: true,
+        },
+        {
+          name: 'Helmet',
+          value: user.equipped?.helmet
+            ? `${eqMap.get(user.equipped.helmet)?.emoji} ${eqMap.get(user.equipped.helmet)?.name}`
+            : '❌ None',
+          inline: true,
+        },
+        {
+          name: 'Accessory',
+          value: user.equipped?.accessory
+            ? `${eqMap.get(user.equipped.accessory)?.emoji} ${eqMap.get(user.equipped.accessory)?.name}`
+            : '❌ None',
+          inline: true,
+        },
+      );
+
+    if (equipments.length === 0) {
+      embed.addFields({ name: 'Inventory', value: 'No equipment items' });
+    }
+
+    const components: ActionRowBuilder<StringSelectMenuBuilder>[] = [];
+
+    // Select Equip
+    if (equipments.length > 0) {
+      const equipOptions = equipments.map((i) => {
+        const d = itemMap.get(i.itemId)!;
+        return {
+          label: `${d.name} x${i.qty}`,
+          value: `${d.slot}:${i.itemId}`,
+          description: `${d.rarity} • ${this.formatStats(d.stats)}`,
+          emoji: sanitizeEmoji(d.emoji),
+        };
+      });
+
+      components.push(
+        new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+          new StringSelectMenuBuilder()
+            .setCustomId(`inv_equip_select_${user.discordId}`)
+            .setPlaceholder('Equip item...')
+            .addOptions(equipOptions),
+        ),
+      );
+    }
+
+    // Select Unequip
+    const unequipOptions = [];
+    if (user.equipped?.weapon)
+      unequipOptions.push({ label: 'Weapon', value: 'weapon', emoji: '⚔️' });
+    if (user.equipped?.armor) unequipOptions.push({ label: 'Armor', value: 'armor', emoji: '🛡️' });
+    if (user.equipped?.helmet)
+      unequipOptions.push({ label: 'Helmet', value: 'helmet', emoji: '🪖' });
+    if (user.equipped?.accessory)
+      unequipOptions.push({ label: 'Accessory', value: 'accessory', emoji: '💍' });
+
+    if (unequipOptions.length > 0) {
+      components.push(
+        new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+          new StringSelectMenuBuilder()
+            .setCustomId(`inv_unequip_select_${user.discordId}`)
+            .setPlaceholder('Unequip slot...')
+            .addOptions(unequipOptions),
+        ),
+      );
+    }
+
+    return interaction.editReply({ embeds: [embed], components });
+  }
+
+  private validateEquip(user: IUser, item: IItem, slot: EquipmentSlot): string | null {
+    if (item.type !== 'equipment') return 'Item ini bukan equipment';
+    if (item.slot !== slot) return `Item ini slot ${item.slot}, bukan ${slot}`;
+
+    if (item.stats?.classLock && item.stats.classLock.length > 0) {
+      if (!item.stats.classLock.includes(user.class!)) {
+        return `Hanya class ${item.stats.classLock.join('/')} yang bisa equip ini`;
+      }
+    }
+    return null;
+  }
+
+  private formatStats(stats?: IEquipmentStat): string {
+    if (!stats) return '-';
+    const parts = [];
+    if (stats.atk) parts.push(`ATK +${stats.atk}`);
+    if (stats.def) parts.push(`DEF +${stats.def}`);
+    if (stats.hp) parts.push(`HP +${stats.hp}`);
+    if (stats.critRate) parts.push(`Crit +${(stats.critRate * 100).toFixed(0)}%`);
+    if (stats.critDmg) parts.push(`C.DMG +${((stats.critDmg - 1) * 100).toFixed(0)}%`);
+    if (stats.element && stats.element !== 'phys') parts.push(stats.element.toUpperCase());
+    return parts.join(' • ') || '-';
   }
 }

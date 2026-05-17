@@ -111,6 +111,8 @@ export class InventoryCommand extends Command {
     for (const it of pageItems) embed.addFields({ name: it.text, value: it.sub });
 
     const components: ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[] = [];
+
+    // ROW 1: Pagination - LOGIC LAMA JANGAN DIUBAH
     if (totalPages > 1) {
       components.push(
         new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -128,6 +130,23 @@ export class InventoryCommand extends Command {
       );
     }
 
+    // ROW 2: BARU - Equipment + Stats Button
+    components.push(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`inv_equip_view_${interaction.user.id}`)
+          .setLabel(t('commands/inventory:equipment', { defaultValue: 'Equipment' }))
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('⚔️'),
+        new ButtonBuilder()
+          .setCustomId(`inv_stats_${interaction.user.id}`)
+          .setLabel(t('commands/inventory:stats', { defaultValue: 'Stats' }))
+          .setStyle(ButtonStyle.Secondary)
+          .setEmoji('📊'),
+      ),
+    );
+
+    // ROW 3: Consumable Select - LOGIC LAMA JANGAN DIUBAH
     const consumables = user.items
       .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
       .slice(0, 25);

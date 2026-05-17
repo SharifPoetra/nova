@@ -13,6 +13,7 @@ import { fetchT } from '@sapphire/plugin-i18next';
 import { getRecipe, RECIPES } from '../lib/rpg/recipes';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { ACTION_COST } from '../lib/rpg/actions';
+import { getPlayerStats } from '../lib/rpg/combat';
 
 const TIER_FILTERS: Record<string, (recipe: any) => boolean> = {
   basic: (r) => r.heal <= 35,
@@ -53,6 +54,7 @@ export class CookSelectHandler extends InteractionHandler {
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (!user) return;
     applyPassiveRegen(user);
+    const stats = await getPlayerStats(user);
 
     // ===== PAGINATION =====
     if (isPrevButton || isNextButton) {
@@ -117,7 +119,7 @@ export class CookSelectHandler extends InteractionHandler {
         .setColor(0xf39c12)
         .setTitle(t('commands/cook:title', { defaultValue: '🍳 Nova Kitchen' }))
         .setDescription(
-          `${t('commands/cook:hp', { defaultValue: '❤️ HP' })}: ${user.hp}/${user.maxHp}\n` +
+          `${t('commands/cook:hp', { defaultValue: '❤️ HP' })}: ${stats.hp}/${stats.maxHp}\n` +
             `${t('commands/cook:stamina', { defaultValue: '⚡ Stamina' })}: ${user.stamina}/${user.maxStamina}\n` +
             `${t('commands/cook:cost', { cost: ACTION_COST.cook, defaultValue: `💰 Cost: -${ACTION_COST.cook} stamina` })}`,
         )
@@ -170,7 +172,7 @@ export class CookSelectHandler extends InteractionHandler {
     user.stamina -= ACTION_COST.cook;
 
     const hpBefore = user.hp;
-    user.hp = Math.min(user.maxHp ?? 100, hpBefore + recipe.heal);
+    user.hp = Math.min(stats.maxHp ?? 100, hpBefore + recipe.heal);
     const hpHealed = user.hp - hpBefore;
 
     let buffText = '';
@@ -201,7 +203,7 @@ export class CookSelectHandler extends InteractionHandler {
         {
           name: t('commands/cook:hp'),
           value:
-            hpHealed > 0 ? `${hpBefore} → ${user.hp} (+${hpHealed})` : `${user.hp}/${user.maxHp}`,
+            hpHealed > 0 ? `${hpBefore} → ${user.hp} (+${hpHealed})` : `${stats.hp}/${stats.maxHp}`,
           inline: true,
         },
         {

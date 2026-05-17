@@ -13,6 +13,7 @@ import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RECIPES } from '../../lib/rpg/recipes';
 import { ACTION_COST } from '../../lib/rpg/actions';
+import { getPlayerStats } from '../../lib/rpg/combat';
 
 const TIER_FILTERS: Record<string, (recipe: any) => boolean> = {
   basic: (r) => r.heal <= 35,
@@ -111,6 +112,7 @@ export class CookCommand extends Command {
     tier: string,
   ) {
     const t = await fetchT(interaction);
+    const stats = await getPlayerStats(user);
     const startIndex = page * 25;
     const pageRecipes = recipeList.slice(startIndex, startIndex + 25);
     const totalPages = Math.ceil(recipeList.length / 25);
@@ -164,7 +166,7 @@ export class CookCommand extends Command {
       .setColor(0xf39c12)
       .setTitle(t('commands/cook:title', { defaultValue: '🍳 Nova Kitchen' }))
       .setDescription(
-        `${t('commands/cook:hp', { defaultValue: '❤️ HP' })}: ${user.hp}/${user.maxHp}\n` +
+        `${t('commands/cook:hp', { defaultValue: '❤️ HP' })}: ${stats.hp}/${stats.maxHp}\n` +
           `${t('commands/cook:stamina', { defaultValue: '⚡ Stamina' })}: ${user.stamina}/${user.maxStamina}\n` +
           `${t('commands/cook:cost', { cost: ACTION_COST.cook, defaultValue: `💰 Cost: -${ACTION_COST.cook} stamina` })}`,
       )
