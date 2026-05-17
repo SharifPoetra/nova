@@ -35,7 +35,7 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 - [x] **3.1** `/inventory` tambah select menu: `equip`, `unequip`, dan tampilin `stats`
 - [x] **2.5** Test: equip `iron_sword`, damage harus naik
 - [x] **3.2** `/inventory equip weapon:iron_sword` → validasi `classLock`, `type === 'weapon'`
-- [ ] **3.3** `/profile` tampilin equipment + total atk
+- [x] **3.3** `/profile` tampilin equipment + total atk
 - [x] **3.4** Commit: `feat(inventory): add equip system`
 
 ## Phase 4: Hunt, Fish, Explore - 2 hari

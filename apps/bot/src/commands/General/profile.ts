@@ -7,6 +7,7 @@ import { getClass } from '../../lib/rpg/classes';
 import { BASE_MONSTERS } from '../../lib/rpg/monsters';
 import { getExpNeeded } from '../../lib/rpg/leveling';
 import { colorBar } from '../../lib/utils';
+import { getPlayerStats } from '../../lib/rpg/combat';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',
@@ -66,9 +67,10 @@ export class ProfileCommand extends Command {
         userData.buffs = (userData.buffs || []).filter((b) => new Date(b.expires) > new Date());
       }
 
+      const stats = await getPlayerStats(userData);
       const now = Date.now();
-      const hp = userData.hp ?? 100;
-      const maxHp = userData.maxHp ?? 100;
+      const hp = stats.hp;
+      const maxHp = stats.maxHp;
       const stamina = userData.stamina ?? 100;
       const maxStamina = userData.maxStamina ?? 100;
       const level = userData.level ?? 1;
@@ -99,10 +101,36 @@ export class ProfileCommand extends Command {
             .join('\n')
         : t('commands/profile:no_buffs', { defaultValue: 'None' });
 
-      const atkDisplay =
-        bonusAtk > 0
-          ? `**${userData.attack ?? 10}** (+${bonusAtk}) 🔥`
-          : `**${userData.attack ?? 10}**`;
+      const atkDisplay = bonusAtk > 0 ? `**${stats.atk}** (+${bonusAtk}) 🔥` : `**${stats.atk}**`;
+
+      const equippedIds = [
+        userData.equipped?.weapon,
+        userData.equipped?.armor,
+        userData.equipped?.helmet,
+        userData.equipped?.accessory,
+      ].filter(Boolean) as string[];
+
+      const equippedData = equippedIds.length
+        ? await this.container.db.item.find({ itemId: { $in: equippedIds } }).lean()
+        : [];
+      const eqMap = new Map(equippedData.map((i) => [i.itemId, i]));
+
+      const weapon = userData.equipped?.weapon ? eqMap.get(userData.equipped.weapon) : null;
+      const armor = userData.equipped?.armor ? eqMap.get(userData.equipped.armor) : null;
+      const helmet = userData.equipped?.helmet ? eqMap.get(userData.equipped.helmet) : null;
+      const accessory = userData.equipped?.accessory
+        ? eqMap.get(userData.equipped.accessory)
+        : null;
+
+      const equipText =
+        [
+          weapon ? `${weapon.emoji} ${weapon.name}` : null,
+          armor ? `${armor.emoji} ${armor.name}` : null,
+          helmet ? `${helmet.emoji} ${helmet.name}` : null,
+          accessory ? `${accessory.emoji} ${accessory.name}` : null,
+        ]
+          .filter(Boolean)
+          .join(' • ') || t('commands/profile:no_equipment', { defaultValue: 'None' });
 
       const nextUnlock = BASE_MONSTERS.filter((m) => m.minLevel > level).sort(
         (a, b) => a.minLevel - b.minLevel,
@@ -172,6 +200,26 @@ export class ProfileCommand extends Command {
             name: t('commands/profile:attack', { defaultValue: '🗡️ Attack' }),
             value: atkDisplay,
             inline: true,
+          },
+          {
+            name: '🛡️ DEF',
+            value: `**${stats.def}**`,
+            inline: true,
+          },
+          {
+            name: '💥 Crit',
+            value: `**${(stats.critRate * 100).toFixed(0)}%** / **${(stats.critDmg * 100).toFixed(0)}%**`,
+            inline: true,
+          },
+          {
+            name: '\u200b',
+            value: '\u200b',
+            inline: true,
+          },
+          {
+            name: t('commands/profile:equipment', { defaultValue: '⚔️ Equipment' }),
+            value: equipText,
+            inline: false,
           },
           {
             name: t('commands/profile:buffs', { defaultValue: '✨ Active Buffs' }),
