@@ -32,6 +32,7 @@ import {
   getMerchantButtons,
 } from '../../lib/rpg/dungeon/dungeon-ui';
 import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle';
+import { getPlayerStats } from '../../lib/rpg/combat';
 
 @ApplyOptions<Command.Options>({
   name: 'dungeon',
@@ -93,6 +94,8 @@ export class DungeonCommand extends Command {
       (await dungeonModel.findOne({ discordId: player.discordId })) ??
       (await dungeonModel.create({ discordId: player.discordId }));
 
+    const stats = await getPlayerStats(player);
+
     if (action === 'status') {
       await player.save();
       const lore = getFloorLore(dungeonData.currentFloor);
@@ -111,7 +114,7 @@ export class DungeonCommand extends Command {
                 `${t('commands/dungeon:highest', { defaultValue: 'Highest' })}: ${dungeonData.highestFloor}/100
 ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoint}
 ` +
-                `HP ${ratioBar(player.hp, player.maxHp)} ${player.hp}/${player.maxHp}
+                `HP ${ratioBar(stats.hp, stats.maxHp)} ${stats.hp}/${stats.maxHp}
 ` +
                 `Stamina ${colorBar(player.stamina, player.maxStamina, 10, '🟨', '⬛')} ${player.stamina}/${player.maxStamina}
 ` +
@@ -141,7 +144,7 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
         }),
         flags: MessageFlags.Ephemeral,
       });
-    if (player.hp <= 0)
+    if (stats.hp <= 0)
       return interaction.reply({
         content: t('commands/dungeon:hp_zero', { defaultValue: '❤️ HP 0' }),
         flags: MessageFlags.Ephemeral,
@@ -159,23 +162,25 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
     let floorMonster = getMonster(currentFloor);
     let isBossFloor = floorMonster.isBoss;
 
-    const buildEmbed = () =>
-      buildMainEmbed({
+    const buildEmbed = async () => {
+      const s = await getPlayerStats(player);
+      return buildMainEmbed({
         floor: currentFloor,
         state: runState,
         zone,
         lore,
-        playerHp: player.hp,
-        playerMaxHp: player.maxHp,
+        playerHp: s.hp,
+        playerMaxHp: s.maxHp,
         playerStamina: player.stamina,
         playerMaxStamina: player.maxStamina,
         highestFloor: dungeonData.highestFloor,
         isBoss: isBossFloor,
         t,
       });
+    };
 
     const response = await interaction.reply({
-      embeds: [buildEmbed()],
+      embeds: [await buildEmbed()],
       components: [getMainButtons(t)],
       withResponse: true,
     });
@@ -191,6 +196,7 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
 
     collector.on('collect', async (button) => {
       await button.deferUpdate();
+      const s = await getPlayerStats(player);
 
       if (button.customId === 'flee') {
         const checkpoint = getCheckpoint(currentFloor);
@@ -206,8 +212,8 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
           state: runState,
           zone,
           checkpoint,
-          playerHp: player.hp,
-          playerMaxHp: player.maxHp,
+          playerHp: s.hp,
+          playerMaxHp: s.maxHp,
           playerStamina: player.stamina,
           playerMaxStamina: player.maxStamina,
           t,
@@ -222,8 +228,8 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
           zone,
           lore,
           isBoss: isBossFloor,
-          playerHp: player.hp,
-          playerMaxHp: player.maxHp,
+          playerHp: s.hp,
+          playerMaxHp: s.maxHp,
           t,
         });
         return button.editReply({ embeds: [mapEmbed], components: [getMainButtons(t)] });
@@ -246,7 +252,7 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
         dungeonData.floorState = createRunState(currentFloor);
         await dungeonData.save();
         runState = dungeonData.floorState as RunState;
-        return button.editReply({ embeds: [buildEmbed()], components: [getMainButtons(t)] });
+        return button.editReply({ embeds: [await buildEmbed()], components: [getMainButtons(t)] });
       }
 
       if (button.customId === 'stop') {
@@ -271,7 +277,7 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
         collector.stop();
         return button.editReply({
           content: t('commands/dungeon:stamina_out'),
-          embeds: [buildEmbed()],
+          embeds: [await buildEmbed()],
           components: [],
         });
       }
@@ -350,7 +356,7 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
 
           return button.editReply({
             embeds: [
-              buildEmbed()
+              (await buildEmbed())
                 .setTitle(
                   t('commands/dungeon:lost_title', {
                     floor: currentFloor,
@@ -380,16 +386,14 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
           ? (BOSS_DROPS[floorMonster.base] ?? BOSS_DROPS.guardian)
           : (DUNGEON_DROPS[floorMonster.base] ?? DUNGEON_DROPS.slime);
 
-        const dropChance = isBossFloor ? 1.0 : isElite ? 0.15 : 0.03; // Boss 100%, Elite 15%, Normal 3%
+        const dropChance = isBossFloor ? 1.0 : isElite ? 0.15 : 0.03;
         if (Math.random() < dropChance) {
           const weights = { Common: 60, Uncommon: 25, Rare: 10, Epic: 4, Legendary: 1, Mythic: 0 };
           const weighted = pool.flatMap((d) => Array(weights[d.rarity] || 1).fill(d));
           const drop = weighted[Math.floor(Math.random() * weighted.length)];
 
-          // Save ke Item DB
           await itemModel.updateOne({ itemId: drop.id }, { $set: drop }, { upsert: true });
 
-          // Add ke inventory
           const inv = player.items.find((x) => x.itemId === drop.id);
           if (inv) inv.qty++;
           else player.items.push({ itemId: drop.id, qty: 1 });
@@ -435,6 +439,7 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
           );
         }
       } else if (event.type === 'trap') {
+        const s2 = await getPlayerStats(player);
         const damage = Math.abs(event.effect?.hp ?? 15 + currentFloor);
         player.hp = Math.max(1, player.hp - damage);
         runState.taken += damage;
@@ -453,8 +458,9 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
           );
         }
       } else if (event.type === 'heal') {
+        const s2 = await getPlayerStats(player);
         const heal = event.effect?.hp ?? 30;
-        player.hp = Math.min(player.maxHp, player.hp + heal);
+        player.hp = Math.min(s2.maxHp, player.hp + heal);
         if (event.effect?.stamina) {
           player.stamina = Math.min(player.maxStamina, player.stamina + event.effect.stamina);
           runState.log.push(
@@ -470,8 +476,9 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
           );
         }
       } else if (event.type === 'puzzle') {
+        const s2 = await getPlayerStats(player);
         if (event.effect?.hp) {
-          player.hp = Math.min(player.maxHp, player.hp + event.effect.hp);
+          player.hp = Math.min(s2.maxHp, player.hp + event.effect.hp);
           runState.log.push(
             t('commands/dungeon:puzzle_hp', {
               hp: event.effect.hp,
@@ -503,6 +510,7 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
         const cost = baseCost + Math.floor(currentFloor * 2.5);
         const heal = 30 + Math.floor(currentFloor * 1.5);
         const canAfford = player.balance >= cost;
+        const s2 = await getPlayerStats(player);
 
         const merchantEmbed = buildMerchantEmbed({
           text: event.text,
@@ -530,7 +538,7 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
         if (choice) await choice.deferUpdate();
         if (choice?.customId === 'buy' && player.balance >= cost) {
           player.balance -= cost;
-          player.hp = Math.min(player.maxHp, player.hp + heal);
+          player.hp = Math.min(s2.maxHp, player.hp + heal);
           runState.log.push(
             t('commands/dungeon:bought', {
               heal,
@@ -588,7 +596,7 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
         await player.save();
         await dungeonData.save();
 
-        const clearEmbed = buildEmbed()
+        const clearEmbed = (await buildEmbed())
           .setTitle(
             t('commands/dungeon:clear_title', {
               floor: currentFloor,
@@ -609,7 +617,7 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
         });
       }
 
-      await button.editReply({ embeds: [buildEmbed()], components: [getMainButtons(t)] });
+      await button.editReply({ embeds: [await buildEmbed()], components: [getMainButtons(t)] });
     });
 
     collector.on('end', async () => {

@@ -62,9 +62,10 @@ export class HuntCommand extends Command {
       );
     }
 
-    if ((user.hp ?? 0) < 20) {
+    const statsCheck = await getPlayerStats(user);
+    if (statsCheck.hp < 20) {
       await user.save();
-      return interaction.editReply(t('commands/hunt:low_hp', { hp: user.hp }));
+      return interaction.editReply(t('commands/hunt:low_hp', { hp: statsCheck.hp }));
     }
 
     user.stamina -= ACTION_COST.hunt;
@@ -125,11 +126,10 @@ export class HuntCommand extends Command {
         }),
       );
 
-    // === FIX: Pake 1 variable stats aja ===
     let currentStats: PlayerStats;
 
     const updateEmbed = async (showButtons = true) => {
-      currentStats = await getPlayerStats(user); // <-- update terus
+      currentStats = await getPlayerStats(user);
 
       const atkBuff = currentStats.activeBuffs.find((b) => b.type === 'atk');
       const buffInfo = atkBuff ? ` • 🔥 ATK +${Math.floor(atkBuff.value * 100)}%` : '';
@@ -249,7 +249,7 @@ export class HuntCommand extends Command {
 
             const result = playerSkill.use(ctx);
             mHp = Math.max(0, mHp - result.damage);
-            // === FIX: pake currentStats, bukan stats ===
+
             user.hp = Math.min(currentStats.maxHp, user.hp + result.heal);
             totalDealt += result.damage;
 
@@ -271,7 +271,7 @@ export class HuntCommand extends Command {
         mDmg -= blocked;
       }
       mDmg = Math.max(1, mDmg - currentStats.def);
-      user.hp = Math.max(0, user.hp - mDmg); // <-- update user.hp langsung
+      user.hp = Math.max(0, user.hp - mDmg);
       totalTaken += mDmg;
 
       log.push(
@@ -282,7 +282,6 @@ export class HuntCommand extends Command {
         }),
       );
 
-      // Clamp HP
       user.hp = Math.min(user.hp, currentStats.maxHp);
 
       tickBuffs(user);
@@ -395,7 +394,6 @@ export class HuntCommand extends Command {
       .setFields(
         { name: t('commands/hunt:field_coin'), value: `+${monster.xp * 2}`, inline: true },
         { name: t('commands/hunt:field_exp'), value: `+${monster.xp}`, inline: true },
-        // === FIX: pake finalStats ===
         {
           name: t('commands/hunt:field_hp'),
           value: `${finalStats.hp}/${finalStats.maxHp}`,
