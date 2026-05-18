@@ -198,7 +198,9 @@ export class InventoryCommand extends Command {
 
           await interaction.editReply({ embeds: [expiredEmbed], components: [] });
           this.container.invCache.delete(msg.id);
-        } catch {}
+        } catch {
+          /* ignore */
+        }
       },
       5 * 60 * 1000,
     );
