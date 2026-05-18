@@ -64,7 +64,9 @@ export class ProfileCommand extends Command {
         applyPassiveRegen(userData);
         await userData.save();
       } else {
-        userData.buffs = (userData.buffs || []).filter((b) => new Date(b.expires ?? 0) > new Date());
+        userData.buffs = (userData.buffs || []).filter(
+          (b) => new Date(b.expires ?? 0) > new Date(),
+        );
       }
 
       const stats = await getPlayerStats(userData);
@@ -88,12 +90,17 @@ export class ProfileCommand extends Command {
       });
 
       const bonusAtk = getAtkBuff(userData);
-      const activeBuffs = (userData.buffs || []).filter((b) => new Date(b.expires ?? 0) > new Date());
+      const activeBuffs = (userData.buffs || []).filter(
+        (b) => new Date(b.expires ?? 0) > new Date(),
+      );
 
       const buffText = activeBuffs.length
         ? activeBuffs
             .map((b) => {
-              const mins = Math.max(0, Math.ceil((new Date(b.expires ?? 0).getTime() - now) / 60000));
+              const mins = Math.max(
+                0,
+                Math.ceil((new Date(b.expires ?? 0).getTime() - now) / 60000),
+              );
               const icon = b.type === 'atk' ? '⚔️' : b.type === 'stamina_regen' ? '⚡' : '✨';
               const label = t(`commands/profile:buff_${b.type}`, { defaultValue: b.type });
               return `${icon} ${label} +${b.value} (${mins}m)`;
