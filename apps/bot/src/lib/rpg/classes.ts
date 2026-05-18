@@ -1,6 +1,7 @@
 export interface ClassData {
   name: string;
   emoji: string;
+  color: number;
   baseHp: number;
   baseAtk: number;
   baseCritRate: number;
@@ -13,6 +14,7 @@ export const CLASSES: Record<string, ClassData> = {
   warrior: {
     name: 'Warrior',
     emoji: '⚔️',
+    color: 0xe74c3c,
     baseHp: 120,
     baseAtk: 12,
     baseCritRate: 0.05,
@@ -23,6 +25,7 @@ export const CLASSES: Record<string, ClassData> = {
   mage: {
     name: 'Mage',
     emoji: '🔮',
+    color: 0x3498db,
     baseHp: 80,
     baseAtk: 15,
     baseCritRate: 0.03,
@@ -32,6 +35,7 @@ export const CLASSES: Record<string, ClassData> = {
   rogue: {
     name: 'Rogue',
     emoji: '🗡️',
+    color: 0x2ecc71,
     baseHp: 90,
     baseAtk: 14,
     baseCritRate: 0.15,
@@ -40,13 +44,11 @@ export const CLASSES: Record<string, ClassData> = {
   },
 };
 
-// === JANGAN DIHAPUS: Function ini dipake command lama ===
 export function getClass(className: 'warrior' | 'mage' | 'rogue' | null): ClassData | null {
   if (!className) return null;
   return CLASSES[className] ?? null;
 }
 
-// === HELPER BARU buat Phase 2 ===
 export function getClassSkillId(className: 'warrior' | 'mage' | 'rogue'): string {
   return CLASSES[className].skillId;
 }
