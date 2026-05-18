@@ -178,7 +178,7 @@ export class CookSelectHandler extends InteractionHandler {
     let buffText = '';
     if (recipe.buff) {
       user.buffs = (user.buffs || []).filter(
-        (b) => new Date(b.expires) > new Date() && b.type !== recipe.buff!.type,
+        (b) => new Date(b.expires ?? 0) > new Date() && b.type !== recipe.buff!.type,
       );
       user.buffs.push({
         type: recipe.buff.type,
