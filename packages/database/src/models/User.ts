@@ -46,7 +46,7 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
-const UserSchema = new Schema(
+const UserSchema = new Schema<IUser>(
   {
     discordId: { type: String, required: true, unique: true, index: true },
     username: { type: String, required: true },
@@ -99,4 +99,4 @@ const UserSchema = new Schema(
   { timestamps: true },
 );
 
-export const User = model('User', UserSchema);
+export const User = model<IUser>('User', UserSchema);
