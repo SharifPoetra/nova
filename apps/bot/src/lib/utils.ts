@@ -52,6 +52,8 @@ export const RARITY_COLOR = {
   Mythic: 0xe74c3c,
 } as const;
 
+export const RARITY_ORDER = ['Mythic', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'] as const;
+
 export type Rarity = keyof typeof RARITY_COLOR;
 
 export const RARITY_EMOJI: Record<Rarity, string> = {
