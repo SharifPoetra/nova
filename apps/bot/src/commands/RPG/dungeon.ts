@@ -107,18 +107,15 @@ export class DungeonCommand extends Command {
           new EmbedBuilder()
             .setTitle(t('commands/dungeon:title', { defaultValue: '🗼 Tower of Stars' }))
             .setDescription(
-              `**${t('commands/dungeon:floor_label', { floor: dungeonData.currentFloor, defaultValue: `Floor ${dungeonData.currentFloor}` })}** • ${zone}
+              `
+**${t('commands/dungeon:floor_label', { floor: dungeonData.currentFloor, defaultValue: `Floor ${dungeonData.currentFloor}` })}** • ${zone}
 *${lore}*
-
-` +
-                `${t('commands/dungeon:highest', { defaultValue: 'Highest' })}: ${dungeonData.highestFloor}/100
+${t('commands/dungeon:highest', { defaultValue: 'Highest' })}: ${dungeonData.highestFloor}/100
 ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoint}
-` +
-                `HP ${ratioBar(stats.hp, stats.maxHp)} ${stats.hp}/${stats.maxHp}
-` +
-                `Stamina ${colorBar(player.stamina, player.maxStamina, 10, '🟨', '⬛')} ${player.stamina}/${player.maxStamina}
-` +
-                `${dungeonData.inRun ? t('commands/dungeon:in_run', { defaultValue: '⚠️ Currently in a run!' }) : ''}`,
+HP ${ratioBar(stats.hp, stats.maxHp)} ${stats.hp}/${stats.maxHp}
+Stamina ${colorBar(player.stamina, player.maxStamina, 10, '🟨', '⬛')} ${player.stamina}/${player.maxStamina}
+${dungeonData.inRun ? t('commands/dungeon:in_run', { defaultValue: '⚠️ Currently in a run!' }) : ''}
+            `,
             )
             .setColor(0x9b59b6),
         ],
@@ -385,11 +382,41 @@ ${t('commands/dungeon:checkpoint', { defaultValue: 'Checkpoint' })}: ${checkpoin
         const pool = isBossFloor
           ? (BOSS_DROPS[floorMonster.base] ?? BOSS_DROPS.guardian)
           : (DUNGEON_DROPS[floorMonster.base] ?? DUNGEON_DROPS.slime);
+        console.log({
+          floor: currentFloor,
+          room: runState.current,
+          monster: floorMonster.name,
+          isBoss: floorMonster.isBoss,
+          base: floorMonster.base,
+          poolType: floorMonster.isBoss ? 'BOSS' : 'NORMAL',
+          actualPool: (floorMonster.isBoss ? BOSS_DROPS : DUNGEON_DROPS)[floorMonster.base].map(
+            (i) => i.name,
+          ),
+        });
 
-        const dropChance = isBossFloor ? 1.0 : isElite ? 0.15 : 0.03;
-        if (Math.random() < dropChance) {
+        // === 1. MATERIAL DROP CHANCE - Lebih tinggi dari equip ===
+        const materials = pool.filter((d) => d.type === 'material');
+        const materialChance = isBossFloor ? 1.0 : isElite ? 0.75 : 0.4; // 40% normal, 75% elite, 100% boss
+
+        if (materials.length && Math.random() < materialChance) {
+          const mat = materials[Math.floor(Math.random() * materials.length)];
+          const qty = isBossFloor ? 3 : isElite ? 2 : 1;
+
+          await itemModel.updateOne({ itemId: mat.id }, { $set: mat }, { upsert: true });
+          const inv = player.items.find((x) => x.itemId === mat.id);
+          if (inv) inv.qty += qty;
+          else player.items.push({ itemId: mat.id, qty });
+
+          runState.log.push(`📦 ${mat.emoji} ${mat.name} x${qty}`);
+        }
+
+        // === 2. EQUIPMENT/CONSUMABLE DROP CHANCE ===
+        const equipPool = pool.filter((d) => d.type === 'equipment' || d.type === 'consumable');
+        const dropChance = isBossFloor ? 1.0 : isElite ? 0.4 : 0.2;
+
+        if (equipPool.length && Math.random() < dropChance) {
           const weights = { Common: 60, Uncommon: 25, Rare: 10, Epic: 4, Legendary: 1, Mythic: 0 };
-          const weighted = pool.flatMap((d) => Array(weights[d.rarity] || 1).fill(d));
+          const weighted = equipPool.flatMap((d) => Array(weights[d.rarity] || 1).fill(d));
           const drop = weighted[Math.floor(Math.random() * weighted.length)];
 
           await itemModel.updateOne({ itemId: drop.id }, { $set: drop }, { upsert: true });
