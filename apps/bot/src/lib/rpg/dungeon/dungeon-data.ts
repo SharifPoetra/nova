@@ -1,5 +1,6 @@
 import type { Rarity } from '../../utils';
 import type { IEquipmentStat, EquipmentSlot } from '@nova/db';
+import { EQUIPMENTS } from '../equipments';
 
 export type DropItem = {
   id: string;
@@ -147,7 +148,6 @@ export const BOSSES: Record<number, { name: string; emoji: string; title: string
   100: { name: 'Nova Prime', emoji: '🌟', title: 'Puncak Menara' },
 };
 
-// === DROP NORMAL MONSTER: 3% chance equipment ===
 export const DUNGEON_DROPS: Record<string, DropItem[]> = {
   slime: [
     {
@@ -168,17 +168,7 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       type: 'material',
       description: 'Inti berlendir sumber kehidupan slime',
     },
-    {
-      id: 'slime_boots',
-      name: 'Slime Boots',
-      emoji: '👢🟢',
-      rarity: 'Common',
-      sellPrice: 60,
-      type: 'equipment',
-      description: 'Sepatu dari lendir. Licin tapi nambah HP.',
-      slot: 'armor', // <-- TODO: bikin slot boots
-      stats: { hp: 10 },
-    },
+    { ...EQUIPMENTS.slime_boots },
     {
       id: 'gooey_jelly',
       name: 'Gooey Jelly',
@@ -209,17 +199,7 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       type: 'material',
       description: 'Pecahan batu biasa',
     },
-    {
-      id: 'iron_gauntlet',
-      name: 'Iron Gauntlet',
-      emoji: '🧤⚙️',
-      rarity: 'Uncommon',
-      sellPrice: 120,
-      type: 'equipment',
-      description: 'Sarung tangan besi. +ATK',
-      slot: 'accessory',
-      stats: { atk: 5, def: 1, classLock: ['warrior'] },
-    },
+    { ...EQUIPMENTS.iron_gauntlet },
     {
       id: 'golem_heart',
       name: 'Golem Heart',
@@ -240,17 +220,7 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       type: 'material',
       description: 'Esensi kehampaan dari specter',
     },
-    {
-      id: 'specter_hood',
-      name: 'Specter Hood',
-      emoji: '👻🎩',
-      rarity: 'Rare',
-      sellPrice: 200,
-      type: 'equipment',
-      description: 'Tudung hantu. +Crit Rate',
-      slot: 'helmet',
-      stats: { critRate: 0.08, hp: 15, classLock: ['rogue', 'mage'] },
-    },
+    { ...EQUIPMENTS.specter_hood },
     {
       id: 'ectoplasm',
       name: 'Ectoplasm',
@@ -271,17 +241,7 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       type: 'material',
       description: 'Sisik drake tahan api',
     },
-    {
-      id: 'drake_claw_dagger',
-      name: 'Drake Claw Dagger',
-      emoji: '🗡️🐲',
-      rarity: 'Rare',
-      sellPrice: 250,
-      type: 'equipment',
-      description: 'Belati dari cakar drake. +ATK +Crit',
-      slot: 'weapon',
-      stats: { atk: 12, critRate: 0.05, critDmg: 0.2, classLock: ['rogue'] },
-    },
+    { ...EQUIPMENTS.drake_claw_dagger },
     {
       id: 'charred_bone',
       name: 'Charred Bone',
@@ -302,17 +262,7 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       type: 'material',
       description: 'Kristal es abadi',
     },
-    {
-      id: 'warden_cape',
-      name: 'Warden Cape',
-      emoji: '🧥❄️',
-      rarity: 'Epic',
-      sellPrice: 500,
-      type: 'equipment',
-      description: 'Jubah warden. +HP +DEF',
-      slot: 'armor',
-      stats: { hp: 40, def: 6, classLock: ['warrior', 'mage'] },
-    },
+    { ...EQUIPMENTS.warden_cape },
     {
       id: 'ice_shard',
       name: 'Ice Shard',
@@ -333,17 +283,7 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
       type: 'material',
       description: 'Fragmen dari bintang jatuh',
     },
-    {
-      id: 'star_blade',
-      name: 'Star Blade',
-      emoji: '⚔️⭐',
-      rarity: 'Epic',
-      sellPrice: 800,
-      type: 'equipment',
-      description: 'Pedang dari bintang. +ATK +CritDmg',
-      slot: 'weapon',
-      stats: { atk: 20, critRate: 0.05, critDmg: 0.3, classLock: ['warrior', 'rogue'] },
-    },
+    { ...EQUIPMENTS.star_blade },
     {
       id: 'stardust',
       name: 'Stardust',
@@ -356,20 +296,9 @@ export const DUNGEON_DROPS: Record<string, DropItem[]> = {
   ],
 };
 
-// === BOSS DROP: 100% equipment + stats lengkap ===
 export const BOSS_DROPS: Record<string, DropItem[]> = {
   slime: [
-    {
-      id: 'slime_crown',
-      name: 'Slime Crown',
-      emoji: '👑',
-      rarity: 'Rare',
-      sellPrice: 150,
-      type: 'equipment',
-      description: 'Mahkota asli Raja Slime. Lengket tapi bawa hoki + HP.',
-      slot: 'helmet',
-      stats: { hp: 20, critRate: 0.05 },
-    },
+    { ...EQUIPMENTS.slime_crown },
     {
       id: 'royal_jelly',
       name: 'Royal Jelly',
@@ -382,17 +311,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
     },
   ],
   golem: [
-    {
-      id: 'obsidian_plate',
-      name: 'Obsidian Plate',
-      emoji: '⬛',
-      rarity: 'Epic',
-      sellPrice: 280,
-      type: 'equipment',
-      description: 'Pelat obsidian super keras',
-      slot: 'armor',
-      stats: { hp: 50, def: 5 },
-    },
+    { ...EQUIPMENTS.obsidian_plate },
     {
       id: 'heart_of_crystal',
       name: 'Heart of Crystal',
@@ -403,30 +322,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       description: 'Jantung kristal murni',
     },
   ],
-  specter: [
-    {
-      id: 'reaper_scythe',
-      name: 'Reaper Scythe',
-      emoji: '☠️',
-      rarity: 'Epic',
-      sellPrice: 450,
-      type: 'equipment',
-      description: 'Sabit pencabut nyawa',
-      slot: 'weapon',
-      stats: { atk: 25, critRate: 0.1, critDmg: 0.5, classLock: ['rogue'] },
-    },
-    {
-      id: 'void_crown',
-      name: 'Void Crown',
-      emoji: '👑🌫️',
-      rarity: 'Legendary',
-      sellPrice: 800,
-      type: 'equipment',
-      description: 'Mahkota kehampaan',
-      slot: 'helmet',
-      stats: { atk: 15, critRate: 0.15, hp: 30 },
-    },
-  ],
+  specter: [{ ...EQUIPMENTS.reaper_scythe }, { ...EQUIPMENTS.void_crown }],
   drake: [
     {
       id: 'inferno_fang',
@@ -447,30 +343,10 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
       description: 'Jantung naga, pulihkan 80 stamina',
       effects: [{ type: 'stamina', value: 80 }],
     },
-    {
-      id: 'inferno_staff',
-      name: 'Inferno Staff',
-      emoji: '🔥🪄',
-      rarity: 'Legendary',
-      sellPrice: 1000,
-      type: 'equipment',
-      description: 'Tongkat api naga. +ATK +CritDmg',
-      slot: 'weapon',
-      stats: { atk: 30, critDmg: 0.4, classLock: ['mage'] },
-    },
+    { ...EQUIPMENTS.inferno_staff },
   ],
   warden: [
-    {
-      id: 'warden_chain',
-      name: 'Warden Chain',
-      emoji: '⛓️',
-      rarity: 'Epic',
-      sellPrice: 500,
-      type: 'equipment',
-      description: 'Rantai penjaga yang tak terpatahkan',
-      slot: 'accessory',
-      stats: { def: 8, hp: 40 },
-    },
+    { ...EQUIPMENTS.warden_chain },
     {
       id: 'absolute_shard',
       name: 'Absolute Shard',
@@ -523,17 +399,7 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
         { type: 'stamina', value: 50 },
       ],
     },
-    {
-      id: 'nova_blade',
-      name: 'Nova Blade',
-      emoji: '🌟⚔️',
-      rarity: 'Mythic',
-      sellPrice: 5000,
-      type: 'equipment',
-      description: 'Pedang dari inti nova. +ATK +Crit +HP',
-      slot: 'weapon',
-      stats: { atk: 40, critRate: 0.1, critDmg: 0.5, hp: 50 },
-    },
+    { ...EQUIPMENTS.nova_blade },
   ],
 };
 

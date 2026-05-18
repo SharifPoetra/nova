@@ -1,5 +1,4 @@
 import { getClass } from './classes';
-import { getEquipment } from './equipment';
 import { getPassiveSkills, getSkill, SkillData } from './skills';
 import { Item } from '@nova/db';
 import type { IUser, IEquipmentStat } from '@nova/db';
