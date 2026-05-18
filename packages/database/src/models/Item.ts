@@ -5,18 +5,22 @@ export interface IItemEffect {
   value: number;
 }
 
-export type EquipmentSlot = 'weapon' | 'helmet' | 'armor' | 'accessory';
+export type EquipmentSlot = 'weapon' | 'helmet' | 'armor' | 'accessory' | 'tool';
+
 export type Element = 'phys' | 'fire' | 'ice' | 'light' | 'dark';
 
 export interface IEquipmentStat {
   atk?: number;
   hp?: number;
   def?: number;
-  critRate?: number; // 0.05 = 5%
-  critDmg?: number; // 2.0 = 200%
+  critRate?: number;
+  critDmg?: number;
   element?: Element;
   grantsSkill?: string;
   classLock?: ('warrior' | 'mage' | 'rogue')[];
+  fishBonus?: number;
+  mineBonus?: number;
+  gatherBonus?: number;
 }
 
 export interface IItem extends Document {
@@ -53,7 +57,7 @@ const ItemSchema = new Schema(
     ],
     slot: {
       type: String,
-      enum: ['weapon', 'helmet', 'armor', 'accessory'],
+      enum: ['weapon', 'helmet', 'armor', 'accessory', 'tool'],
       required: function () {
         return this.type === 'equipment';
       },
@@ -68,6 +72,9 @@ const ItemSchema = new Schema(
         element: { type: String, enum: ['phys', 'fire', 'ice', 'light', 'dark'] },
         grantsSkill: String,
         classLock: [{ type: String, enum: ['warrior', 'mage', 'rogue'] }],
+        fishBonus: Number,
+        mineBonus: Number,
+        gatherBonus: Number,
       },
       required: false,
     },
@@ -75,4 +82,4 @@ const ItemSchema = new Schema(
   { timestamps: true },
 );
 
-export const Item = model<IItem>('Item', ItemSchema);
+export const Item = model('Item', ItemSchema);

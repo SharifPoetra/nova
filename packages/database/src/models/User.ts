@@ -16,6 +16,7 @@ export interface IEquipped {
   helmet: string | null;
   armor: string | null;
   accessory: string | null;
+  tool: string | null;
 }
 
 export interface IUser extends Document {
@@ -40,12 +41,12 @@ export interface IUser extends Document {
   items: { itemId: string; qty: number }[];
   buffs: IBuff[];
   equipped: IEquipped;
-  skillCooldowns: Map<string, number>; // <-- TAMBAH: { rage: 3, fireball: 0 }
+  skillCooldowns: Map<string, number>;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const UserSchema = new Schema<IUser>(
+const UserSchema = new Schema(
   {
     discordId: { type: String, required: true, unique: true, index: true },
     username: { type: String, required: true },
@@ -67,10 +68,7 @@ const UserSchema = new Schema<IUser>(
     maxStamina: { type: Number, default: 100 },
     items: {
       type: [
-        {
-          itemId: { type: String, required: true },
-          qty: { type: Number, default: 0, min: 0 },
-        },
+        { itemId: { type: String, required: true }, qty: { type: Number, default: 0, min: 0 } },
       ],
       default: [],
     },
@@ -92,16 +90,13 @@ const UserSchema = new Schema<IUser>(
         helmet: { type: String, default: null },
         armor: { type: String, default: null },
         accessory: { type: String, default: null },
+        tool: { type: String, default: null },
       },
-      default: { weapon: null, helmet: null, armor: null, accessory: null },
+      default: { weapon: null, helmet: null, armor: null, accessory: null, tool: null },
     },
-    skillCooldowns: {
-      type: Map,
-      of: Number,
-      default: {},
-    },
+    skillCooldowns: { type: Map, of: Number, default: {} },
   },
   { timestamps: true },
 );
 
-export const User = model<IUser>('User', UserSchema);
+export const User = model('User', UserSchema);

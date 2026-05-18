@@ -97,9 +97,15 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
     availableSkills: [],
   };
 
-  const eq = user.equipped ?? { weapon: null, helmet: null, armor: null, accessory: null };
-  const equipIds = [eq.weapon, eq.helmet, eq.armor, eq.accessory];
-  const eqStats = await sumEquipmentStats(equipIds); // <-- hapus user.db
+  const eq = user.equipped ?? {
+    weapon: null,
+    helmet: null,
+    armor: null,
+    accessory: null,
+    tool: null,
+  };
+  const equipIds = [eq.weapon, eq.helmet, eq.armor, eq.accessory, eq.tool];
+  const eqStats = await sumEquipmentStats(equipIds);
 
   stats.atk += eqStats.atk ?? 0;
   stats.maxHp += eqStats.hp ?? 0;

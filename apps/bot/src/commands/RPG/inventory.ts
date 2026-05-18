@@ -112,7 +112,6 @@ export class InventoryCommand extends Command {
 
     const components: ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>[] = [];
 
-    // ROW 1: Pagination
     if (totalPages > 1) {
       components.push(
         new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -130,21 +129,27 @@ export class InventoryCommand extends Command {
       );
     }
 
-    // ROW 2: Equipment View
     components.push(
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
-          .setCustomId(`inv_equip_view_${interaction.user.id}`)
+          .setCustomId(`inv_equip_view_${interaction.user.id}_0`)
           .setLabel(t('commands/inventory:equipment', { defaultValue: 'Equipments' }))
           .setStyle(ButtonStyle.Primary)
           .setEmoji('⚔️'),
       ),
     );
 
-    // ROW 3: Consumable Select
     const consumables = user.items
       .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
-      .slice(0, 25);
+      .map((i) => ({ inv: i, data: itemMap.get(i.itemId)! }))
+      .filter((x) => x.data)
+      .sort((a, b) => {
+        const ra = RARITY_ORDER.indexOf(a.data.rarity as any);
+        const rb = RARITY_ORDER.indexOf(b.data.rarity as any);
+        return ra !== rb ? ra - rb : b.inv.qty - a.inv.qty;
+      })
+      .slice(0, 25)
+      .map((x) => x.inv);
 
     if (consumables.length) {
       components.push(
@@ -193,9 +198,7 @@ export class InventoryCommand extends Command {
 
           await interaction.editReply({ embeds: [expiredEmbed], components: [] });
           this.container.invCache.delete(msg.id);
-        } catch {
-          /* ignore */
-        }
+        } catch {}
       },
       5 * 60 * 1000,
     );

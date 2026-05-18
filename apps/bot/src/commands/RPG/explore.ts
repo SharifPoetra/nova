@@ -45,7 +45,7 @@ export class ExploreCommand extends Command {
     }
 
     const now = Date.now();
-    const cd = 30_000;
+    const cd = 5_000;
     if (user.lastExplore && now - user.lastExplore.getTime() < cd) {
       const s = Math.ceil((cd - (now - user.lastExplore.getTime())) / 1000);
       await user.save();

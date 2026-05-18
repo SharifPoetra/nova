@@ -16,7 +16,16 @@ import { getPlayerStats } from '../lib/rpg/combat';
 import type { EquipmentSlot, IEquipmentStat, IItem, IUser } from '@nova/db';
 
 const ITEMS_PER_PAGE = 10;
+const RARITY_ORDER = ['Mythic', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'] as const;
 const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
+
+const SLOT_LABEL: Record<string, string> = {
+  weapon: '⚔️ Weapon',
+  armor: '🛡️ Armor',
+  helmet: '🪖 Helmet',
+  accessory: '💍 Accessory',
+  tool: '🔧 Tool',
+};
 
 @ApplyOptions<InteractionHandler.Options>({
   name: 'invUse',
@@ -40,7 +49,9 @@ export class InvUseHandler extends InteractionHandler {
 
   public override async run(interaction: ButtonInteraction | StringSelectMenuInteraction) {
     const t = await fetchT(interaction);
-    const userId = interaction.customId.split('_').at(-1)!;
+    const parts = interaction.customId.split('_');
+    const userId = parts[3];
+
     if (interaction.user.id !== userId)
       return interaction.reply({
         content: t('commands/inventory:not_yours', { defaultValue: 'Not your inventory!' }),
@@ -51,13 +62,11 @@ export class InvUseHandler extends InteractionHandler {
     if (!user) return;
     applyPassiveRegen(user);
 
-    // === 1. TOMBOL EQUIPMENT VIEW ===
     if (interaction.customId.startsWith('inv_equip_view_')) {
       await interaction.deferUpdate();
       return this.renderEquipmentView(interaction, user, t);
     }
 
-    // === 2. SELECT EQUIP ===
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith('inv_equip_select_')) {
       await interaction.deferUpdate();
       const [slot, itemId] = interaction.values[0].split(':') as [EquipmentSlot, string];
@@ -68,7 +77,7 @@ export class InvUseHandler extends InteractionHandler {
       if (error) return interaction.followUp({ content: error, ephemeral: true });
 
       if (!user.equipped) {
-        user.equipped = { weapon: null, helmet: null, armor: null, accessory: null };
+        user.equipped = { weapon: null, helmet: null, armor: null, accessory: null, tool: null };
       }
 
       const oldItemId = user.equipped[slot];
@@ -87,13 +96,12 @@ export class InvUseHandler extends InteractionHandler {
 
       await user.save();
       await interaction.followUp({
-        content: `✅ Equipped ${itemData.emoji} **${itemData.name}**!`,
+        content: `✅ Equipped ${itemData.emoji} **${itemData.name}** → ${SLOT_LABEL[slot]}`,
         ephemeral: true,
       });
       return this.renderEquipmentView(interaction, user, t);
     }
 
-    // === 3. SELECT UNEQUIP ===
     if (
       interaction.isStringSelectMenu() &&
       interaction.customId.startsWith('inv_unequip_select_')
@@ -102,7 +110,7 @@ export class InvUseHandler extends InteractionHandler {
       const slot = interaction.values[0] as EquipmentSlot;
 
       if (!user.equipped) {
-        user.equipped = { weapon: null, helmet: null, armor: null, accessory: null };
+        user.equipped = { weapon: null, helmet: null, armor: null, accessory: null, tool: null };
       }
 
       const itemId = user.equipped[slot];
@@ -117,42 +125,26 @@ export class InvUseHandler extends InteractionHandler {
       user.markModified('equipped');
       await user.save();
       await interaction.followUp({
-        content: `📤 Unequipped **${itemData?.name}**`,
+        content: `📤 Unequipped **${itemData?.name}** dari ${SLOT_LABEL[slot]}`,
         ephemeral: true,
       });
       return this.renderEquipmentView(interaction, user, t);
     }
 
-    // === 4. CONSUMABLE USE ===
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith('inv_use_')) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       const itemId = interaction.values[0];
       const item = await this.container.db.item.findOne({ itemId }).lean();
-      if (!item)
-        return interaction.followUp({
-          content: t('commands/inventory:item_not_found', { defaultValue: 'Item not found' }),
-        });
+      if (!item) return interaction.followUp({ content: 'Item not found' });
 
       const invItem = user.items.find((i) => i.itemId === itemId);
-      if (!invItem || invItem.qty < 1)
-        return interaction.followUp({
-          content: t('commands/inventory:out_of_stock', { defaultValue: 'Out of stock!' }),
-        });
+      if (!invItem || invItem.qty < 1) return interaction.followUp({ content: 'Out of stock!' });
 
       const effects = item.effects || [];
-      if (effects.length === 0) {
-        return interaction.followUp({
-          content: t('commands/inventory:cannot_use', {
-            defaultValue: '❌ This item cannot be used',
-          }),
-        });
-      }
+      if (effects.length === 0)
+        return interaction.followUp({ content: '❌ This item cannot be used' });
 
-      let msg = t('commands/inventory:used', {
-        emoji: item.emoji,
-        name: item.name,
-        defaultValue: `✅ Used ${item.emoji} **${item.name}**`,
-      });
+      let msg = `✅ Used ${item.emoji} **${item.name}**`;
       let applied = 0;
       const stats = await getPlayerStats(user);
 
@@ -164,7 +156,7 @@ export class InvUseHandler extends InteractionHandler {
           user.hp = Math.min(maxHp, before + eff.value);
           const gained = user.hp - before;
           if (gained > 0) {
-            msg += `\n${t('commands/inventory:heal', { amount: gained, defaultValue: `❤️ +${gained} HP` })}`;
+            msg += `\n❤️ +${gained} HP`;
             applied++;
           }
         } else if (eff.type === 'stamina') {
@@ -174,7 +166,7 @@ export class InvUseHandler extends InteractionHandler {
           user.stamina = Math.min(maxSt, before + eff.value);
           const gained = user.stamina - before;
           if (gained > 0) {
-            msg += `\n${t('commands/inventory:stamina_gain', { amount: gained, defaultValue: `⚡ +${gained} Stamina` })}`;
+            msg += `\n⚡ +${gained} Stamina`;
             applied++;
           }
         } else if (eff.type === 'buff') {
@@ -184,20 +176,13 @@ export class InvUseHandler extends InteractionHandler {
             value: eff.value,
             expires: new Date(Date.now() + 10 * 60 * 1000),
           });
-          msg += `\n${t('commands/inventory:buff', { value: eff.value, defaultValue: `⚔️ ATK +${eff.value} (10m)` })}`;
+          msg += `\n⚔️ ATK +${eff.value} (10m)`;
           applied++;
         }
       }
 
-      if (applied === 0) {
-        return interaction.followUp({
-          content: t('commands/inventory:no_effect', {
-            emoji: item.emoji,
-            name: item.name,
-            defaultValue: `❌ ${item.emoji} **${item.name}** had no effect (HP/Stamina full)`,
-          }),
-        });
-      }
+      if (applied === 0)
+        return interaction.followUp({ content: `❌ ${item.emoji} **${item.name}** had no effect` });
 
       invItem.qty -= 1;
       if (invItem.qty <= 0) user.items = user.items.filter((i) => i.itemId !== itemId);
@@ -205,7 +190,6 @@ export class InvUseHandler extends InteractionHandler {
       return interaction.followUp({ content: msg });
     }
 
-    // === 5. PAGINATION ===
     if (interaction.isButton()) {
       await interaction.deferUpdate();
       const [, dir, pageStr] = interaction.customId.split('_');
@@ -220,28 +204,15 @@ export class InvUseHandler extends InteractionHandler {
 
       const embed = new EmbedBuilder()
         .setAuthor({
-          name: t('commands/inventory:author', {
-            username: interaction.user.username,
-            defaultValue: `${interaction.user.username}'s Inventory`,
-          }),
+          name: `${interaction.user.username}'s Inventory`,
           iconURL: interaction.user.displayAvatarURL(),
         })
         .setColor(RARITY_COLOR[topRarity as keyof typeof RARITY_COLOR])
         .setDescription(
-          t('commands/inventory:header', {
-            stamina: user.stamina,
-            maxStamina: user.maxStamina,
-            count: allItems.length,
-            defaultValue: `⚡ Stamina: ${user.stamina}/${user.maxStamina}\n📦 ${allItems.length} item types`,
-          }),
+          `⚡ Stamina: ${user.stamina}/${user.maxStamina}\n📦 ${allItems.length} item types`,
         )
         .setFooter({
-          text: t('commands/inventory:footer', {
-            total: totalValue.toLocaleString(cache.locale || 'en-US'),
-            page: page + 1,
-            totalPages,
-            defaultValue: `Total value: ${totalValue.toLocaleString()} coins | Page ${page + 1}/${totalPages}`,
-          }),
+          text: `Total value: ${totalValue.toLocaleString()} coins | Page ${page + 1}/${totalPages}`,
         });
 
       for (const it of pageItems) embed.addFields({ name: it.text, value: it.sub });
@@ -255,12 +226,12 @@ export class InvUseHandler extends InteractionHandler {
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
             .setCustomId(`inv_prev_${page}_${userId}`)
-            .setLabel(t('commands/inventory:prev', { defaultValue: '◀ Previous' }))
+            .setLabel('◀ Previous')
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(page <= 0),
           new ButtonBuilder()
             .setCustomId(`inv_next_${page}_${userId}`)
-            .setLabel(t('commands/inventory:next', { defaultValue: 'Next ▶' }))
+            .setLabel('Next ▶')
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(page >= totalPages - 1),
         ),
@@ -269,8 +240,8 @@ export class InvUseHandler extends InteractionHandler {
       components.push(
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
-            .setCustomId(`inv_equip_view_${userId}`)
-            .setLabel(t('commands/inventory:equipment', { defaultValue: 'Equipments' }))
+            .setCustomId(`inv_equip_view_${userId}_0`)
+            .setLabel('Equipments')
             .setStyle(ButtonStyle.Primary)
             .setEmoji('⚔️'),
         ),
@@ -281,23 +252,28 @@ export class InvUseHandler extends InteractionHandler {
       const itemMap = new Map(itemsData.map((i) => [i.itemId, i]));
       const consumables = user.items
         .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
-        .slice(0, 25);
+        .map((i) => ({ inv: i, data: itemMap.get(i.itemId)! }))
+        .sort((a, b) => {
+          const ra = RARITY_ORDER.indexOf(a.data.rarity as any);
+          const rb = RARITY_ORDER.indexOf(b.data.rarity as any);
+          return ra !== rb ? ra - rb : b.inv.qty - a.inv.qty;
+        })
+        .slice(0, 25)
+        .map((x) => x.inv);
 
       if (consumables.length) {
         components.push(
           new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
             new StringSelectMenuBuilder()
               .setCustomId(`inv_use_${userId}`)
-              .setPlaceholder(
-                t('commands/inventory:use_placeholder', { defaultValue: 'Use consumable...' }),
-              )
+              .setPlaceholder('Use consumable...')
               .addOptions(
                 consumables.map((c) => {
                   const d = itemMap.get(c.itemId)!;
                   return {
                     label: `${d.name} x${c.qty}`,
                     value: c.itemId,
-                    description: d.description?.slice(0, 50) || '',
+                    description: `${d.rarity} • ${d.description?.slice(0, 40) || ''}`,
                     emoji: sanitizeEmoji(d.emoji),
                   };
                 }),
@@ -321,13 +297,23 @@ export class InvUseHandler extends InteractionHandler {
 
     const equipments = user.items
       .filter((i) => itemMap.get(i.itemId)?.type === 'equipment')
-      .slice(0, 25);
+      .map((i) => ({ inv: i, data: itemMap.get(i.itemId)! }))
+      .sort((a, b) => {
+        const ra = RARITY_ORDER.indexOf(a.data.rarity as any);
+        const rb = RARITY_ORDER.indexOf(b.data.rarity as any);
+        if (ra !== rb) return ra - rb;
+        const sa = a.data.slot || '';
+        const sb = b.data.slot || '';
+        return sa.localeCompare(sb);
+      })
+      .map((x) => x.inv);
 
     const equippedIds = [
       user.equipped?.weapon,
       user.equipped?.armor,
       user.equipped?.helmet,
       user.equipped?.accessory,
+      user.equipped?.tool,
     ].filter(Boolean) as string[];
     const equippedData = await this.container.db.item.find({ itemId: { $in: equippedIds } }).lean();
     const eqMap = new Map(equippedData.map((i) => [i.itemId, i]));
@@ -350,40 +336,56 @@ export class InvUseHandler extends InteractionHandler {
           value: user.equipped?.weapon
             ? `${eqMap.get(user.equipped.weapon)?.emoji} **${eqMap.get(user.equipped.weapon)?.name}**\n> ${this.formatStats(eqMap.get(user.equipped.weapon)?.stats)}`
             : '❌ None',
-          inline: false,
+          inline: true,
         },
         {
           name: 'Armor',
           value: user.equipped?.armor
             ? `${eqMap.get(user.equipped.armor)?.emoji} **${eqMap.get(user.equipped.armor)?.name}**\n> ${this.formatStats(eqMap.get(user.equipped.armor)?.stats)}`
             : '❌ None',
-          inline: false,
+          inline: true,
         },
         {
           name: 'Helmet',
           value: user.equipped?.helmet
             ? `${eqMap.get(user.equipped.helmet)?.emoji} **${eqMap.get(user.equipped.helmet)?.name}**\n> ${this.formatStats(eqMap.get(user.equipped.helmet)?.stats)}`
             : '❌ None',
-          inline: false,
+          inline: true,
         },
         {
           name: 'Accessory',
           value: user.equipped?.accessory
             ? `${eqMap.get(user.equipped.accessory)?.emoji} **${eqMap.get(user.equipped.accessory)?.name}**\n> ${this.formatStats(eqMap.get(user.equipped.accessory)?.stats)}`
             : '❌ None',
-          inline: false,
+          inline: true,
         },
+        {
+          name: 'Tool',
+          value: user.equipped?.tool
+            ? `${eqMap.get(user.equipped.tool)?.emoji} **${eqMap.get(user.equipped.tool)?.name}**\n> ${this.formatStats(eqMap.get(user.equipped.tool)?.stats)}`
+            : '❌ None',
+          inline: true,
+        },
+        { name: '\u200b', value: '\u200b', inline: true },
       );
 
-    const components: ActionRowBuilder<StringSelectMenuBuilder>[] = [];
+    const components: ActionRowBuilder<StringSelectMenuBuilder | ButtonBuilder>[] = [];
 
-    if (equipments.length > 0) {
-      const equipOptions = equipments.map((i) => {
+    const parts = interaction.customId.split('_');
+    const page = parts.length >= 5 ? Number(parts[4]) || 0 : 0;
+    const perPage = 20;
+    const start = page * perPage;
+    const pagedEquipments = equipments.slice(start, start + perPage);
+    const totalPages = Math.ceil(equipments.length / perPage);
+
+    if (pagedEquipments.length > 0) {
+      const equipOptions = pagedEquipments.map((i) => {
         const d = itemMap.get(i.itemId)!;
+        const slotName = SLOT_LABEL[d.slot || ''] || d.slot;
         return {
-          label: `${d.name} x${i.qty}`,
+          label: `${d.name} x${i.qty}`.slice(0, 100),
           value: `${d.slot}:${i.itemId}`,
-          description: `${d.rarity} • ${this.formatStats(d.stats)}`,
+          description: `${slotName} • ${d.rarity} • ${this.formatStats(d.stats)}`.slice(0, 100),
           emoji: sanitizeEmoji(d.emoji),
         };
       });
@@ -391,21 +393,68 @@ export class InvUseHandler extends InteractionHandler {
       components.push(
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
           new StringSelectMenuBuilder()
-            .setCustomId(`inv_equip_select_${user.discordId}`)
-            .setPlaceholder('Equip item...')
+            .setCustomId(`inv_equip_select_${user.discordId}_${page}`)
+            .setPlaceholder(
+              `Equip item... (${start + 1}-${Math.min(start + perPage, equipments.length)}/${equipments.length})`,
+            )
             .addOptions(equipOptions),
+        ),
+      );
+    }
+
+    if (totalPages > 1) {
+      components.push(
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId(`inv_equip_view_${user.discordId}_${Math.max(0, page - 1)}`)
+            .setLabel('◀ Prev')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page === 0),
+          new ButtonBuilder()
+            .setCustomId(`inv_equip_view_${user.discordId}_${Math.min(totalPages - 1, page + 1)}`)
+            .setLabel('Next ▶')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page >= totalPages - 1),
         ),
       );
     }
 
     const unequipOptions = [];
     if (user.equipped?.weapon)
-      unequipOptions.push({ label: 'Weapon', value: 'weapon', emoji: '⚔️' });
-    if (user.equipped?.armor) unequipOptions.push({ label: 'Armor', value: 'armor', emoji: '🛡️' });
+      unequipOptions.push({
+        label: 'Weapon',
+        value: 'weapon',
+        emoji: '⚔️',
+        description: eqMap.get(user.equipped.weapon)?.name,
+      });
+    if (user.equipped?.armor)
+      unequipOptions.push({
+        label: 'Armor',
+        value: 'armor',
+        emoji: '🛡️',
+        description: eqMap.get(user.equipped.armor)?.name,
+      });
     if (user.equipped?.helmet)
-      unequipOptions.push({ label: 'Helmet', value: 'helmet', emoji: '🪖' });
+      unequipOptions.push({
+        label: 'Helmet',
+        value: 'helmet',
+        emoji: '🪖',
+        description: eqMap.get(user.equipped.helmet)?.name,
+      });
     if (user.equipped?.accessory)
-      unequipOptions.push({ label: 'Accessory', value: 'accessory', emoji: '💍' });
+      unequipOptions.push({
+        label: 'Accessory',
+        value: 'accessory',
+        emoji: '💍',
+        description: eqMap.get(user.equipped.accessory)?.name,
+      });
+    if (user.equipped?.tool)
+      unequipOptions.push({
+        label: 'Tool',
+        value: 'tool',
+        emoji: '🔧',
+        description: eqMap.get(user.equipped.tool)?.name,
+      });
 
     if (unequipOptions.length > 0) {
       components.push(
@@ -413,7 +462,14 @@ export class InvUseHandler extends InteractionHandler {
           new StringSelectMenuBuilder()
             .setCustomId(`inv_unequip_select_${user.discordId}`)
             .setPlaceholder('Unequip slot...')
-            .addOptions(unequipOptions),
+            .setOptions(
+              unequipOptions.map((o) => ({
+                label: o.label,
+                value: o.value,
+                description: o.description?.slice(0, 50),
+                emoji: o.emoji,
+              })),
+            ),
         ),
       );
     }
@@ -424,7 +480,6 @@ export class InvUseHandler extends InteractionHandler {
   private validateEquip(user: IUser, item: IItem, slot: EquipmentSlot): string | null {
     if (item.type !== 'equipment') return 'Item ini bukan equipment';
     if (item.slot !== slot) return `Item ini slot ${item.slot}, bukan ${slot}`;
-
     if (item.stats?.classLock && item.stats.classLock.length > 0) {
       if (!item.stats.classLock.includes(user.class!)) {
         return `Hanya class ${item.stats.classLock.join('/')} yang bisa equip ini`;
@@ -441,6 +496,9 @@ export class InvUseHandler extends InteractionHandler {
     if (stats.hp) parts.push(`HP +${stats.hp}`);
     if (stats.critRate) parts.push(`Crit +${(stats.critRate * 100).toFixed(0)}%`);
     if (stats.critDmg) parts.push(`C.DMG +${((stats.critDmg - 1) * 100).toFixed(0)}%`);
+    if (stats.fishBonus) parts.push(`Fish +${(stats.fishBonus * 100).toFixed(0)}%`);
+    if (stats.mineBonus) parts.push(`Mine +${(stats.mineBonus * 100).toFixed(0)}%`);
+    if (stats.gatherBonus) parts.push(`Gather +${(stats.gatherBonus * 100).toFixed(0)}%`);
     if (stats.element && stats.element !== 'phys') parts.push(stats.element.toUpperCase());
     return parts.join(' • ') || '-';
   }
