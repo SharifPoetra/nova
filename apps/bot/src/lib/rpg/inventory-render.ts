@@ -29,7 +29,9 @@ export async function renderInventoryPage(
   page = 0,
   messageId?: string,
 ) {
-  const cache = messageId? (container.invCache?.get(messageId) as CachedInv | undefined) : undefined;
+  const cache = messageId
+    ? (container.invCache?.get(messageId) as CachedInv | undefined)
+    : undefined;
   let allItems: CachedInv['allItems'];
   let totalValue: number;
   let locale = 'en-US';
@@ -38,7 +40,9 @@ export async function renderInventoryPage(
     ({ allItems, totalValue, locale } = cache);
   } else {
     const itemIds = user.items.map((i) => i.itemId);
-    const itemsData = itemIds.length ? (await container.db.item.find({ itemId: { $in: itemIds } }).lean() as IItem[]) : [];
+    const itemsData = itemIds.length
+      ? ((await container.db.item.find({ itemId: { $in: itemIds } }).lean()) as IItem[])
+      : [];
     const itemMap = new Map<string, IItem>(itemsData.map((i) => [i.itemId, i]));
 
     totalValue = 0;
@@ -47,7 +51,7 @@ export async function renderInventoryPage(
     for (const inv of user.items) {
       const data = itemMap.get(inv.itemId);
       if (!data) continue;
-      const value = (data.sellPrice?? 0) * inv.qty;
+      const value = (data.sellPrice ?? 0) * inv.qty;
       totalValue += value;
       allItems.push({
         id: inv.itemId,
@@ -59,9 +63,9 @@ export async function renderInventoryPage(
     }
 
     allItems.sort((a, b) => {
-      const ra = RARITY_ORDER.indexOf(a.rarity as typeof RARITY_ORDER[number]);
-      const rb = RARITY_ORDER.indexOf(b.rarity as typeof RARITY_ORDER[number]);
-      return ra!== rb? ra - rb : b.value - a.value;
+      const ra = RARITY_ORDER.indexOf(a.rarity as (typeof RARITY_ORDER)[number]);
+      const rb = RARITY_ORDER.indexOf(b.rarity as (typeof RARITY_ORDER)[number]);
+      return ra !== rb ? ra - rb : b.value - a.value;
     });
   }
 
@@ -71,13 +75,15 @@ export async function renderInventoryPage(
   const topRarity = pageItems[0]?.rarity || 'Common';
 
   const embed = new EmbedBuilder()
-   .setAuthor({
+    .setAuthor({
       name: `${user.username || 'Your'} Inventory`,
-      iconURL: user.avatar?? undefined,
+      iconURL: user.avatar ?? undefined,
     })
-   .setColor(RARITY_COLOR[topRarity as keyof typeof RARITY_COLOR])
-   .setDescription(`⚡ Stamina: ${user.stamina}/${user.maxStamina}\n📦 ${allItems.length} item types`)
-   .setFooter({
+    .setColor(RARITY_COLOR[topRarity as keyof typeof RARITY_COLOR])
+    .setDescription(
+      `⚡ Stamina: ${user.stamina}/${user.maxStamina}\n📦 ${allItems.length} item types`,
+    )
+    .setFooter({
       text: `Total value: ${totalValue.toLocaleString(locale)} coins | Page ${page + 1}/${totalPages}`,
     });
 
@@ -89,15 +95,15 @@ export async function renderInventoryPage(
     components.push(
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
-         .setCustomId(`inv_prev_${page}_${user.discordId}`)
-         .setLabel('◀ Previous')
-         .setStyle(ButtonStyle.Secondary)
-         .setDisabled(page <= 0),
+          .setCustomId(`inv_prev_${page}_${user.discordId}`)
+          .setLabel('◀ Previous')
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(page <= 0),
         new ButtonBuilder()
-         .setCustomId(`inv_next_${page}_${user.discordId}`)
-         .setLabel('Next ▶')
-         .setStyle(ButtonStyle.Secondary)
-         .setDisabled(page >= totalPages - 1),
+          .setCustomId(`inv_next_${page}_${user.discordId}`)
+          .setLabel('Next ▶')
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(page >= totalPages - 1),
       ),
     );
   }
@@ -105,35 +111,37 @@ export async function renderInventoryPage(
   components.push(
     new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-       .setCustomId(`inv_equip_view_${user.discordId}_0`)
-       .setLabel('Equipments')
-       .setStyle(ButtonStyle.Primary)
-       .setEmoji('⚔️'),
+        .setCustomId(`inv_equip_view_${user.discordId}_0`)
+        .setLabel('Equipments')
+        .setStyle(ButtonStyle.Primary)
+        .setEmoji('⚔️'),
     ),
   );
 
   const consumableIds = user.items.map((i) => i.itemId);
-  const consumableData = consumableIds.length ? (await container.db.item.find({ itemId: { $in: consumableIds } }).lean() as IItem[]) : [];
+  const consumableData = consumableIds.length
+    ? ((await container.db.item.find({ itemId: { $in: consumableIds } }).lean()) as IItem[])
+    : [];
   const itemMap = new Map<string, IItem>(consumableData.map((i) => [i.itemId, i]));
 
   const consumables = user.items
-   .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
-   .map((i) => ({ inv: i, data: itemMap.get(i.itemId)! }))
-   .sort((a, b) => {
-      const ra = RARITY_ORDER.indexOf(a.data.rarity as typeof RARITY_ORDER[number]);
-      const rb = RARITY_ORDER.indexOf(b.data.rarity as typeof RARITY_ORDER[number]);
-      return ra!== rb? ra - rb : b.inv.qty - a.inv.qty;
+    .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
+    .map((i) => ({ inv: i, data: itemMap.get(i.itemId)! }))
+    .sort((a, b) => {
+      const ra = RARITY_ORDER.indexOf(a.data.rarity as (typeof RARITY_ORDER)[number]);
+      const rb = RARITY_ORDER.indexOf(b.data.rarity as (typeof RARITY_ORDER)[number]);
+      return ra !== rb ? ra - rb : b.inv.qty - a.inv.qty;
     })
-   .slice(0, 25)
-   .map((x) => x.inv);
+    .slice(0, 25)
+    .map((x) => x.inv);
 
   if (consumables.length) {
     components.push(
       new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
         new StringSelectMenuBuilder()
-         .setCustomId(`inv_use_${user.discordId}`)
-         .setPlaceholder('Use consumable...')
-         .addOptions(
+          .setCustomId(`inv_use_${user.discordId}`)
+          .setPlaceholder('Use consumable...')
+          .addOptions(
             consumables.map((c) => {
               const d = itemMap.get(c.itemId)!;
               return {
