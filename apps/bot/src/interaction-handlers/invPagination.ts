@@ -1,6 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
-import type { ButtonInteraction } from 'discord.js';
+import type { ButtonInteraction, MessageFlags } from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { renderInventoryPage } from '../lib/rpg/inventory-render';
 
@@ -18,7 +18,7 @@ export class InvPaginationHandler extends InteractionHandler {
   public override async run(interaction: ButtonInteraction) {
     const [, dir, pageStr, userId] = interaction.customId.split('_');
     if (interaction.user.id !== userId)
-      return interaction.reply({ content: 'Not your inventory!', ephemeral: true });
+      return interaction.reply({ content: 'Not your inventory!', flags: MessageFlags.Ephemeral });
 
     await interaction.deferUpdate();
     const user = await this.container.db.user.findOne({ discordId: userId });

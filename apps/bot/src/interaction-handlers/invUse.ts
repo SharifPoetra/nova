@@ -1,6 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
-import type { StringSelectMenuInteraction } from 'discord.js';
+import type { MessageFlags, StringSelectMenuInteraction } from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { getPlayerStats } from '../lib/rpg/combat';
 
@@ -16,9 +16,9 @@ export class InvUseHandler extends InteractionHandler {
   public override async run(interaction: StringSelectMenuInteraction) {
     const userId = interaction.customId.split('_')[2];
     if (interaction.user.id !== userId)
-      return interaction.reply({ content: 'Not yours!', ephemeral: true });
+      return interaction.reply({ content: 'Not yours!', flags: MessageFlags.Ephemeral });
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (!user) return;
     applyPassiveRegen(user);
