@@ -1,6 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
-import type { MessageFlags, StringSelectMenuInteraction } from 'discord.js';
+import { MessageFlags, StringSelectMenuInteraction } from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { getPlayerStats } from '../lib/rpg/combat';
 
