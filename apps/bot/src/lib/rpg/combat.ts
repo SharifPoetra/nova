@@ -1,7 +1,8 @@
 import { getClass } from './classes';
 import { getPassiveSkills, getSkill, SkillData } from './skills';
 import { Item } from '@nova/db';
-import type { IUser, IEquipmentStat } from '@nova/db';
+import type { IUser , IEquipmentStat } from '@nova/db';
+import { User } from '@nova/db'
 
 export interface PlayerStats {
   hp: number;
@@ -137,12 +138,12 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
   stats.activeBuffs = user.buffs
     .filter((b) => {
       if (b.turnsLeft !== undefined) return b.turnsLeft > 0;
-      return b.expires.getTime() > Date.now();
+      return (b.expires?.getTime() ?? 0) > Date.now();
     })
     .map((b) => ({
       type: b.type,
       value: b.value,
-      turnsLeft: b.turnsLeft ?? Math.ceil((b.expires.getTime() - Date.now()) / 6000),
+      turnsLeft: b.turnsLeft ?? Math.ceil(((b.expires?.getTime() ?? 0) - Date.now()) / 6000),
     }));
 
   return stats;
