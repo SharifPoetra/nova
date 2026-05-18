@@ -8,8 +8,10 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
+import type { TFunction } from 'i18next';
+import type { IUser } from '@nova/db';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { getPlayerStats } from '../../lib/rpg/combat';
+import { getPlayerStats, type PlayerStats } from '../../lib/rpg/combat';
 
 import shopEn from '../../locales/en-US/commands/shop.json';
 import shopId from '../../locales/id/commands/shop.json';
@@ -66,7 +68,7 @@ export class ShopCommand extends Command {
     const stats = await getPlayerStats(user);
 
     const choice = interaction.options.getString('item');
-    if (choice) return this.handlePurchase(interaction, user, choice, t);
+    if (choice) return this.handlePurchase(interaction, user, choice, stats, t);
 
     const embed = new EmbedBuilder()
       .setColor(0xf1c40f)
@@ -127,16 +129,17 @@ export class ShopCommand extends Command {
       const itemId = btn.customId.replace('shop_', '');
       collector.stop();
       await btn.deferUpdate();
-      await this.handlePurchase(interaction, user, itemId, t, true);
+      await this.handlePurchase(interaction, user, itemId, stats, t, true);
     });
     collector.on('end', () => interaction.editReply({ components: [] }).catch(() => {}));
   }
 
   private async handlePurchase(
     interaction: Command.ChatInputCommandInteraction,
-    user: any,
+    user: IUser,
     itemId: string,
-    t: any,
+    stats: PlayerStats,
+    t: TFunction,
     fromButton = false,
   ) {
     const item = SHOP_ITEMS.find((i) => i.id === itemId)!;
