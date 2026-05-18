@@ -334,10 +334,15 @@ export class HuntCommand extends Command {
     );
 
     let levelUpText = '';
-    const levelUpResult = checkLevelUp(user);
-    if (levelUpResult) {
-      Object.assign(user, levelUpResult);
-      levelUpText = t('commands/hunt:levelup', { level: levelUpResult.level });
+    const levelUp = checkLevelUp(user);
+    if (levelUp) {
+      const newStats = await getPlayerStats(user);
+      user.hp = newStats.maxHp;
+      user.stamina = user.maxStamina;
+      levelUpText = t('commands/hunt:levelup', {
+        level: user.level,
+        defaultValue: `🎉 LEVEL UP → ${levelUp.level}!`,
+      });
     }
 
     resetSkillCooldowns(user);

@@ -601,9 +601,11 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run', { defaultValue: '⚠️ Curre
         if (currentFloor > dungeonData.highestFloor) dungeonData.highestFloor = currentFloor;
         const levelUp = checkLevelUp(player);
         if (levelUp) {
-          Object.assign(player, levelUp);
+          const newStats = await getPlayerStats(player);
+          player.hp = newStats.maxHp;
+          player.stamina = player.maxStamina;
           runState.log.push(`
-${t('commands/dungeon:levelup', { level: levelUp.level, defaultValue: `🎉 LEVEL UP ${levelUp.level}!` })}`);
+${t('commands/dungeon:levelup', { level: levelUp.level, defaultValue: `🎉 LEVEL UP → ${levelUp.level}!` })}`);
         }
         dungeonData.inRun = false;
         dungeonData.floorState = null;

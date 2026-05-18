@@ -7,6 +7,7 @@ import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { rollExplore } from '../../lib/rpg/explorations';
 import { ACTION_COST } from '../../lib/rpg/actions';
+import { getPlayerStats } from '../../lib/rpg/combat';
 
 @ApplyOptions<Command.Options>({
   name: 'explore',
@@ -83,10 +84,12 @@ export class ExploreCommand extends Command {
     }
 
     let levelUpText = '';
-    const lvl = checkLevelUp(user);
-    if (lvl) {
-      Object.assign(user, lvl);
-      levelUpText = `\n\n${t('commands/explore:levelup', { level: lvl.level, defaultValue: `🎉 **LEVEL UP → Lv.${lvl.level}**` })}`;
+    const levelUp = checkLevelUp(user);
+    if (levelUp) {
+      const stats = await getPlayerStats(user);
+      user.hp = stats.maxHp;
+      user.stamina = user.maxStamina;
+      levelUpText = `\n\n${t('commands/explore:levelup', { level: user.level, defaultValue: `🎉 **LEVEL UP → Lv.${user.level}**` })}`;
     }
 
     await user.save();

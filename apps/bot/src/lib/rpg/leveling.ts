@@ -3,34 +3,18 @@ import { IUser } from '@nova/db';
 export const getExpNeeded = (level: number) => level * 100;
 
 export function checkLevelUp(user: IUser) {
-  let { level, exp, maxHp, attack, maxStamina } = user;
-  const hpGain = 20;
-  const atkGain = 3;
-  const staGain = 10;
-
   let leveled = false;
-  let expNeeded = getExpNeeded(level);
+  let expNeeded = getExpNeeded(user.level);
 
-  // loop biar bisa naik lebih dari 1 level sekaligus
-  while (exp >= expNeeded) {
-    exp -= expNeeded;
-    level += 1;
-    maxHp += hpGain;
-    attack += atkGain;
-    maxStamina += staGain;
-    expNeeded = getExpNeeded(level);
+  while (user.exp >= expNeeded) {
+    user.exp -= expNeeded;
+    user.level += 1;
+    user.maxHp += 20;
+    user.attack += 3;
+    user.maxStamina += 10;
+    expNeeded = getExpNeeded(user.level);
     leveled = true;
   }
 
-  if (!leveled) return null;
-
-  return {
-    level,
-    exp,
-    maxHp,
-    attack,
-    maxStamina,
-    hp: maxHp, // full heal saat level up
-    stamina: maxStamina, // full stamina saat level up
-  };
+  return leveled ? { level: user.level } : null;
 }

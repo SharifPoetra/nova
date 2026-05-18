@@ -7,6 +7,7 @@ import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR } from '../../lib/utils';
 import { catchFish } from '../../lib/rpg/fishes';
 import { ACTION_COST } from '../../lib/rpg/actions';
+import { getPlayerStats } from '../../lib/rpg/combat';
 
 @ApplyOptions<Command.Options>({
   name: 'fish',
@@ -76,10 +77,12 @@ export class FishCommand extends Command {
     );
 
     let levelUpText = '';
-    const levelData = checkLevelUp(user);
-    if (levelData) {
-      Object.assign(user, levelData);
-      levelUpText = `\n${t('commands/fish:levelup', { level: levelData.level, defaultValue: `🎉 **LEVEL UP! → Lv.${levelData.level}**` })}`;
+    const levelUp = checkLevelUp(user);
+    if (levelUp) {
+      const stats = await getPlayerStats(user);
+      user.hp = stats.maxHp;
+      user.stamina = user.maxStamina;
+      levelUpText = `\n${t('commands/fish:levelup', { level: user.level, defaultValue: `🎉 **LEVEL UP! → Lv.${user.level}**` })}`;
     }
 
     await user.save();
