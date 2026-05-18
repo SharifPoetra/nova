@@ -2,7 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { checkLevelUp } from '../../lib/rpg/leveling';
+import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR } from '../../lib/utils';
 import { catchFish } from '../../lib/rpg/fishes';
@@ -55,7 +55,8 @@ export class FishCommand extends Command {
 
     user.stamina -= ACTION_COST.fish;
     user.lastFish = new Date();
-    user.exp = (user.exp ?? 0) + fish.xp;
+    const expGain = getScaledExp(fish.xp, user.level, 'fish');
+    user.exp += expGain;
 
     const inv = user.items.find((i) => i.itemId === fish.id);
     if (inv) inv.qty += 1;
@@ -120,7 +121,7 @@ export class FishCommand extends Command {
         },
         {
           name: t('commands/fish:exp', { defaultValue: '✨ EXP' }),
-          value: `+${fish.xp}`,
+          value: `+${expGain}`,
           inline: true,
         },
         {

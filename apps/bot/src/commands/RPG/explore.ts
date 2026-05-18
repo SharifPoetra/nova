@@ -2,7 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { checkLevelUp } from '../../lib/rpg/leveling';
+import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { rollExplore } from '../../lib/rpg/explorations';
@@ -59,8 +59,10 @@ export class ExploreCommand extends Command {
     user.lastExplore = new Date();
 
     const outcome = rollExplore();
+    const expGain = getScaledExp(outcome.exp, user.level, 'explore'); // outcome.exp jadi base (8-12)
     user.balance += outcome.coins;
-    user.exp += outcome.exp;
+    user.exp += expGain;
+    outcome.exp = expGain;
 
     if (outcome.item) {
       const inv = user.items.find((i) => i.itemId === outcome.item!.id);

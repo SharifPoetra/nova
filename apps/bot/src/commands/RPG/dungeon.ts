@@ -4,7 +4,7 @@ import { ComponentType, EmbedBuilder, MessageFlags } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { sleep, ratioBar, colorBar } from '../../lib/utils';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { checkLevelUp } from '../../lib/rpg/leveling';
+import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
 import { ACTION_COST } from '../../lib/rpg/actions';
 import {
   getMonster,
@@ -358,7 +358,8 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run', { defaultValue: '⚠️ Curre
           }),
         );
         const roomGold = 15 + currentFloor * 2 + (isElite ? 25 : 0);
-        const roomExp = 5 + currentFloor;
+        const baseExp = 5 + currentFloor;
+        const roomExp = getScaledExp(baseExp, player.level, 'dungeon', isElite);
         runState.gold += roomGold;
         runState.exp += roomExp;
         player.balance += roomGold;

@@ -9,7 +9,7 @@ import {
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { sleep, ratioBar, RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
-import { checkLevelUp } from '../../lib/rpg/leveling';
+import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { getScaledMonster } from '../../lib/rpg/monsters';
 import { ACTION_COST } from '../../lib/rpg/actions';
@@ -276,7 +276,8 @@ export class HuntCommand extends Command {
     const battleSummary = battleLog.slice(-7).join('\n');
 
     if (user.hp <= 0) {
-      user.exp = (user.exp ?? 0) + Math.floor(monster.xp / 3);
+      const loseExp = Math.floor(getScaledExp(monster.xp, user.level, 'hunt') / 3);
+      user.exp += loseExp;
       await user.save();
       const finalStats = await getPlayerStats(user);
       const atkBuff = finalStats.activeBuffs.find((b) => b.type === 'atk');
@@ -292,7 +293,7 @@ export class HuntCommand extends Command {
             summary: battleSummary,
             dealt: totalDamageDealt,
             taken: totalDamageTaken,
-            exp: Math.floor(monster.xp / 3),
+            exp: loseExp,
           }),
         )
         .setFields();
@@ -312,8 +313,9 @@ export class HuntCommand extends Command {
     if (inventoryItem) inventoryItem.qty += 1;
     else user.items.push({ itemId: selectedDrop.id, qty: 1 });
 
-    user.balance += monster.xp * 2;
-    user.exp = (user.exp ?? 0) + monster.xp;
+    const expGain = getScaledExp(monster.xp, user.level, 'hunt', monster.isElite);
+    user.balance += expGain * 2;
+    user.exp += expGain;
 
     await db.item.updateOne(
       { itemId: selectedDrop.id },
@@ -374,8 +376,8 @@ export class HuntCommand extends Command {
         }),
       )
       .setFields(
-        { name: t('commands/hunt:field_coin'), value: `+${monster.xp * 2}`, inline: true },
-        { name: t('commands/hunt:field_exp'), value: `+${monster.xp}`, inline: true },
+        { name: t('commands/hunt:field_coin'), value: `+${expGain * 2}`, inline: true },
+        { name: t('commands/hunt:field_exp'), value: `+${expGain}`, inline: true },
         {
           name: t('commands/hunt:field_hp'),
           value: `${finalPlayerStats.hp}/${finalPlayerStats.maxHp}`,
