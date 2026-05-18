@@ -206,7 +206,7 @@ export function buildBattleEmbed(params: {
         inline: true,
       },
       {
-        name: `${params.monsterEmoji} HP`,
+        name: `${params.monsterEmoji} ${params.monsterName}`,
         value: `${ratioBar(Math.max(0, params.monsterHp), params.monsterMaxHp)} ${Math.max(0, params.monsterHp)}/${params.monsterMaxHp}`,
         inline: true,
       },
