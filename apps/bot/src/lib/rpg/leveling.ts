@@ -6,7 +6,7 @@ export const getScaledExp = (
   baseExp: number,
   userLevel: number,
   type: 'hunt' | 'fish' | 'explore' | 'dungeon' = 'hunt',
-  isElite = false
+  isElite = false,
 ) => {
   const scales = {
     hunt: 0.06, // +6% per level
@@ -15,7 +15,7 @@ export const getScaledExp = (
     dungeon: 0.02, // +2% per level (karena udah ada floor scaling)
   };
 
-  const levelScale = 1 + (userLevel * scales[type]);
+  const levelScale = 1 + userLevel * scales[type];
   const variance = 0.9 + Math.random() * 0.2; // 90%-110%
   const eliteMult = isElite ? 2.5 : 1;
 
