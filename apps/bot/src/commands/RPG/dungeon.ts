@@ -383,17 +383,6 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run', { defaultValue: '⚠️ Curre
         const pool = isBoss
           ? (BOSS_DROPS[currentMonster.base] ?? BOSS_DROPS.guardian)
           : (DUNGEON_DROPS[currentMonster.base] ?? DUNGEON_DROPS.slime);
-        console.log({
-          floor: currentFloor,
-          room: runState.current,
-          monster: currentMonster.name,
-          isBoss: currentMonster.isBoss,
-          base: currentMonster.base,
-          poolType: currentMonster.isBoss ? 'BOSS' : 'NORMAL',
-          actualPool: (currentMonster.isBoss ? BOSS_DROPS : DUNGEON_DROPS)[currentMonster.base].map(
-            (i) => i.name,
-          ),
-        });
 
         // === MATERIAL DROP CHANCE ===
         const materials = pool.filter((d) => d.type === 'material');
