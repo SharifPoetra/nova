@@ -118,7 +118,7 @@ export class HuntCommand extends Command {
         }),
       );
 
-    let playerStats: PlayerStats;
+    let playerStats: PlayerStats = await getPlayerStats(user);
 
     const updateBattleEmbed = async (showButtons = true) => {
       playerStats = await getPlayerStats(user);
