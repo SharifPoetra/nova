@@ -378,29 +378,30 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run', { defaultValue: '⚠️ Curre
         runState.exp += roomExp;
         player.balance += roomGold;
         player.exp += roomExp;
-
-        const pool = isBossFloor
-          ? (BOSS_DROPS[floorMonster.base] ?? BOSS_DROPS.guardian)
-          : (DUNGEON_DROPS[floorMonster.base] ?? DUNGEON_DROPS.slime);
+        
+        const isBoss = currentMonster.isBoss ?? false;
+        const pool = isBoss
+          ? (BOSS_DROPS[currentMonster.base] ?? BOSS_DROPS.guardian)
+          : (DUNGEON_DROPS[currentMonster.base] ?? DUNGEON_DROPS.slime);
         console.log({
           floor: currentFloor,
           room: runState.current,
-          monster: floorMonster.name,
-          isBoss: floorMonster.isBoss,
-          base: floorMonster.base,
-          poolType: floorMonster.isBoss ? 'BOSS' : 'NORMAL',
-          actualPool: (floorMonster.isBoss ? BOSS_DROPS : DUNGEON_DROPS)[floorMonster.base].map(
+          monster: currentMonster.name,
+          isBoss: currentMonster.isBoss,
+          base: currentMonster.base,
+          poolType: currentMonster.isBoss ? 'BOSS' : 'NORMAL',
+          actualPool: (currentMonster.isBoss ? BOSS_DROPS : DUNGEON_DROPS)[currentMonster.base].map(
             (i) => i.name,
           ),
         });
 
-        // === 1. MATERIAL DROP CHANCE - Lebih tinggi dari equip ===
+        // === MATERIAL DROP CHANCE ===
         const materials = pool.filter((d) => d.type === 'material');
-        const materialChance = isBossFloor ? 1.0 : isElite ? 0.75 : 0.4; // 40% normal, 75% elite, 100% boss
+        const materialChance = isBoss ? 1.0 : isElite ? 0.75 : 0.4; // 40% normal, 75% elite, 100% boss
 
         if (materials.length && Math.random() < materialChance) {
           const mat = materials[Math.floor(Math.random() * materials.length)];
-          const qty = isBossFloor ? 3 : isElite ? 2 : 1;
+          const qty = isBoss ? 3 : isElite ? 2 : 1;
 
           await itemModel.updateOne({ itemId: mat.id }, { $set: mat }, { upsert: true });
           const inv = player.items.find((x) => x.itemId === mat.id);
@@ -410,9 +411,9 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run', { defaultValue: '⚠️ Curre
           runState.log.push(`📦 ${mat.emoji} ${mat.name} x${qty}`);
         }
 
-        // === 2. EQUIPMENT/CONSUMABLE DROP CHANCE ===
+        // === EQUIPMENT/CONSUMABLE DROP CHANCE ===
         const equipPool = pool.filter((d) => d.type === 'equipment' || d.type === 'consumable');
-        const dropChance = isBossFloor ? 1.0 : isElite ? 0.4 : 0.2;
+        const dropChance = isBoss ? 1.0 : isElite ? 0.4 : 0.2; // 20% normal, 40% elite, 100% boss
 
         if (equipPool.length && Math.random() < dropChance) {
           const weights = { Common: 60, Uncommon: 25, Rare: 10, Epic: 4, Legendary: 1, Mythic: 0 };

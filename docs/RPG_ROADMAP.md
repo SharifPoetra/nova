@@ -42,10 +42,13 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 - [x] **4.1** `hunt.ts`: ganti dmg calc pake `getPlayerStats()`. Hapus hardcoded crit
 - [x] **4.1b** `hunt.ts`: fix HP calc pake `stats.maxHp` bukan `user.maxHp`
 - [x] **4.1c** `combat.ts`: fix infinite loop di `applyPassives`, fix `availableSkills.push` undefined
-- [ ] **4.2** `monsters.ts`: tambah drop `type: 'equipment'` buat monster rare + kasih `stats` dan `slot`
+- [x] **4.2** `monsters.ts`: tambah drop `type: 'equipment'` buat monster rare + kasih `stats` dan `slot`
 - [ ] **4.3** `fish.ts` & `explorations.ts`: siapin buat fishing rod nanti
-- [ ] **4.4** Test: `/hunt` pake `reaper_scythe` harus crit lebih sering
-- [ ] **4.5** Commit: `refactor(rpg): use unified combat stats in all commands`
+- [x] **4.4** Test: `/hunt` pake `reaper_scythe` harus crit lebih sering
+- [ ] **4.5** Refactor `/cook` hasil masak masuk inventory
+- [ ] **4.6** Refactor `/shop` hasil masuk inventory
+- [ ] **4.7** Feat `/dungeon` enter tambah tombol inventory untuk pake consumable
+- [ ] **4.** Commit: `refactor(rpg): use unified combat stats in all commands`
 
 ## Phase 5: Content & Balance - Ongoing
 - [ ] **5.1** Isi 20 weapon/armor di DB: tier Common→Legendary
