@@ -1,8 +1,8 @@
 import { getClass } from './classes';
 import { getPassiveSkills, getSkill, SkillData } from './skills';
 import { Item } from '@nova/db';
-import type { IUser , IEquipmentStat } from '@nova/db';
-import { User } from '@nova/db'
+import type { IUser, IEquipmentStat } from '@nova/db';
+import { User } from '@nova/db';
 
 export interface PlayerStats {
   hp: number;
