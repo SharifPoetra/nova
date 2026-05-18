@@ -36,7 +36,7 @@ export interface IItem extends Document {
   stats?: IEquipmentStat;
 }
 
-const ItemSchema = new Schema(
+const ItemSchema = new Schema<IItem>(
   {
     itemId: { type: String, required: true, unique: true },
     name: { type: String, required: true },
@@ -82,4 +82,4 @@ const ItemSchema = new Schema(
   { timestamps: true },
 );
 
-export const Item = model('Item', ItemSchema);
+export const Item = model<IItem>('Item', ItemSchema);
