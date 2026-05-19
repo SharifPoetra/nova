@@ -41,7 +41,7 @@ describe('dungeon-state', () => {
     expect(bossState.rooms).toBe(4);
 
     const normal = createRunState(5);
-    expect([3,4]).toContain(normal.rooms);
+    expect([3, 4]).toContain(normal.rooms);
     expect(normal.current).toBe(0);
     expect(normal.hasBattle).toBe(false);
   });
@@ -75,7 +75,7 @@ describe('dungeon-zones', () => {
   });
 
   it('each zone has events defined', () => {
-    (['ruins','mines','library','temple','summit'] as const).forEach(zone => {
+    (['ruins', 'mines', 'library', 'temple', 'summit'] as const).forEach((zone) => {
       expect(DUNGEON_EVENTS[zone].length).toBeGreaterThan(0);
     });
   });
@@ -83,8 +83,8 @@ describe('dungeon-zones', () => {
 
 describe('dungeon-events', () => {
   it('rollEvent returns valid type', () => {
-    const valid = ['battle','treasure','trap','heal','merchant','lore','puzzle'];
-    for(let i=0;i<50;i++){
+    const valid = ['battle', 'treasure', 'trap', 'heal', 'merchant', 'lore', 'puzzle'];
+    for (let i = 0; i < 50; i++) {
       const ev = rollEvent(5);
       expect(valid).toContain(ev.type);
       expect(ev.weight).toBeGreaterThan(0);
@@ -93,18 +93,18 @@ describe('dungeon-events', () => {
 
   it('ruins zone has goblin_ambush with weight 55', () => {
     const ruins = DUNGEON_EVENTS.ruins;
-    const ambush = ruins.find(e => e.id === 'goblin_ambush');
+    const ambush = ruins.find((e) => e.id === 'goblin_ambush');
     expect(ambush?.weight).toBe(55);
     expect(ambush?.type).toBe('battle');
   });
 
   it('summit has highest gold rewards', () => {
     const summitGold = DUNGEON_EVENTS.summit
-     .filter(e => e.effect?.gold)
-     .map(e => e.effect!.gold!);
+      .filter((e) => e.effect?.gold)
+      .map((e) => e.effect!.gold!);
     const ruinsGold = DUNGEON_EVENTS.ruins
-     .filter(e => e.effect?.gold)
-     .map(e => e.effect!.gold!);
+      .filter((e) => e.effect?.gold)
+      .map((e) => e.effect!.gold!);
 
     expect(Math.max(...summitGold)).toBeGreaterThan(Math.max(...ruinsGold));
   });
@@ -118,11 +118,11 @@ describe('dungeon-drops', () => {
 
   it('boss drops contain equipment', () => {
     const slimeBoss = BOSS_DROPS.slime;
-    expect(slimeBoss.some(d => d.id === 'slime_crown')).toBe(true);
+    expect(slimeBoss.some((d) => d.id === 'slime_crown')).toBe(true);
   });
 
   it('guardian boss drops mythic Nova Essence', () => {
-    const mythic = BOSS_DROPS.guardian.find(d => d.rarity === 'Mythic');
+    const mythic = BOSS_DROPS.guardian.find((d) => d.rarity === 'Mythic');
     expect(mythic).toBeDefined();
     expect(mythic?.name).toBe('Nova Essence');
     expect(mythic?.sellPrice).toBe(3000);
