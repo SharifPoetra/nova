@@ -134,7 +134,9 @@ export class CookSelectHandler extends InteractionHandler {
           }),
         );
 
-      const components: ActionRowBuilder<any>[] = [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu)];
+      const components: ActionRowBuilder<any>[] = [
+        new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu),
+      ];
       if (availableRecipes.length > 25) {
         const prevButton = new ButtonBuilder()
           .setCustomId(`cookprev_${userId}_${newPage}_${tier}`)
@@ -229,7 +231,7 @@ export class CookSelectHandler extends InteractionHandler {
           name: '✨ EXP',
           value: `+${recipe.exp || 0}`,
           inline: true,
-        }
+        },
       );
 
     return interaction.editReply({ embeds: [resultEmbed], components: [] });
