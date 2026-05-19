@@ -271,6 +271,10 @@ export function getMainButtons(t: TFunction) {
       .setLabel(t('commands/dungeon:btn_next', { defaultValue: '➡️ Next Room' }))
       .setStyle(ButtonStyle.Primary),
     new ButtonBuilder()
+      .setCustomId('inventory')
+      .setLabel(t('commands/dungeon:btn_bag', { defaultValue: '🎒 Bag' }))
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
       .setCustomId('map')
       .setLabel(t('commands/dungeon:btn_map', { defaultValue: '🗺️ Map' }))
       .setStyle(ButtonStyle.Secondary),

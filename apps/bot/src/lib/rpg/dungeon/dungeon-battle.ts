@@ -178,5 +178,13 @@ export async function runInteractiveBattle(params: BattleParams) {
   }
 
   player.hp = Math.max(0, playerHp);
+  await player.updateOne({
+    $set: {
+      hp: player.hp,
+      stamina: player.stamina,
+      buffs: player.buffs,
+      skillCooldowns: player.skillCooldowns,
+    },
+  });
   return { victory: monsterHp <= 0, playerHp, monsterHp };
 }
