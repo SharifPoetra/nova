@@ -46,7 +46,7 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 - [x] **4.3** `fish.ts` & `explorations.ts`: siapin buat fishing rod nanti
 - [x] **4.4** Test: `/hunt` pake `reaper_scythe` harus crit lebih sering
 - [x] **4.5** Refactor `/cook` hasil masak masuk inventory
-- [ ] **4.6** Refactor `/shop` hasil masuk inventory
+- [x] **4.6** Refactor `/shop` hasil masuk inventory
 - [ ] **4.7** Feat `/dungeon` enter tambah tombol inventory untuk pake consumable
 - [ ] **4.** Commit: `refactor(rpg): use unified combat stats in all commands`
 
