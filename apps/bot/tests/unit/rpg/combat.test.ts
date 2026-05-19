@@ -6,19 +6,30 @@ import type { IUser } from '@nova/db';
 vi.mock('@nova/db', async () => {
   const actual = await vi.importActual('@nova/db');
   return {
-   ...actual,
+    ...actual,
     Item: {
       find: vi.fn(({ itemId: { $in } }) => ({
-        lean: () => Promise.resolve(
-          $in.map((id: string) => {
-            const mockItems: Record<string, any> = {
-              iron_sword: { itemId: 'iron_sword', slot: 'weapon', stats: { atk: 12 } },
-              obsidian_plate: { itemId: 'obsidian_plate', slot: 'armor', stats: { hp: 50, def: 5 } },
-              hunter_bow: { itemId: 'hunter_bow', slot: 'weapon', stats: { atk: 15, critDmg: 1.8 } },
-            };
-            return mockItems[id];
-          }).filter(Boolean)
-        ),
+        lean: () =>
+          Promise.resolve(
+            $in
+              .map((id: string) => {
+                const mockItems: Record<string, any> = {
+                  iron_sword: { itemId: 'iron_sword', slot: 'weapon', stats: { atk: 12 } },
+                  obsidian_plate: {
+                    itemId: 'obsidian_plate',
+                    slot: 'armor',
+                    stats: { hp: 50, def: 5 },
+                  },
+                  hunter_bow: {
+                    itemId: 'hunter_bow',
+                    slot: 'weapon',
+                    stats: { atk: 15, critDmg: 1.8 },
+                  },
+                };
+                return mockItems[id];
+              })
+              .filter(Boolean),
+          ),
       })),
     },
   };
@@ -57,13 +68,13 @@ describe('getPlayerStats()', () => {
   });
 
   it('1.7: equip iron_sword {atk:12} harus nambah atk', async () => {
-    const user = {...baseUser, equipped: {...baseUser.equipped, weapon: 'iron_sword' } };
+    const user = { ...baseUser, equipped: { ...baseUser.equipped, weapon: 'iron_sword' } };
     const stats = await getPlayerStats(user);
     expect(stats.atk).toBe(25); // 13 + 12
   });
 
   it('equip obsidian_plate {hp:50, def:5} harus nambah maxHp + def', async () => {
-    const user = {...baseUser, equipped: {...baseUser.equipped, armor: 'obsidian_plate' } };
+    const user = { ...baseUser, equipped: { ...baseUser.equipped, armor: 'obsidian_plate' } };
     const stats = await getPlayerStats(user);
     expect(stats.maxHp).toBe(180); // 130 + 50
     expect(stats.def).toBe(5);
@@ -71,9 +82,9 @@ describe('getPlayerStats()', () => {
 
   it('equip hunter_bow {atk:15, critDmg:1.8} harus stack critDmg', async () => {
     const user = {
-     ...baseUser,
+      ...baseUser,
       class: 'rogue' as const,
-      equipped: {...baseUser.equipped, weapon: 'hunter_bow' }
+      equipped: { ...baseUser.equipped, weapon: 'hunter_bow' },
     };
     const stats = await getPlayerStats(user);
     expect(stats.atk).toBe(30); // rogue 14+1=15, +15=30
@@ -83,7 +94,7 @@ describe('getPlayerStats()', () => {
 
   it('buff atk +30% harus naikin atk', async () => {
     const user = {
-     ...baseUser,
+      ...baseUser,
       buffs: [{ type: 'atk', value: 0.3, expires: new Date(Date.now() + 10000), battle: false }],
     };
     const stats = await getPlayerStats(user);
