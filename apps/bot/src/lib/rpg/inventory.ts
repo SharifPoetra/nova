@@ -6,7 +6,7 @@ import {
   StringSelectMenuBuilder,
 } from 'discord.js';
 import { RARITY_COLOR, RARITY_ORDER } from '../utils';
-import { User, Item, type IItem, type IUser } from '@nova/db';
+import { User, Item, type IItem, type IItemEffect, type IEquipmentStat, type EquipmentSlot, type IUser } from '@nova/db';
 
 const ITEMS_PER_PAGE = 10;
 const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
@@ -23,9 +23,22 @@ type RenderUser = Pick<IUser, 'discordId' | 'stamina' | 'maxStamina' | 'items'> 
   avatar?: string | null;
 };
 
+export interface ItemInput {
+  itemId: string;
+  name: string;
+  emoji: string;
+  type: 'material' | 'equipment' | 'consumable';
+  rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary' | 'Mythic';
+  sellPrice: number;
+  description?: string;
+  slot?: EquipmentSlot;
+  stats?: IEquipmentStat;
+  effects?: IItemEffect[];
+}
+
 export async function addItemToInventory(
   discordId: string,
-  itemData: IItem,
+  itemData: ItemInput,
   qty: number = 1,
 ): Promise<void> {
   // Pastikan item ada di collection Item (auto-insert/update)

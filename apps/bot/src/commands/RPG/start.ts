@@ -50,7 +50,7 @@ export class StartCommand extends Command {
           text: t('commands/start:already_footer', { defaultValue: 'Use /profile to view status' }),
         });
 
-      return interaction.editReply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+      return interaction.editReply({ embeds: [embed] });
     }
 
     const classList = Object.entries(CLASSES);

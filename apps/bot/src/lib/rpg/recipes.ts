@@ -1,3 +1,5 @@
+import { ItemInput } from './inventory';
+
 export interface Ingredient {
   id: string;
   qty: number;
@@ -392,7 +394,7 @@ export const RECIPES: Recipe[] = [
 export const getRecipe = (id: string) => RECIPES.find((r) => r.id === id);
 
 // === ITEM DEFINITIONS FOR DB SEED - 100% match Item.ts schema ===
-export const COOKED_ITEMS = [
+export const COOKED_ITEMS: ItemInput[] = [
   {
     itemId: 'cooked_sardine',
     name: 'Sarden Bakar',

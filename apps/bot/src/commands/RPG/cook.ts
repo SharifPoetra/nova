@@ -173,7 +173,7 @@ export class CookCommand extends Command {
         }),
       );
 
-    const components: ActionRowBuilder[] = [new ActionRowBuilder().addComponents(selectMenu)];
+    const components: ActionRowBuilder<any>[] = [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu)];
     if (recipeList.length > 25) {
       const prevButton = new ButtonBuilder()
         .setCustomId(`cookprev_${interaction.user.id}_${page}_${tier}`)

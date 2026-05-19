@@ -134,7 +134,7 @@ export class CookSelectHandler extends InteractionHandler {
           }),
         );
 
-      const components: ActionRowBuilder[] = [new ActionRowBuilder().addComponents(selectMenu)];
+      const components: ActionRowBuilder<any>[] = [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu)];
       if (availableRecipes.length > 25) {
         const prevButton = new ButtonBuilder()
           .setCustomId(`cookprev_${userId}_${newPage}_${tier}`)
