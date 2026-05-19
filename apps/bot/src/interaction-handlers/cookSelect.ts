@@ -10,7 +10,7 @@ import {
   ButtonStyle,
 } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { getRecipe, RECIPES, COOKED_ITEMS } from '../lib/rpg/recipes';
+import { getRecipe, RECIPES, COOKED_ITEMS } from '../lib/rpg/cooking-recipes';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { ACTION_COST } from '../lib/rpg/actions';
 import { getPlayerStats } from '../lib/rpg/combat';

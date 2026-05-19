@@ -11,7 +11,7 @@ import {
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { RECIPES, COOKED_ITEMS } from '../../lib/rpg/recipes';
+import { RECIPES, COOKED_ITEMS } from '../../lib/rpg/cooking-recipes';
 import { ACTION_COST } from '../../lib/rpg/actions';
 import { getPlayerStats } from '../../lib/rpg/combat';
 
