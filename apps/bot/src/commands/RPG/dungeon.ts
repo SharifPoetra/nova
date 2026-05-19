@@ -33,6 +33,7 @@ import {
 } from '../../lib/rpg/dungeon/dungeon-ui';
 import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle';
 import { getPlayerStats } from '../../lib/rpg/combat';
+import { addItemToInventory } from '../../lib/rpg/inventory';
 
 @ApplyOptions({
   name: 'dungeon',
@@ -375,26 +376,18 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run', { defaultValue: '⚠️ Curre
         if (materials.length && Math.random() < materialChance) {
           const mat = materials[Math.floor(Math.random() * materials.length)];
           const qty = isBoss ? 3 : isElite ? 2 : 1;
-          await itemModel.updateOne(
-            { itemId: mat.id },
-            {
-              $set: {
-                name: mat.name,
-                emoji: mat.emoji,
-                type: mat.type,
-                rarity: mat.rarity,
-                sellPrice: mat.sellPrice,
-                description: mat.description,
-                slot: mat.slot ?? null,
-                stats: mat.stats ?? null,
-                effects: mat.effects ?? null,
-              },
-            },
-            { upsert: true },
-          );
-          const inv = player.items.find((x) => x.itemId === mat.id);
-          if (inv) inv.qty += qty;
-          else player.items.push({ itemId: mat.id, qty });
+          await addItemToInventory(player.discordId, {
+            itemId: mat.id,
+            name: mat.name,
+            emoji: mat.emoji,
+            type: mat.type,
+            rarity: mat.rarity,
+            sellPrice: mat.sellPrice,
+            description: mat.description,
+            slot: mat.slot,
+            stats: mat.stats,
+            effects: mat.effects,
+          }, qty)
           runState.log.push(`📦 ${mat.emoji} ${mat.name} x${qty}`);
         }
 
@@ -405,27 +398,19 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run', { defaultValue: '⚠️ Curre
           const weights = { Common: 60, Uncommon: 25, Rare: 10, Epic: 4, Legendary: 1, Mythic: 0 };
           const weighted = equipPool.flatMap((d) => Array(weights[d.rarity] || 1).fill(d));
           const drop = weighted[Math.floor(Math.random() * weighted.length)];
-
-          await itemModel.updateOne(
-            { itemId: drop.id },
-            {
-              $set: {
-                name: drop.name,
-                emoji: drop.emoji,
-                type: drop.type,
-                rarity: drop.rarity,
-                sellPrice: drop.sellPrice,
-                description: drop.description,
-                slot: drop.slot ?? null,
-                stats: drop.stats ?? null,
-                effects: drop.effects ?? null,
-              },
-            },
-            { upsert: true },
-          );
-          const inv = player.items.find((x) => x.itemId === drop.id);
-          if (inv) inv.qty++;
-          else player.items.push({ itemId: drop.id, qty: 1 });
+          
+          await addItemToInventory(player.discordId, {
+            itemId: drop.id,
+            name: drop.name,
+            emoji: drop.emoji,
+            type: drop.type,
+            rarity: drop.rarity,
+            sellPrice: drop.sellPrice,
+            description: drop.description,
+            slot: drop.slot,
+            stats: drop.stats,
+            effects: drop.effects,
+          }, 1)
           runState.log.push(
             t('commands/dungeon:drop', {
               emoji: drop.emoji,
