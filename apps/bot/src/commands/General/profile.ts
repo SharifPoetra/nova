@@ -8,6 +8,7 @@ import { BASE_MONSTERS } from '../../lib/rpg/monsters';
 import { getExpNeeded } from '../../lib/rpg/leveling';
 import { colorBar } from '../../lib/utils';
 import { getPlayerStats } from '../../lib/rpg/combat';
+import { SKILLS } from '../../lib/rpg/skills';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',
@@ -139,6 +140,16 @@ export class ProfileCommand extends Command {
           .filter(Boolean)
           .join(' • ') || t('commands/profile:no_equipment', { defaultValue: 'None' });
 
+      const skillText = stats.availableSkills.length
+        ? stats.availableSkills
+            .map((id) => {
+              const s = SKILLS[id];
+              return s ? `${s.emoji ?? '✨'} **${s.name}**` : null;
+            })
+            .filter(Boolean)
+            .join(' • ')
+        : t('commands/profile:no_skills', { defaultValue: 'None' });
+
       const nextUnlock = BASE_MONSTERS.filter((m) => m.minLevel > level).sort(
         (a, b) => a.minLevel - b.minLevel,
       )[0];
@@ -226,6 +237,11 @@ export class ProfileCommand extends Command {
           {
             name: t('commands/profile:equipment', { defaultValue: '⚔️ Equipment' }),
             value: equipText,
+            inline: false,
+          },
+          {
+            name: '✨ Skills',
+            value: skillText,
             inline: false,
           },
           {
