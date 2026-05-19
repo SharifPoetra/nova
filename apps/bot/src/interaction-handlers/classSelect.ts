@@ -61,7 +61,7 @@ export class ClassSelectHandler extends InteractionHandler {
         $set: {
           class: key,
           username: i.user.username,
-          hp: data.baseHp,
+          hp: data.baseHp + 10,
           maxHp: data.baseHp,
           attack: data.baseAtk,
           critRate: data.baseCritRate,
@@ -73,7 +73,7 @@ export class ClassSelectHandler extends InteractionHandler {
           balance: 1000,
           bank: 0,
           items: [],
-          equipped: { weapon: null, helmet: null, armor: null, accessory: null },
+          equipped: { weapon: null, helmet: null, armor: null, accessory: null, tool: null },
           createdAt: new Date(),
         },
       },
@@ -103,7 +103,7 @@ export class ClassSelectHandler extends InteractionHandler {
         }),
       )
       .addFields(
-        { name: '❤️ HP', value: `**${data.baseHp}**`, inline: true },
+        { name: '❤️ HP', value: `**${data.baseHp + 10}**`, inline: true },
         { name: '🗡️ ATK', value: `**${data.baseAtk}**`, inline: true },
         { name: '⚡ Stamina', value: `**${BASE_STAMINA}**`, inline: true },
         {

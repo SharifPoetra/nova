@@ -24,6 +24,7 @@ export class StartCommand extends Command {
   }
 
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    await interaction.deferReply();
     const t = await fetchT(interaction);
     const userId = interaction.user.id;
     const user = await this.container.db.user.findOne({ discordId: userId });
@@ -49,7 +50,7 @@ export class StartCommand extends Command {
           text: t('commands/start:already_footer', { defaultValue: 'Use /profile to view status' }),
         });
 
-      return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+      return interaction.editReply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
 
     const classList = Object.entries(CLASSES);
@@ -75,13 +76,13 @@ export class StartCommand extends Command {
             name: `${c.emoji} ${c.name}`,
             value: t('commands/start:class_field', {
               desc: c.description,
-              hp: c.baseHp,
+              hp: c.baseHp + 10,
               atk: c.baseAtk,
               crit: critPercent,
               stamina: BASE_STAMINA,
               skill: skill.name,
               passive: passive?.name ?? 'None',
-              defaultValue: `**${c.description}**\n❤️ ${c.baseHp} HP | 🗡️ ${c.baseAtk} ATK | ⚡ ${BASE_STAMINA} Stamina | 🎯 ${critPercent}% Crit\n*Skill: ${skill.name}*${passive ? `\n*Passive: ${passive.name}*` : ''}`,
+              defaultValue: `**${c.description}**\n❤️ ${c.baseHp + 10} HP | 🗡️ ${c.baseAtk} ATK | ⚡ ${BASE_STAMINA} Stamina | 🎯 ${critPercent}% Crit\n*Skill: ${skill.name}*${passive ? `\n*Passive: ${passive.name}*` : ''}`,
             }),
             inline: false,
           };
@@ -111,6 +112,6 @@ export class StartCommand extends Command {
       ),
     );
 
-    return interaction.reply({ embeds: [embed], components: [row] });
+    return interaction.editReply({ embeds: [embed], components: [row] });
   }
 }
