@@ -159,8 +159,27 @@ export const FISHES: Fish[] = [
   },
 ];
 
-export function catchFish(): Fish {
+export function catchFish(bonus = 0): Fish {
+  // bonus = 0.1 (wooden) sampai 0.5 (abyssal)
   const roll = Math.random() * 100;
   let cum = 0;
-  return FISHES.find((f) => (cum += f.chance) >= roll)!;
+
+  // naikin chance rare+, turunin common
+  const adjusted = FISHES.map((f) => {
+    if (f.rarity === 'Common') {
+      return { ...f, chance: f.chance * (1 - bonus * 0.5) };
+    }
+    // Rare ke atas dapat boost
+    const multiplier = f.rarity === 'Legendary' ? 1 + bonus * 2 : 1 + bonus;
+    return { ...f, chance: f.chance * multiplier };
+  });
+
+  const total = adjusted.reduce((s, f) => s + f.chance, 0);
+  const normalized = adjusted.map((f) => ({ ...f, chance: (f.chance / total) * 100 }));
+
+  for (const f of normalized) {
+    cum += f.chance;
+    if (roll <= cum) return FISHES.find((orig) => orig.id === f.id)!;
+  }
+  return FISHES[0];
 }
