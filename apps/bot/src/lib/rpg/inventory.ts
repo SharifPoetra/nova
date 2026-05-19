@@ -6,7 +6,15 @@ import {
   StringSelectMenuBuilder,
 } from 'discord.js';
 import { RARITY_COLOR, RARITY_ORDER } from '../utils';
-import { User, Item, type IItem, type IItemEffect, type IEquipmentStat, type EquipmentSlot, type IUser } from '@nova/db';
+import {
+  User,
+  Item,
+  type IItem,
+  type IItemEffect,
+  type IEquipmentStat,
+  type EquipmentSlot,
+  type IUser,
+} from '@nova/db';
 
 const ITEMS_PER_PAGE = 10;
 const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
