@@ -11,5 +11,5 @@
     "resolveJsonModule": true
   },
   "include": ["src"],
-  "exclude": ["src/lib/rpg/tests/**"]
+  "exclude": ["**/*.test.ts", "**/tests/**", "dist"]
 }
