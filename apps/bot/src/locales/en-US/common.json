@@ -7,5 +7,28 @@
     "general": "GENERAL",
     "owner": "OWNER"
   },
-  "need_start": "❌ Use `/start` first."
+  "need_start": "❌ Use `/start` first.",
+  "ui": {
+    "prev": "◀ Previous",
+    "next": "Next ▶",
+    "close": "❌ Close",
+    "back": "◀ Back",
+    "confirm": "✅ Confirm",
+    "cancel": "❌ Cancel"
+  },
+  "error": {
+    "not_yours": "This isn't yours 😅",
+    "low_stamina": "⚡ Not enough stamina ({{current}}/{{need}})",
+    "low_hp": "❤️ Not enough HP ({{current}}/{{need}})",
+    "cooldown": "⏳ Wait {{s}}s",
+    "no_perm": "❌ You don't have permission"
+  },
+  "resource": {
+    "coins": "Coins",
+    "stamina": "Stamina",
+    "hp": "HP",
+    "exp": "EXP",
+    "gold": "Gold"
+  },
+  "levelup": "🎉 **LEVEL UP → Lv.{{level}}**"
 }

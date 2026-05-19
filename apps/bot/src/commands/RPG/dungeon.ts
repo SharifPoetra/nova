@@ -135,7 +135,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
     let currentFloor = dungeonData.currentFloor;
     if (player.stamina < DUNGEON_COST)
       return interaction.reply({
-        content: t('commands/dungeon:low_stamina', { cost: DUNGEON_COST }),
+        content: t('common:error.low_stamina', { cost: DUNGEON_COST }),
         flags: MessageFlags.Ephemeral,
       });
     if (stats.hp <= 0)
@@ -262,7 +262,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
       if (button.customId === 'continue') {
         if (player.stamina < DUNGEON_COST)
           return button.editReply({
-            content: t('commands/dungeon:low_stamina', { cost: DUNGEON_COST }),
+            content: t('common:error.low_stamina', { cost: DUNGEON_COST }),
             embeds: [],
             components: [],
           });
@@ -539,7 +539,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
             { discordId: player.discordId },
             { $set: { hp: newStats.maxHp, stamina: player.maxStamina } },
           );
-          runState.log.push(t('commands/dungeon:levelup', { level: levelUp.level }));
+          runState.log.push(t('common:levelup', { level: levelUp.level }));
         }
         dungeonData.inRun = false;
         dungeonData.floorState = null;

@@ -46,13 +46,13 @@ export class HuntCommand extends Command {
     if (now - (user.lastHunt?.getTime() ?? 0) < 45000) {
       await user.save();
       const s = Math.ceil((45000 - (now - user.lastHunt!.getTime())) / 1000);
-      return interaction.editReply(t('commands/hunt:cooldown', { s }));
+      return interaction.editReply(t('common:error.cooldown', { s }));
     }
 
     if ((user.stamina ?? 0) < ACTION_COST.hunt) {
       await user.save();
       return interaction.editReply(
-        t('commands/hunt:low_stamina', { current: user.stamina, need: ACTION_COST.hunt }),
+        t('common:error.low_stamina', { current: user.stamina, need: ACTION_COST.hunt }),
       );
     }
 
@@ -341,7 +341,7 @@ export class HuntCommand extends Command {
       const newStats = await getPlayerStats(user);
       user.hp = newStats.maxHp;
       user.stamina = user.maxStamina;
-      levelUpText = t('commands/hunt:levelup', {
+      levelUpText = t('common:levelup', {
         level: user.level,
         defaultValue: `🎉 LEVEL UP → ${levelUp.level}!`,
       });

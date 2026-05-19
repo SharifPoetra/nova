@@ -140,12 +140,12 @@ export class CookSelectHandler extends InteractionHandler {
       if (availableRecipes.length > 25) {
         const prevButton = new ButtonBuilder()
           .setCustomId(`cookprev_${userId}_${newPage}_${tier}`)
-          .setLabel(t('commands/cook:prev'))
+          .setLabel(t('common:ui.prev'))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(newPage === 0);
         const nextButton = new ButtonBuilder()
           .setCustomId(`cooknext_${userId}_${newPage}_${tier}`)
-          .setLabel(t('commands/cook:next'))
+          .setLabel(t('common:ui.next'))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(startIndex + 25 >= availableRecipes.length);
         components.push(new ActionRowBuilder().addComponents(prevButton, nextButton));
@@ -177,7 +177,7 @@ export class CookSelectHandler extends InteractionHandler {
           new EmbedBuilder()
             .setColor(0xe74c3c)
             .setDescription(
-              t('commands/cook:low_stamina', { current: user.stamina, need: ACTION_COST.cook }),
+              t('common:error.low_stamina', { current: user.stamina, need: ACTION_COST.cook }),
             ),
         ],
         components: [],

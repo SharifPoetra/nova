@@ -39,13 +39,13 @@ export class FishCommand extends Command {
       const wait = Math.ceil((cd - (now - (user.lastFish?.getTime() ?? 0))) / 1000);
       await user.save();
       return interaction.editReply(
-        t('commands/fish:cooldown', { wait, defaultValue: `🎣 Rod is still wet! Wait ${wait}s` }),
+        t('common:error.cooldown', { wait, defaultValue: `🎣 Rod is still wet! Wait ${wait}s` }),
       );
     }
     if (user.stamina < ACTION_COST.fish) {
       await user.save();
       return interaction.editReply(
-        t('commands/fish:low_stamina', {
+        t('common:error.low_stamina', {
           current: user.stamina,
           cost: ACTION_COST.fish,
           defaultValue: `⚡ Not enough stamina (${user.stamina}/${ACTION_COST.fish})`,
@@ -92,7 +92,7 @@ export class FishCommand extends Command {
       const stats = await getPlayerStats(user);
       user.hp = stats.maxHp;
       user.stamina = user.maxStamina;
-      levelUpText = `\n${t('commands/fish:levelup', { level: user.level, defaultValue: `🎉 **LEVEL UP! → Lv.${user.level}**` })}`;
+      levelUpText = `\n${t('common:levelup', { level: user.level, defaultValue: `🎉 **LEVEL UP! → Lv.${user.level}**` })}`;
     }
 
     await user.save();

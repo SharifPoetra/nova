@@ -51,7 +51,7 @@ export class ExploreCommand extends Command {
       const s = Math.ceil((cd - (now - user.lastExplore.getTime())) / 1000);
       await user.save();
       return interaction.editReply(
-        t('commands/explore:cooldown', { s, defaultValue: `⏳ Wait ${s}s more.` }),
+        t('common:error.cooldown', { s, defaultValue: `⏳ Wait ${s}s more.` }),
       );
     }
 
@@ -91,7 +91,7 @@ export class ExploreCommand extends Command {
       const stats = await getPlayerStats(user);
       user.hp = stats.maxHp;
       user.stamina = user.maxStamina;
-      levelUpText = `\n\n${t('commands/explore:levelup', { level: user.level, defaultValue: `🎉 **LEVEL UP → Lv.${user.level}**` })}`;
+      levelUpText = `\n\n${t('common:levelup', { level: user.level, defaultValue: `🎉 **LEVEL UP → Lv.${user.level}**` })}`;
     }
 
     await user.save();
