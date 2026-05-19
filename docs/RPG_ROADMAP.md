@@ -43,9 +43,9 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 - [x] **4.1b** `hunt.ts`: fix HP calc pake `stats.maxHp` bukan `user.maxHp`
 - [x] **4.1c** `combat.ts`: fix infinite loop di `applyPassives`, fix `availableSkills.push` undefined
 - [x] **4.2** `monsters.ts`: tambah drop `type: 'equipment'` buat monster rare + kasih `stats` dan `slot`
-- [ ] **4.3** `fish.ts` & `explorations.ts`: siapin buat fishing rod nanti
+- [x] **4.3** `fish.ts` & `explorations.ts`: siapin buat fishing rod nanti
 - [x] **4.4** Test: `/hunt` pake `reaper_scythe` harus crit lebih sering
-- [ ] **4.5** Refactor `/cook` hasil masak masuk inventory
+- [x] **4.5** Refactor `/cook` hasil masak masuk inventory
 - [ ] **4.6** Refactor `/shop` hasil masuk inventory
 - [ ] **4.7** Feat `/dungeon` enter tambah tombol inventory untuk pake consumable
 - [ ] **4.** Commit: `refactor(rpg): use unified combat stats in all commands`
@@ -73,5 +73,5 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 1. Jangan sentuh command sebelum Phase 1 kelar
 2. Semua stat WAJIB lewat `getPlayerStats()`. Kalau ada `player.attack` di command = reject
 3. Item baru default `stats: undefined`. Weapon harus explicit kasih stats
-4. Drop rate equipment: Boss 100%, Elite 15%, Normal 3%
+4. Drop rate equipment: Boss 100%, Elite 40%, Normal 20%
 5. **RULE BARU**: Jangan pernah pake `user.maxHp` di command. Selalu `const stats = await getPlayerStats(user)` terus pake `stats.maxHp`
