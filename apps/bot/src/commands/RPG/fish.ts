@@ -115,11 +115,6 @@ export class FishCommand extends Command {
           inline: true,
         },
         {
-          name: t('commands/fish:cook', { defaultValue: '🍳 Cook' }),
-          value: t('commands/fish:cook_value', { defaultValue: 'Can be used for Fish Soup' }),
-          inline: true,
-        },
-        {
           name: t('commands/fish:exp', { defaultValue: '✨ EXP' }),
           value: `+${expGain}`,
           inline: true,

@@ -2,7 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import { ButtonInteraction, MessageFlags } from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
-import { renderInventoryPage } from '../lib/rpg/inventory-render';
+import { renderInventoryPage } from '../lib/rpg/inventory';
 
 @ApplyOptions<InteractionHandler.Options>({
   name: 'invPagination',

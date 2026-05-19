@@ -6,7 +6,7 @@ import {
   StringSelectMenuBuilder,
 } from 'discord.js';
 import { RARITY_COLOR, RARITY_ORDER } from '../utils';
-import type { IItem, IUser } from '@nova/db';
+import { User, Item, type IItem, type IUser } from '@nova/db';
 
 const ITEMS_PER_PAGE = 10;
 const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
@@ -22,6 +22,64 @@ type RenderUser = Pick<IUser, 'discordId' | 'stamina' | 'maxStamina' | 'items'> 
   username?: string | null;
   avatar?: string | null;
 };
+
+export async function addItemToInventory(
+  discordId: string,
+  itemData: IItem,
+  qty: number = 1,
+): Promise<void> {
+  // Pastikan item ada di collection Item (auto-insert/update)
+  await Item.updateOne(
+    { itemId: itemData.itemId },
+    {
+      $set: {
+        name: itemData.name,
+        emoji: itemData.emoji,
+        type: itemData.type,
+        rarity: itemData.rarity,
+        sellPrice: itemData.sellPrice,
+        description: itemData.description ?? '',
+        slot: itemData.slot ?? null,
+        stats: itemData.stats ?? null,
+        effects: itemData.effects ?? [],
+      },
+    },
+    { upsert: true },
+  );
+
+  // Tambah ke inventory user
+  const user = await User.findOne({ discordId });
+  if (!user) throw new Error('User not found');
+
+  const existing = user.items.find((i) => i.itemId === itemData.itemId);
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    user.items.push({ itemId: itemData.itemId, qty });
+  }
+
+  await user.save();
+}
+
+export async function removeItemFromInventory(
+  discordId: string,
+  itemId: string,
+  qty: number = 1,
+): Promise<boolean> {
+  const user = await User.findOne({ discordId });
+  if (!user) return false;
+
+  const item = user.items.find((i) => i.itemId === itemId);
+  if (!item || item.qty < qty) return false;
+
+  item.qty -= qty;
+  if (item.qty <= 0) {
+    user.items = user.items.filter((i) => i.itemId !== itemId);
+  }
+
+  await user.save();
+  return true;
+}
 
 export async function renderInventoryPage(
   container: any,

@@ -11,7 +11,7 @@ import {
 import type { ButtonInteraction, StringSelectMenuInteraction } from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { getPlayerStats } from '../lib/rpg/combat';
-import { renderInventoryPage } from '../lib/rpg/inventory-render';
+import { renderInventoryPage } from '../lib/rpg/inventory';
 import { RARITY_ORDER } from '../lib/utils';
 import type { EquipmentSlot, IEquipmentStat, IUser, IItem } from '@nova/db';
 
