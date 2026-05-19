@@ -4,7 +4,7 @@ import type { IUser } from '@nova/db';
 
 describe('Skills', () => {
   it('all skills have required fields', () => {
-    Object.values(SKILLS).forEach(skill => {
+    Object.values(SKILLS).forEach((skill) => {
       expect(skill.id).toBeDefined();
       expect(skill.cooldownTurns).toBeGreaterThanOrEqual(0);
       expect(skill.use).toBeTypeOf('function');
@@ -19,7 +19,7 @@ describe('Skills', () => {
 
   it('warrior gets rage', () => {
     const skills = getSkillsByClass('warrior');
-    expect(skills.some(s => s.id === 'rage')).toBe(true);
+    expect(skills.some((s) => s.id === 'rage')).toBe(true);
   });
 
   it('passive unlocks at level 10', () => {
