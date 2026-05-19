@@ -48,7 +48,7 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 - [x] **4.5** Refactor `/cook` hasil masak masuk inventory
 - [x] **4.6** Refactor `/shop` hasil masuk inventory
 - [x] **4.7** Feat `/dungeon` enter tambah tombol inventory untuk pake consumable
-- [ ] **4.** Commit: `refactor(rpg): use unified combat stats in all commands`
+- [x] **4.8** Commit: `refactor(rpg): use unified combat stats in all commands`
 
 ## Phase 5: Content & Balance - Ongoing
 - [ ] **5.1** Isi 20 weapon/armor di DB: tier Common→Legendary
