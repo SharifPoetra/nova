@@ -100,7 +100,7 @@ export async function runInteractiveBattle(params: BattleParams) {
       const { damage } = calculateDamage(stats, { def: monsterDef }, 1.0);
       monsterHp -= damage;
       state.dealt += damage;
-      battleLog.push(`⏱️ Auto! 🗡️ **${damage}**`);
+      battleLog.push(t('commands/dungeon:battle_auto', { damage }));
       await sleep(700);
     } else {
       await turn.deferUpdate();
@@ -115,7 +115,7 @@ export async function runInteractiveBattle(params: BattleParams) {
         );
       } else if (turn.customId === 'def') {
         isDefending = true;
-        battleLog.push(`🛡️ You defend! Damage -60%`);
+        battleLog.push(t('commands/dungeon:battle_defend'));
       } else if (turn.customId === 'skl' && playerSkill) {
         const cdLeft = getSkillCooldown(player, playerSkill.id);
         if (cdLeft > 0) {

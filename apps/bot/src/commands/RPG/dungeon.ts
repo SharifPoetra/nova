@@ -249,11 +249,11 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         const closeRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
             .setCustomId('closebag')
-            .setLabel(t('commands/dungeon:close_bag', { defaultValue: '❌ Close Bag' }))
+            .setLabel(t('commands/dungeon:close_bag', { defaultValue: '🎒 Close Bag' }))
             .setStyle(ButtonStyle.Secondary),
         );
         return button.editReply({
-          embeds: [inv.embed.setTitle('🎒 Dungeon Bag').setColor(0x2ecc71)],
+          embeds: [inv.embed.setColor(0x2ecc71)],
           components: useMenu ? [useMenu, closeRow] : [closeRow],
         });
       }
@@ -295,13 +295,13 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
       }
 
       if (player.stamina < DUNGEON_COST) {
-        runState.log.push(t('commands/dungeon:stamina_out'));
+        runState.log.push(t('common:error.low_stamina', { current: player.stamina, need: DUNGEON_COST }));
         dungeonData.inRun = false;
         dungeonData.floorState = null;
         await dungeonData.save();
         collector.stop();
         return button.editReply({
-          content: t('commands/dungeon:stamina_out'),
+          content: t('common:error.low_stamina', { current: player.stamina, need: DUNGEON_COST }));
           embeds: [await buildEmbed()],
           components: [],
         });
@@ -530,7 +530,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
           );
           runState.log.push(t('commands/dungeon:bought', { heal, cost }));
           await sleep(800);
-        } else runState.log.push(t('commands/dungeon:skipped'));
+        } else runState.log.push(t('commands/dungeon:skipped', { text: eventText }));
       }
 
       await dungeonData.save();
