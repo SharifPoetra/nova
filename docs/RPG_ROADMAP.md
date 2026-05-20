@@ -60,7 +60,7 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 ## Phase 6: Polish - 1 hari
 - [ ] **6.1** Locale: tambah `commands/inventory:equip_success`, `skills.json`
 - [ ] **6.2** Help command: `/help equipment` jelasin stat
-- [ ] **6.3** Migrate item existing: script kasih `stats` ke item lama
+- [x] **6.3** Migrate item existing: script kasih `stats` ke item lama
 - [ ] **6.4** Commit: `chore: migrate old items to new equipment system`
 
 ## Bug Fixes - 2026-05-17

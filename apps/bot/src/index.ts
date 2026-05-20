@@ -68,6 +68,10 @@ const client = new SapphireClient({
       preload: ['id', 'en-US', 'en-GB'],
       ns: [
         'common',
+        'dungeon/items',
+        'dungeon/monsters',
+        'dungeon/lore',
+        'dungeon/events',
         'commands/names',
         'commands/descriptions',
         'commands/hunt',
