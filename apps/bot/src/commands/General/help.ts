@@ -8,7 +8,7 @@ import {
   type ChatInputCommandInteraction,
   type Interaction,
 } from 'discord.js';
-import { fetchT, resolveKey } from '@sapphire/plugin-i18next';
+import { fetchT } from '@sapphire/plugin-i18next';
 import { localized } from '../../lib/i18n/localize';
 
 @ApplyOptions<Command.Options>({
@@ -24,17 +24,17 @@ export class HelpCommand extends Command {
 
     registry.registerChatInputCommand((builder) =>
       builder
-      .setName(name.default)
-      .setNameLocalizations(name.localizations)
-      .setDescription(description.default)
-      .setDescriptionLocalizations(description.localizations)
-      .addStringOption((option) =>
+        .setName(name.default)
+        .setNameLocalizations(name.localizations)
+        .setDescription(description.default)
+        .setDescriptionLocalizations(description.localizations)
+        .addStringOption((option) =>
           option
-          .setName('command')
-          .setDescription(optDesc.default)
-          .setDescriptionLocalizations(optDesc.localizations)
-          .setAutocomplete(true)
-        )
+            .setName('command')
+            .setDescription(optDesc.default)
+            .setDescriptionLocalizations(optDesc.localizations)
+            .setAutocomplete(true),
+        ),
     );
   }
 
