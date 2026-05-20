@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener, Events, InteractionHandlerError } from '@sapphire/framework';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
+import { fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions<Listener.Options>({
   event: Events.InteractionHandlerError,
@@ -8,6 +9,7 @@ import { EmbedBuilder, MessageFlags } from 'discord.js';
 })
 export class InteractionHandlerErrorListener extends Listener {
   public override async run(error: Error, { interaction, handler }: InteractionHandlerError) {
+    const t = await fetchT(interaction);
     const id = Math.random().toString(36).slice(2, 8).toUpperCase();
 
     this.container.logger.error(
@@ -18,9 +20,9 @@ export class InteractionHandlerErrorListener extends Listener {
 
     const embed = new EmbedBuilder()
       .setColor(0xe74c3c)
-      .setTitle('❌ Terjadi Error')
-      .setDescription(`Handler \`${handler.name}\` gagal dijalankan.\n\n**Error ID:** \`${id}\``)
-      .setFooter({ text: 'Laporkan ID ini ke developer' })
+      .setTitle(t('common:error.handler_failed_title'))
+      .setDescription(t('common:error.handler_failed_desc', { handler: handler.name, id }))
+      .setFooter({ text: t('common:error.handler_failed_footer') })
       .setTimestamp();
 
     try {

@@ -8,7 +8,8 @@ import {
   type ChatInputCommandInteraction,
   type Interaction,
 } from 'discord.js';
-import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
+import { fetchT, resolveKey } from '@sapphire/plugin-i18next';
+import { localized } from '../../lib/i18n/localize';
 
 @ApplyOptions<Command.Options>({
   name: 'help',
@@ -17,22 +18,23 @@ import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 })
 export class HelpCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
+    const name = localized('commands/names:help');
+    const description = localized('commands/descriptions:help');
+    const optDesc = localized('commands/descriptions:help_option_command');
+
     registry.registerChatInputCommand((builder) =>
-      applyLocalizedBuilder(
-        builder,
-        'commands/names:help',
-        'commands/descriptions:help',
-      ).addStringOption((o) =>
-        o
+      builder
+      .setName(name.default)
+      .setNameLocalizations(name.localizations)
+      .setDescription(description.default)
+      .setDescriptionLocalizations(description.localizations)
+      .addStringOption((option) =>
+          option
           .setName('command')
-          .setDescription('View command details')
-          .setDescriptionLocalizations({
-            'en-US': 'View command details',
-            'en-GB': 'View command details',
-            id: 'Lihat detail command',
-          })
-          .setAutocomplete(true),
-      ),
+          .setDescription(optDesc.default)
+          .setDescriptionLocalizations(optDesc.localizations)
+          .setAutocomplete(true)
+        )
     );
   }
 
