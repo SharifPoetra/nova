@@ -13,6 +13,7 @@ import {
 } from '../combat';
 import { getSkill, SkillContext } from '../skills';
 import type { TFunction } from 'i18next';
+import { i18nMonster } from '../display';
 
 interface BattleParams {
   player: IUser;
@@ -29,6 +30,7 @@ interface BattleParams {
 
 export async function runInteractiveBattle(params: BattleParams) {
   const { player, monster, floor, lore, isBoss, isElite, state, msg, username, t } = params;
+  const monsterName = i18nMonster('dungeon', monster.id, t);
   let stats = await getPlayerStats(player);
 
   const baseHp = 50 + floor * 8;
@@ -50,16 +52,16 @@ export async function runInteractiveBattle(params: BattleParams) {
   battleLog.push(
     t('commands/dungeon:battle_spawn', {
       emoji: monster.emoji,
-      name: monster.name,
+      name: monsterName,
       elite: isElite ? t('commands/dungeon:elite_tag', { defaultValue: ' **ELITE!**' }) : '',
-      defaultValue: `**${monster.emoji} ${monster.name}** appeared!${isElite ? ' **ELITE!**' : ''}`,
+      defaultValue: `**${monster.emoji} ${monsterName}** appeared!${isElite ? ' **ELITE!**' : ''}`,
     }),
   );
 
   const updateBattle = async (showButtons = true) => {
     const skillCd = playerSkill ? getSkillCooldown(player, playerSkill.id) : 0;
     const embed = buildBattleEmbed({
-      monsterName: monster.name,
+      monsterName,
       monsterEmoji: monster.emoji,
       monsterHp,
       monsterMaxHp,
@@ -108,7 +110,9 @@ export async function runInteractiveBattle(params: BattleParams) {
         const { damage, isCrit } = calculateDamage(stats, { def: monsterDef }, 1.0);
         monsterHp -= damage;
         state.dealt += damage;
-        battleLog.push(`🗡️ You hit **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
+        battleLog.push(
+          t('commands/dungeon:player_hit', { damage, crit: `${isCrit ? '💥CRIT' : ''}` }),
+        );
       } else if (turn.customId === 'def') {
         isDefending = true;
         battleLog.push(`🛡️ You defend! Damage -60%`);
@@ -117,7 +121,12 @@ export async function runInteractiveBattle(params: BattleParams) {
         if (cdLeft > 0) {
           battleLog.push(`⏳ ${playerSkill.name} cooldown ${cdLeft} turn lagi!`);
         } else if (player.stamina < playerSkill.staminaCost) {
-          battleLog.push(`😩 Stamina kurang! Butuh ${playerSkill.staminaCost} ⚡`);
+          battleLog.push(
+            t('common:error.low_stamina', {
+              current: player.stamina,
+              need: playerSkill.staminaCost,
+            }),
+          );
         } else {
           const ctx: SkillContext = {
             user: player,
@@ -165,7 +174,7 @@ export async function runInteractiveBattle(params: BattleParams) {
     state.taken += monsterDamage;
     isDefending = false;
 
-    battleLog.push(`💢 ${monster.name} strikes **${monsterDamage}**`);
+    battleLog.push(t('commands/dungeon:monster_hit', { monsterName, monsterDamage }));
     await updateBattle(false);
     await sleep(800);
 

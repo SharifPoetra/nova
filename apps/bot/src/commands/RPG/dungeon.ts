@@ -41,6 +41,7 @@ import {
 import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle';
 import { getPlayerStats } from '../../lib/rpg/combat';
 import { addItemToInventory, renderInventoryPage } from '../../lib/rpg/inventory';
+import { i18nMonster, i18nItem, i18nEvent } from '../../lib/rpg/display';
 
 @ApplyOptions({
   name: 'dungeon',
@@ -100,7 +101,7 @@ export class DungeonCommand extends Command {
     const stats = await getPlayerStats(player);
 
     if (action === 'status') {
-      const lore = getFloorLore(dungeonData.currentFloor);
+      const lore = getFloorLore(dungeonData.currentFloor, t);
       const zone = getZone(dungeonData.currentFloor);
       const checkpoint = getCheckpoint(dungeonData.currentFloor);
       return interaction.reply({
@@ -152,7 +153,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
 
     let runState = dungeonData.floorState as RunState;
     let zone = getZone(currentFloor);
-    let lore = getFloorLore(currentFloor);
+    let lore = getFloorLore(currentFloor, t);
     let floorMonster = getMonster(currentFloor);
     let isBossFloor = floorMonster.isBoss;
 
@@ -270,7 +271,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         floorMonster = getMonster(currentFloor);
         isBossFloor = floorMonster.isBoss;
         zone = getZone(currentFloor);
-        lore = getFloorLore(currentFloor);
+        lore = getFloorLore(currentFloor, t);
         dungeonData.inRun = true;
         dungeonData.floorState = createRunState(currentFloor);
         await dungeonData.save();
@@ -315,11 +316,11 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
       const isLastRoom = runState.current === runState.rooms;
       let event: DungeonEvent;
       if (isLastRoom && isBossFloor) {
-        event = { id: 'boss', type: 'battle', weight: 0, text: `👑 ${floorMonster.name} BOSS!` };
+        event = { id: 'boss', type: 'battle', weight: 0 };
       } else {
         const needForcedBattle = !runState.hasBattle && runState.current >= runState.rooms - 1;
         event = needForcedBattle
-          ? { id: 'forced', type: 'battle', weight: 0, text: t('commands/dungeon:forced_battle') }
+          ? { id: 'forced_battle', type: 'battle', weight: 0 }
           : rollEvent(currentFloor);
       }
 
@@ -329,19 +330,29 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         if (isLastRoom && isBossFloor) currentMonster = floorMonster;
         else {
           const base = getMonster(currentFloor).base;
-          const bossNames = Object.values(BOSSES).map((b) => b.name);
-          const pool = DUNGEON_MONSTERS.filter(
-            (m) => m.base === base && !bossNames.includes(m.name),
-          );
+          const bossNames = Object.values(BOSSES).map((b) => b.id);
+          const pool = DUNGEON_MONSTERS.filter((m) => m.base === base && !bossNames.includes(m.id));
           currentMonster = {
             ...(pool[Math.floor(Math.random() * pool.length)] ?? getMonster(currentFloor)),
             isBoss: false,
           };
         }
       }
-      runState.log.push(
-        `**R${runState.current}:** ${event.type === 'battle' ? `${currentMonster.emoji} ${currentMonster.name}` : event.text}`,
-      );
+
+      const eventText = i18nEvent(event.id, t);
+
+      if (event.type === 'battle') {
+        const battleHeader =
+          event.id === 'forced_battle'
+            ? `${eventText} — ${currentMonster.emoji} ${i18nMonster('dungeon', currentMonster.id, t)}`
+            : event.id === 'boss'
+              ? `👑 ${i18nMonster('dungeon', currentMonster.id, t)}`
+              : `${currentMonster.emoji} ${i18nMonster('dungeon', currentMonster.id, t)}`;
+
+        runState.log.push(`**R${runState.current}:** ${battleHeader}`);
+      } else {
+        runState.log.push(`**R${runState.current}:** ${eventText}`);
+      }
 
       if (event.type === 'battle') {
         const isElite = !isLastRoom && !isBossFloor && Math.random() < 0.1;
@@ -360,7 +371,9 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         player = (await userModel.findOne({ discordId: player.discordId }))!;
 
         if (!battleResult.victory) {
-          runState.log.push(t('commands/dungeon:defeated', { name: currentMonster.name }));
+          runState.log.push(
+            t('commands/dungeon:defeated', { name: i18nMonster('dungeon', currentMonster.id, t) }),
+          );
           dungeonData.inRun = false;
           dungeonData.floorState = null;
           dungeonData.currentFloor = getCheckpoint(currentFloor);
@@ -398,7 +411,8 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
             { itemId: id, ...matData },
             isBoss ? 3 : isElite ? 2 : 1,
           );
-          runState.log.push(`📦 ${matData.emoji} ${matData.name} x${isBoss ? 3 : isElite ? 2 : 1}`);
+          const matName = i18nItem('dungeon', id, t);
+          runState.log.push(`📦 ${matData.emoji} ${matName} x${isBoss ? 3 : isElite ? 2 : 1}`);
         }
         const equipPool = pool.filter((d) => d.type === 'equipment' || d.type === 'consumable');
         if (equipPool.length && Math.random() < (isBoss ? 1.0 : isElite ? 0.4 : 0.2)) {
@@ -406,58 +420,58 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
           const weighted = equipPool.flatMap((d) => Array(weights[d.rarity] || 1).fill(d));
           const { id, ...dropData } = weighted[Math.floor(Math.random() * weighted.length)];
           await addItemToInventory(player.discordId, { itemId: id, ...dropData }, 1);
-          runState.log.push(
-            t('commands/dungeon:drop', { emoji: dropData.emoji, name: dropData.name }),
-          );
+          const dropName = i18nItem('dungeon', id, t);
+          runState.log.push(t('commands/dungeon:drop', { emoji: dropData.emoji, name: dropName }));
         }
       } else if (event.type === 'treasure') {
         const gold = event.effect?.gold ?? 50 + currentFloor * 3;
         runState.gold += gold;
         await userModel.updateOne({ discordId: player.discordId }, { $inc: { balance: gold } });
         runState.log.push(t('commands/dungeon:chest', { gold }));
+
         if (event.effect?.item) {
-          const def = EVENT_ITEM_DEFS[event.effect.item] ?? {};
+          const def = EVENT_ITEM_DEFS[event.effect.item];
+          const itemId = event.effect.item;
+          const itemName = i18nItem('dungeon', itemId, t);
+
           await addItemToInventory(
             player.discordId,
             {
-              itemId: event.effect.item,
-              name: def.name ?? event.effect.item,
-              emoji: def.emoji ?? '📦',
-              description: def.description ?? '',
-              type: (def.type ?? 'material') as any,
-              rarity: (def.rarity ?? 'Common') as any,
-              sellPrice: def.sellPrice ?? 20 + currentFloor,
+              itemId,
+              name: itemName, // TODO: remove field name from db schema
+              emoji: def.emoji,
+              description: '', // TODO: remove field description from db schema
+              type: def.type as any,
+              rarity: def.rarity as any,
+              sellPrice: def.sellPrice,
             },
             1,
           );
-          runState.log.push(
-            t('commands/dungeon:got_item', {
-              emoji: def.emoji ?? '📦',
-              name: def.name ?? event.effect.item,
-            }),
-          );
+          runState.log.push(t('commands/dungeon:got_item', { emoji: def.emoji, name: itemName }));
         }
       } else if (event.type === 'trap') {
         const damage = Math.abs(event.effect?.hp ?? 15 + currentFloor);
         await userModel.updateOne({ discordId: player.discordId }, { $inc: { hp: -damage } });
         runState.taken += damage;
         runState.log.push(t('commands/dungeon:trap', { damage }));
-        if (event.effect?.stamina)
+        if (event.effect?.stamina) {
           await userModel.updateOne(
             { discordId: player.discordId },
             { $inc: { stamina: event.effect.stamina } },
           );
+        }
       } else if (event.type === 'heal') {
         const heal = event.effect?.hp ?? 30;
         const s2 = await getPlayerStats(player);
         const newHp = Math.min(s2.maxHp, player.hp + heal);
         await userModel.updateOne({ discordId: player.discordId }, { $set: { hp: newHp } });
         runState.log.push(t('commands/dungeon:heal', { heal }));
-        if (event.effect?.stamina)
+        if (event.effect?.stamina) {
           await userModel.updateOne(
             { discordId: player.discordId },
             { $inc: { stamina: event.effect.stamina } },
           );
+        }
       } else if (event.type === 'puzzle') {
         if (event.effect?.hp) {
           const s2 = await getPlayerStats(player);
@@ -477,16 +491,17 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
           { $inc: { exp: loreExp, stamina: DUNGEON_COST } },
         );
         runState.exp += loreExp;
-        runState.log.push(t('commands/dungeon:lore', { text: event.text, exp: loreExp }));
+        runState.log.push(t('commands/dungeon:lore', { text: eventText, exp: loreExp }));
       } else if (event.type === 'merchant') {
         const cost = Math.abs(event.effect?.gold ?? 100) + Math.floor(currentFloor * 2.5);
         const heal = 30 + Math.floor(currentFloor * 1.5);
         player = (await userModel.findOne({ discordId: player.discordId }))!;
         const canAfford = player.balance >= cost;
+
         await button.editReply({
           embeds: [
             buildMerchantEmbed({
-              text: event.text,
+              text: eventText,
               cost,
               heal,
               floor: currentFloor,
@@ -497,6 +512,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
           ],
           components: [getMerchantButtons(cost, canAfford, t)],
         });
+
         const choice = await message
           .awaitMessageComponent({
             filter: (i) => i.user.id === player!.discordId && ['buy', 'skip'].includes(i.customId),

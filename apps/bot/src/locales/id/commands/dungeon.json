@@ -81,6 +81,8 @@
   "bought_footer": "✅ Terbeli! +{{heal}} HP",
   "skipped": "🛒 {{text}} (dilewati)",
   "drop": "🎁 {{emoji}} {{name}}",
-  "levelup": "🎉 LEVEL UP {{level}}!",
-  "continue_q": "Mau lanjut?"
+  "continue_q": "Mau lanjut?",
+  "close_bag": "❌ Tutup Tas",
+  "player_hit": "🗡️ Kamu serang {{damage}} {{crit}}",
+  "monster_hit": "💢 {{monsterName}} balas {{monsterDamage}}"
 }

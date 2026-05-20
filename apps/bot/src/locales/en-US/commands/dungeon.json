@@ -81,6 +81,8 @@
   "bought_footer": "✅ Purchased! +{{heal}} HP",
   "skipped": "🛒 {{text}} (skipped)",
   "drop": "🎁 {{emoji}} {{name}}",
-  "levelup": "🎉 LEVEL UP {{level}}!",
-  "continue_q": "Continue?"
+  "continue_q": "Continue?",
+  "close_bag": "❌ Close Bag",
+  "player_hit": "🗡️ You hit {{damage}} {{crit}}",
+  "monster_hit": "💢 {{monsterName}} strikes {{monsterDamage}}"
 }
