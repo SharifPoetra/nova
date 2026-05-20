@@ -1,7 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
-import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
+import { fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
 import { getClass } from '../../lib/rpg/classes';
 import { BASE_MONSTERS } from '../../lib/rpg/monsters';
@@ -9,6 +9,7 @@ import { getExpNeeded } from '../../lib/rpg/leveling';
 import { colorBar } from '../../lib/utils';
 import { getPlayerStats } from '../../lib/rpg/combat';
 import { SKILLS } from '../../lib/rpg/skills';
+import { localized } from '../../lib/i18n/localize';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',
@@ -17,22 +18,23 @@ import { SKILLS } from '../../lib/rpg/skills';
 })
 export class ProfileCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
+    const name = localized('commands/names:profile');
+    const desc = localized('commands/descriptions:profile');
+    const optDesc = localized('commands/descriptions:profile_option_user');
+
     registry.registerChatInputCommand((builder) =>
-      applyLocalizedBuilder(
-        builder,
-        'commands/names:profile',
-        'commands/descriptions:profile',
-      ).addUserOption((o) =>
-        o
-          .setName('user')
-          .setDescription('User to view')
-          .setDescriptionLocalizations({
-            'en-US': 'User to view',
-            'en-GB': 'User to view',
-            id: 'User yang ingin dilihat',
-          })
-          .setRequired(false),
-      ),
+      builder
+        .setName(name.default)
+        .setNameLocalizations(name.localizations)
+        .setDescription(description.default)
+        .setDescriptionLocalizations(description.localizations)
+        .addStringOption((option) =>
+          option
+            .setName('user')
+            .setDescription(optDesc.default)
+            .setDescriptionLocalizations(optDesc.localizations)
+            .setRequired(false),
+        ),
     );
   }
 

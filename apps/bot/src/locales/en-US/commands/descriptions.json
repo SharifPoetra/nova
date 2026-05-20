@@ -17,5 +17,6 @@
   "hunt": "Hunt monsters",
   "lang": "Change bot language for you or the server",
 
-  "help_option_command": "View command details"
+  "help_option_command": "View command details",
+  "profile_option_user": "User to view"
 }
