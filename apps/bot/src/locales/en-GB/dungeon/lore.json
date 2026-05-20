@@ -1,0 +1,19 @@
+{
+  "floor_1": { "text": "The tower base. Damp air thick with the scent of slime. Your first step begins." },
+  "floor_10": { "text": "The chamber trembles. A colossal slime throne blocks your ascent." },
+  "floor_11": { "text": "Walls begin to crystallize. You hear cracking from deep within the stone." },
+  "floor_20": { "text": "A crystal heart pulses in the hall's center. Its light is blinding." },
+  "floor_21": { "text": "Temperature plummets. Spirit whispers seep from wall cracks." },
+  "floor_30": { "text": "Thick darkness envelops you. Something stalks you from the void." },
+  "floor_31": { "text": "Scorching heat. Lava streams flow between the tower floors." },
+  "floor_40": { "text": "A dragon's roar shakes the tower. Embers dance in the air." },
+  "floor_41": { "text": "Frost begins to form. Your breath turns to ice." },
+  "floor_50": { "text": "Absolute cold. Time itself halts before the Frozen Warden." },
+  "floor_51": { "text": "You pierce the clouds. A starry sky unfolds inside the tower." },
+  "floor_60": { "text": "Living constellations shift across the walls. They watch you." },
+  "floor_70": { "text": "Gravity weakens. Planet fragments drift around you." },
+  "floor_75": { "text": "The void opens. Something devours starlight ahead." },
+  "floor_76": { "text": "A divine aura presses close. You near the peak of existence." },
+  "floor_90": { "text": "Reality begins to crack. Voices from beyond dimensions call your name." },
+  "floor_100": { "text": "The Tower's Summit. The singularity of all stars. Nova Prime awaits." }
+}

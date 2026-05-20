@@ -13,7 +13,7 @@ import {
 } from '../combat';
 import { getSkill, SkillContext } from '../skills';
 import type { TFunction } from 'i18next';
-import { i18nMonster } from '../display';
+import { i18nMonster } from '../../i18n/display';
 
 interface BattleParams {
   player: IUser;

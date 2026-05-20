@@ -2,7 +2,7 @@ import type { IEquipmentStat, EquipmentSlot } from '@nova/db';
 import type { TFunction } from 'i18next';
 import type { Rarity } from '../../utils';
 import { EQUIPMENTS } from '../equipments';
-import { i18nMonster, i18nLore } from '../display';
+import { i18nMonster, i18nLore } from '../../i18n/display';
 
 export type DropItem = {
   id: string;

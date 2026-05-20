@@ -41,7 +41,7 @@ import {
 import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle';
 import { getPlayerStats } from '../../lib/rpg/combat';
 import { addItemToInventory, renderInventoryPage } from '../../lib/rpg/inventory';
-import { i18nMonster, i18nItem, i18nEvent } from '../../lib/rpg/display';
+import { i18nMonster, i18nItem, i18nEvent } from '../../lib/i18n/display';
 
 @ApplyOptions({
   name: 'dungeon',
@@ -295,7 +295,9 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
       }
 
       if (player.stamina < DUNGEON_COST) {
-        runState.log.push(t('common:error.low_stamina', { current: player.stamina, need: DUNGEON_COST }));
+        runState.log.push(
+          t('common:error.low_stamina', { current: player.stamina, need: DUNGEON_COST }),
+        );
         dungeonData.inRun = false;
         dungeonData.floorState = null;
         await dungeonData.save();
