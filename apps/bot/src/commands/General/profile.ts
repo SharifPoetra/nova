@@ -19,7 +19,7 @@ import { localized } from '../../lib/i18n/localize';
 export class ProfileCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     const name = localized('commands/names:profile');
-    const desc = localized('commands/descriptions:profile');
+    const description = localized('commands/descriptions:profile');
     const optDesc = localized('commands/descriptions:profile_option_user');
 
     registry.registerChatInputCommand((builder) =>
