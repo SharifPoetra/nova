@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint';
 import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
 
-import noHardCodedUi from './apps/bot/eslint-local-rule/no-hardcoded-ui.js';
+import noHardCodedUi from './apps/bot/eslint-local-rules/no-hardcoded-ui.js';
 
 export default tseslint.config(
   js.configs.recommended,
