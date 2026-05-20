@@ -301,7 +301,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         await dungeonData.save();
         collector.stop();
         return button.editReply({
-          content: t('common:error.low_stamina', { current: player.stamina, need: DUNGEON_COST }));
+          content: t('common:error.low_stamina', { current: player.stamina, need: DUNGEON_COST }),
           embeds: [await buildEmbed()],
           components: [],
         });
