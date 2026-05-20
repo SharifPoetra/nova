@@ -73,7 +73,9 @@ function loadLocale(locale: string) {
             }
           };
           flatten(json);
-        } catch {}
+        } catch {
+          /* ignore */
+        }
       }
     }
   };
