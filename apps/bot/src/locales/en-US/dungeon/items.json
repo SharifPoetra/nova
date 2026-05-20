@@ -191,10 +191,6 @@
     "name": "Gooey Jelly",
     "desc": "Sticky jelly, restores 15 HP"
   },
-  "crystal_shard": {
-    "name": "Crystal Shard",
-    "desc": "Crystal shard from golem body"
-  },
   "stone_fragment": {
     "name": "Stone Fragment",
     "desc": "Common stone fragment"

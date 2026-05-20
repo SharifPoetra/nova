@@ -191,10 +191,6 @@
     "name": "Gooey Jelly",
     "desc": "Jeli lengket, pulihkan 15 HP"
   },
-  "crystal_shard": {
-    "name": "Crystal Shard",
-    "desc": "Pecahan kristal dari tubuh golem"
-  },
   "stone_fragment": {
     "name": "Stone Fragment",
     "desc": "Pecahan batu biasa"
