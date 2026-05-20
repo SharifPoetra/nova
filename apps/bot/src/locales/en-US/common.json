@@ -21,7 +21,11 @@
     "low_stamina": "⚡ Not enough stamina ({{current}}/{{need}})",
     "low_hp": "❤️ Not enough HP ({{current}}/{{need}})",
     "cooldown": "⏳ Wait {{s}}s",
-    "no_perm": "❌ You don't have permission"
+    "no_perm": "❌ You don't have permission",
+
+    "handler_failed_title": "❌ Error Occurred",
+    "handler_failed_desc": "Handler `{{handler}}` failed to execute.\n\n**Error ID:** `{{id}}`",
+    "handler_failed_footer": "Report this ID to the developer"
   },
   "resource": {
     "coins": "Coins",

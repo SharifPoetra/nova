@@ -21,7 +21,11 @@
     "low_stamina": "⚡ Stamina kurang ({{current}}/{{need}})",
     "low_hp": "❤️ HP kurang ({{current}}/{{need}})",
     "cooldown": "⏳ Tunggu {{s}}s lagi",
-    "no_perm": "❌ Kamu tidak punya izin"
+    "no_perm": "❌ Kamu tidak punya izin",
+
+    "handler_failed_title": "❌ Terjadi Error",
+    "handler_failed_desc": "Handler `{{handler}}` gagal dijalankan.\n\n**Error ID:** `{{id}}`",
+    "handler_failed_footer": "Laporkan ID ini ke developer"
   },
   "resource": {
     "coins": "Koin",
