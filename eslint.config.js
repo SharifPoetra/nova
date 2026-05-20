@@ -3,6 +3,8 @@ import tseslint from 'typescript-eslint';
 import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
 
+import noHardCodedUi from './apps/bot/eslint-local-rule/no-hardcoded-ui.js';
+
 export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -10,6 +12,11 @@ export default tseslint.config(
     files: ['**/*.ts'],
     plugins: {
       prettier: prettierPlugin,
+      local: {
+        rules: {
+          'no-hardcoded-ui': noHardCodedUi
+        },
+      },
     },
     rules: {
       // Menggabungkan rule prettier agar tidak bentrok dengan linter
@@ -21,10 +28,12 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       
       'no-console': 'off',
+      
+      'local/no-hardcoded-ui': 'warn',
     },
   },
   {
     // Folder yang diabaikan
-    ignores: ['**/dist/**', '**/node_modules/**', 'packages/database/generated/**'],
+    ignores: ['**/dist/**', '**/node_modules/**', '**/*test.ts'],
   },
 );
