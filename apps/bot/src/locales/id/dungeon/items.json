@@ -1,0 +1,274 @@
+{
+  "crystal_shard": {
+    "name": "Pecahan Kristal",
+    "desc": "Pecahan kristal dari Tambang Kristal"
+  },
+  "arcane_page": {
+    "name": "Halaman Arcane",
+    "desc": "Halaman kitab terlarang"
+  },
+  "sky_feather": {
+    "name": "Bulu Langit",
+    "desc": "Bulu dari penjaga kuil"
+  },
+  "star_fragment": {
+    "name": "Fragmen Bintang",
+    "desc": "Pecahan bintang dari puncak"
+  },
+  "slime_boots": {
+    "name": "Slime Boots",
+    "desc": "Sepatu dari lendir. Licin tapi nambah HP."
+  },
+  "boar_tusk_helm": {
+    "name": "Helm Taring Babi",
+    "desc": "Helm dari taring babi. +HP"
+  },
+  "goblin_dagger": {
+    "name": "Belati Karat",
+    "desc": "Belati curian, masih bisa dipakai"
+  },
+  "hunter_bow": {
+    "name": "Hunter Bow",
+    "desc": "Busur pemburu. Crit damage tinggi buat rogue."
+  },
+  "ice_club": {
+    "name": "Gada Es",
+    "desc": "Membekukan musuh"
+  },
+  "iron_gauntlet": {
+    "name": "Iron Gauntlet",
+    "desc": "Sarung tangan besi. +ATK"
+  },
+  "iron_sword": {
+    "name": "Iron Sword",
+    "desc": "Pedang besi standar warrior. Balance ATK."
+  },
+  "lizard_scale_armor": {
+    "name": "Armor Sisik Kadal",
+    "desc": "Armor ringan dari sisik kadal. +HP +DEF"
+  },
+  "mage_staff": {
+    "name": "Mage Staff",
+    "desc": "Tongkat mage. Naikin ATK + crit dikit buat early."
+  },
+  "rusted_sword": {
+    "name": "Pedang Karat",
+    "desc": "Masih bisa diasah"
+  },
+  "war_axe": {
+    "name": "Kapak Perang",
+    "desc": "Berat tapi mematikan"
+  },
+  "bear_paw_gauntlet": {
+    "name": "Gauntlet Cakar Beruang",
+    "desc": "Sarung tangan dari cakar beruang. +ATK +HP"
+  },
+  "bone_helm": {
+    "name": "Helm Tengkorak",
+    "desc": "Helm dari tengkorak. +DEF +HP"
+  },
+  "drake_claw_dagger": {
+    "name": "Drake Claw Dagger",
+    "desc": "Belati dari cakar drake. +ATK +Crit"
+  },
+  "harpy_bow": {
+    "name": "Busur Harpy",
+    "desc": "Busur dari sayap harpy. +ATK +CritRate"
+  },
+  "lava_boots": {
+    "name": "Sepatu Lava",
+    "desc": "Sepatu tahan lava. +HP +DEF"
+  },
+  "slime_crown": {
+    "name": "Slime Crown",
+    "desc": "Mahkota asli Raja Slime. Lengket tapi bawa hoki + HP."
+  },
+  "specter_hood": {
+    "name": "Specter Hood",
+    "desc": "Tudung hantu. +Crit Rate"
+  },
+  "spider_fang_dagger": {
+    "name": "Belati Taring Laba-laba",
+    "desc": "Belati beracun. +ATK +CritDmg"
+  },
+  "wolf_fang_necklace": {
+    "name": "Kalung Taring Serigala",
+    "desc": "Kalung dari taring alpha. +ATK +Crit"
+  },
+  "berserker_armor": {
+    "name": "Armor Berserk",
+    "desc": "Armor orc berserk. +ATK +HP +DEF"
+  },
+  "desert_scale_armor": {
+    "name": "Armor Sisik Gurun",
+    "desc": "Armor sisik gurun"
+  },
+  "frost_cape": {
+    "name": "Jubah Beku",
+    "desc": "Jubah troll es. +HP +DEF +CritDmg"
+  },
+  "obsidian_plate": {
+    "name": "Obsidian Plate",
+    "desc": "Pelat obsidian dari Heart of Crystal. DEF + HP tebel."
+  },
+  "reaper_scythe": {
+    "name": "Reaper Scythe",
+    "desc": "Sabit Void Reaper. Crit monster. Drop dari Boss Floor 30."
+  },
+  "shadow_cloak": {
+    "name": "Jubah Bayangan",
+    "desc": "Jubah panther. +CritRate +ATK"
+  },
+  "star_blade": {
+    "name": "Star Blade",
+    "desc": "Pedang dari bintang. +ATK +CritDmg"
+  },
+  "warden_cape": {
+    "name": "Warden Cape",
+    "desc": "Jubah warden. +HP +DEF"
+  },
+  "warden_chain": {
+    "name": "Warden Chain",
+    "desc": "Rantai penjaga yang tak terpatahkan"
+  },
+  "inferno_staff": {
+    "name": "Inferno Staff",
+    "desc": "Tongkat api naga. +ATK +CritDmg"
+  },
+  "orc_warchief_helm": {
+    "name": "Helm Warchief",
+    "desc": "Mahkota para orc"
+  },
+  "void_crown": {
+    "name": "Void Crown",
+    "desc": "Mahkota kehampaan"
+  },
+  "nova_blade": {
+    "name": "Nova Blade",
+    "desc": "Pedang dari inti nova. +ATK +Crit +HP"
+  },
+  "wooden_rod": {
+    "name": "Wooden Rod",
+    "desc": "Basic fishing rod. +10% rare fish chance"
+  },
+  "iron_rod": {
+    "name": "Iron Rod",
+    "desc": "Sturdy rod. +20% rare fish chance"
+  },
+  "mythril_rod": {
+    "name": "Mythril Rod",
+    "desc": "Gleaming rod. +35% rare fish chance"
+  },
+  "abyssal_rod": {
+    "name": "Abyssal Rod",
+    "desc": "From the deep. +50% rare fish chance"
+  },
+  "stone_pickaxe": {
+    "name": "Stone Pickaxe",
+    "desc": "Basic pickaxe. +10% ore yield"
+  },
+  "iron_pickaxe": {
+    "name": "Iron Pickaxe",
+    "desc": "Reliable pick. +20% ore yield"
+  },
+  "mythril_pickaxe": {
+    "name": "Mythril Pickaxe",
+    "desc": "Light and strong. +35% ore yield"
+  },
+  "forager_bag": {
+    "name": "Forager's Bag",
+    "desc": "Extra pockets. +15% gather yield"
+  },
+  "star_dust": {
+    "name": "Star Dust",
+    "desc": "Debu bintang yang ditinggalkan slime"
+  },
+  "slime_core": {
+    "name": "Slime Core",
+    "desc": "Inti berlendir sumber kehidupan slime"
+  },
+  "gooey_jelly": {
+    "name": "Gooey Jelly",
+    "desc": "Jeli lengket, pulihkan 15 HP"
+  },
+  "crystal_shard": {
+    "name": "Crystal Shard",
+    "desc": "Pecahan kristal dari tubuh golem"
+  },
+  "stone_fragment": {
+    "name": "Stone Fragment",
+    "desc": "Pecahan batu biasa"
+  },
+  "golem_heart": {
+    "name": "Golem Heart",
+    "desc": "Jantung batu yang masih berdenyut"
+  },
+  "void_essence": {
+    "name": "Void Essence",
+    "desc": "Esensi kehampaan dari specter"
+  },
+  "ectoplasm": {
+    "name": "Ectoplasm",
+    "desc": "Lendir hantu"
+  },
+  "drake_scale": {
+    "name": "Drake Scale",
+    "desc": "Sisik drake tahan api"
+  },
+  "charred_bone": {
+    "name": "Charred Bone",
+    "desc": "Tulang hangus"
+  },
+  "frost_crystal": {
+    "name": "Frost Crystal",
+    "desc": "Kristal es abadi"
+  },
+  "ice_shard": {
+    "name": "Ice Shard",
+    "desc": "Pecahan es"
+  },
+  "astral_fragment": {
+    "name": "Astral Fragment",
+    "desc": "Fragmen dari bintang jatuh"
+  },
+  "stardust": {
+    "name": "Stardust",
+    "desc": "Debu bintang murni"
+  },
+  "royal_jelly": {
+    "name": "Royal Jelly",
+    "desc": "Jeli kerajaan, heal 100 HP"
+  },
+  "heart_of_crystal": {
+    "name": "Heart of Crystal",
+    "desc": "Jantung kristal murni"
+  },
+  "inferno_fang": {
+    "name": "Inferno Fang",
+    "desc": "Taring yang masih membara"
+  },
+  "dragon_heart": {
+    "name": "Dragon Heart",
+    "desc": "Jantung naga, pulihkan 80 stamina"
+  },
+  "absolute_shard": {
+    "name": "Absolute Shard",
+    "desc": "Pecahan nol mutlak"
+  },
+  "star_core": {
+    "name": "Star Core",
+    "desc": "Inti bintang murni"
+  },
+  "nebula_silk": {
+    "name": "Nebula Silk",
+    "desc": "Sutra dari awan nebula"
+  },
+  "quantum_orb": {
+    "name": "Quantum Orb",
+    "desc": "Bola energi kuantum, heal 250 HP"
+  },
+  "nova_essence": {
+    "name": "Nova Essence",
+    "desc": "Esensi ledakan nova, heal 500 HP + 50 stamina"
+  }
+}

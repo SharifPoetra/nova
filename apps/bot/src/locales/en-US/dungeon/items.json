@@ -1,0 +1,274 @@
+{
+  "crystal_shard": {
+    "name": "Crystal Shard",
+    "desc": "A shard from the Crystal Mines"
+  },
+  "arcane_page": {
+    "name": "Arcane Page",
+    "desc": "A forbidden tome page"
+  },
+  "sky_feather": {
+    "name": "Sky Feather",
+    "desc": "Feather from the temple guardian"
+  },
+  "star_fragment": {
+    "name": "Star Fragment",
+    "desc": "A fragment of a fallen star"
+  },
+  "slime_boots": {
+    "name": "Slime Boots",
+    "desc": "Boots made of slime. Slippery but adds HP."
+  },
+  "boar_tusk_helm": {
+    "name": "Boar Tusk Helm",
+    "desc": "Helm made from boar tusks. +HP"
+  },
+  "goblin_dagger": {
+    "name": "Rusted Dagger",
+    "desc": "Stolen dagger, still usable"
+  },
+  "hunter_bow": {
+    "name": "Hunter Bow",
+    "desc": "Hunter's bow. High crit damage for rogues."
+  },
+  "ice_club": {
+    "name": "Ice Club",
+    "desc": "Freezes enemies"
+  },
+  "iron_gauntlet": {
+    "name": "Iron Gauntlet",
+    "desc": "Iron gauntlet. +ATK"
+  },
+  "iron_sword": {
+    "name": "Iron Sword",
+    "desc": "Standard iron sword for warriors. Balanced ATK."
+  },
+  "lizard_scale_armor": {
+    "name": "Lizard Scale Armor",
+    "desc": "Light armor from lizard scales. +HP +DEF"
+  },
+  "mage_staff": {
+    "name": "Mage Staff",
+    "desc": "Mage staff. Boosts ATK + a bit of crit for early game."
+  },
+  "rusted_sword": {
+    "name": "Rusted Sword",
+    "desc": "Can still be sharpened"
+  },
+  "war_axe": {
+    "name": "War Axe",
+    "desc": "Heavy but deadly"
+  },
+  "bear_paw_gauntlet": {
+    "name": "Bear Paw Gauntlet",
+    "desc": "Gauntlet from bear claws. +ATK +HP"
+  },
+  "bone_helm": {
+    "name": "Bone Helm",
+    "desc": "Helm made from skull. +DEF +HP"
+  },
+  "drake_claw_dagger": {
+    "name": "Drake Claw Dagger",
+    "desc": "Dagger from drake claw. +ATK +Crit"
+  },
+  "harpy_bow": {
+    "name": "Harpy Bow",
+    "desc": "Bow made from harpy wings. +ATK +Crit Rate"
+  },
+  "lava_boots": {
+    "name": "Lava Boots",
+    "desc": "Lava-resistant boots. +HP +DEF"
+  },
+  "slime_crown": {
+    "name": "Slime Crown",
+    "desc": "Authentic Slime King crown. Sticky but lucky + HP."
+  },
+  "specter_hood": {
+    "name": "Specter Hood",
+    "desc": "Specter hood. +Crit Rate"
+  },
+  "spider_fang_dagger": {
+    "name": "Spider Fang Dagger",
+    "desc": "Poisonous dagger. +ATK +Crit Dmg"
+  },
+  "wolf_fang_necklace": {
+    "name": "Wolf Fang Necklace",
+    "desc": "Necklace from alpha fang. +ATK +Crit"
+  },
+  "berserker_armor": {
+    "name": "Berserker Armor",
+    "desc": "Berserk orc armor. +ATK +HP +DEF"
+  },
+  "desert_scale_armor": {
+    "name": "Desert Scale Armor",
+    "desc": "Desert scale armor"
+  },
+  "frost_cape": {
+    "name": "Frost Cape",
+    "desc": "Frost troll cloak. +HP +DEF +Crit Dmg"
+  },
+  "obsidian_plate": {
+    "name": "Obsidian Plate",
+    "desc": "Obsidian plate from Heart of Crystal. High DEF + HP."
+  },
+  "reaper_scythe": {
+    "name": "Reaper Scythe",
+    "desc": "Void Reaper's scythe. Monster crit. Drops from Floor 30 Boss."
+  },
+  "shadow_cloak": {
+    "name": "Shadow Cloak",
+    "desc": "Panther cloak. +Crit Rate +ATK"
+  },
+  "star_blade": {
+    "name": "Star Blade",
+    "desc": "Blade forged from stars. +ATK +Crit Dmg"
+  },
+  "warden_cape": {
+    "name": "Warden Cape",
+    "desc": "Warden's cape. +HP +DEF"
+  },
+  "warden_chain": {
+    "name": "Warden Chain",
+    "desc": "Unbreakable warden chain"
+  },
+  "inferno_staff": {
+    "name": "Inferno Staff",
+    "desc": "Dragon fire staff. +ATK +Crit Dmg"
+  },
+  "orc_warchief_helm": {
+    "name": "Orc Warchief Helm",
+    "desc": "Orc warchief crown"
+  },
+  "void_crown": {
+    "name": "Void Crown",
+    "desc": "Crown of the void"
+  },
+  "nova_blade": {
+    "name": "Nova Blade",
+    "desc": "Blade forged from nova core. +ATK +Crit +HP"
+  },
+  "wooden_rod": {
+    "name": "Wooden Rod",
+    "desc": "Basic fishing rod. +10% rare fish chance"
+  },
+  "iron_rod": {
+    "name": "Iron Rod",
+    "desc": "Sturdy rod. +20% rare fish chance"
+  },
+  "mythril_rod": {
+    "name": "Mythril Rod",
+    "desc": "Gleaming rod. +35% rare fish chance"
+  },
+  "abyssal_rod": {
+    "name": "Abyssal Rod",
+    "desc": "From the deep. +50% rare fish chance"
+  },
+  "stone_pickaxe": {
+    "name": "Stone Pickaxe",
+    "desc": "Basic pickaxe. +10% ore yield"
+  },
+  "iron_pickaxe": {
+    "name": "Iron Pickaxe",
+    "desc": "Reliable pick. +20% ore yield"
+  },
+  "mythril_pickaxe": {
+    "name": "Mythril Pickaxe",
+    "desc": "Light and strong. +35% ore yield"
+  },
+  "forager_bag": {
+    "name": "Forager's Bag",
+    "desc": "Extra pockets. +15% gather yield"
+  },
+  "star_dust": {
+    "name": "Star Dust",
+    "desc": "Stardust left behind by slimes"
+  },
+  "slime_core": {
+    "name": "Slime Core",
+    "desc": "Gooey core, source of slime life"
+  },
+  "gooey_jelly": {
+    "name": "Gooey Jelly",
+    "desc": "Sticky jelly, restores 15 HP"
+  },
+  "crystal_shard": {
+    "name": "Crystal Shard",
+    "desc": "Crystal shard from golem body"
+  },
+  "stone_fragment": {
+    "name": "Stone Fragment",
+    "desc": "Common stone fragment"
+  },
+  "golem_heart": {
+    "name": "Golem Heart",
+    "desc": "Stone heart still beating"
+  },
+  "void_essence": {
+    "name": "Void Essence",
+    "desc": "Void essence from specters"
+  },
+  "ectoplasm": {
+    "name": "Ectoplasm",
+    "desc": "Ghostly ectoplasm"
+  },
+  "drake_scale": {
+    "name": "Drake Scale",
+    "desc": "Fire-resistant drake scale"
+  },
+  "charred_bone": {
+    "name": "Charred Bone",
+    "desc": "Charred bone"
+  },
+  "frost_crystal": {
+    "name": "Frost Crystal",
+    "desc": "Eternal frost crystal"
+  },
+  "ice_shard": {
+    "name": "Ice Shard",
+    "desc": "Ice shard"
+  },
+  "astral_fragment": {
+    "name": "Astral Fragment",
+    "desc": "Fragment of a fallen star"
+  },
+  "stardust": {
+    "name": "Stardust",
+    "desc": "Pure stardust"
+  },
+  "royal_jelly": {
+    "name": "Royal Jelly",
+    "desc": "Royal jelly, heals 100 HP"
+  },
+  "heart_of_crystal": {
+    "name": "Heart of Crystal",
+    "desc": "Pure crystal heart"
+  },
+  "inferno_fang": {
+    "name": "Inferno Fang",
+    "desc": "Fang still burning"
+  },
+  "dragon_heart": {
+    "name": "Dragon Heart",
+    "desc": "Dragon heart, restores 80 stamina"
+  },
+  "absolute_shard": {
+    "name": "Absolute Shard",
+    "desc": "Shard of absolute zero"
+  },
+  "star_core": {
+    "name": "Star Core",
+    "desc": "Pure star core"
+  },
+  "nebula_silk": {
+    "name": "Nebula Silk",
+    "desc": "Silk from nebula clouds"
+  },
+  "quantum_orb": {
+    "name": "Quantum Orb",
+    "desc": "Quantum energy orb, heals 250 HP"
+  },
+  "nova_essence": {
+    "name": "Nova Essence",
+    "desc": "Nova explosion essence, heals 500 HP + 50 stamina"
+  }
+}
