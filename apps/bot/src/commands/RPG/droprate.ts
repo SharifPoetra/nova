@@ -12,7 +12,7 @@ import { FISHES } from '../../lib/rpg/fishes';
 import { EXPLORES } from '../../lib/rpg/explorations';
 import { BASE_MONSTERS } from '../../lib/rpg/monsters';
 import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
-import { i18nFish, i18nItem, i18nMonster } from '../../lib/i18n/display';
+import { i18nFish, i18nItem, i18nMonster, i18nEvent } from '../../lib/i18n/display';
 
 const groupByRarity = <T extends { rarity: string }>(arr: T[]) => {
   return arr.reduce(
@@ -98,9 +98,9 @@ export class DroprateCommand extends Command {
       const total = EXPLORES.reduce((a, e) => a + e.chance, 0);
       const desc = EXPLORES.map((e) => {
         const item = e.item
-          ? `\n> ${t('commands/droprate:drop')}: ${e.item.qty}x ${e.item.emoji} ${e.item.name}`
+          ? `\n> ${t('commands/droprate:drop')}: ${e.item.qty}x ${e.item.emoji} ${i18nItem('explore', e.item.id, t)}`
           : '';
-        return `${e.emoji} **${e.text}** ${RARITY_EMOJI[e.rarity]}\n> ${t('commands/droprate:chance')}: \`${e.chance}%\` • +${e.coins}💰 • +${e.exp}XP${item}`;
+        return `${e.emoji} **${i18nEvent('explore', e.id, t)}** ${RARITY_EMOJI[e.rarity]}\n> ${t('commands/droprate:chance')}: \`${e.chance}%\` • +${e.coins}💰 • +${e.exp}XP${item}`;
       }).join('\n\n');
       const byRarity = groupByRarity(EXPLORES);
       const summary = Object.entries(byRarity)

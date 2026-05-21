@@ -75,6 +75,8 @@ const client = new SapphireClient({
         'fish/species',
         'hunt/monsters',
         'hunt/items',
+        'explore/items',
+        'explore/events',
         'commands/names',
         'commands/descriptions',
         'commands/hunt',

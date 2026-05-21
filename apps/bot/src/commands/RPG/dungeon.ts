@@ -342,7 +342,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         }
       }
 
-      const eventText = i18nEvent(event.id, t);
+      const eventText = i18nEvent('dungeon', event.id, t);
 
       if (event.type === 'battle') {
         const battleHeader =

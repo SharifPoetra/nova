@@ -8,6 +8,9 @@ import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { rollExplore } from '../../lib/rpg/explorations';
 import { ACTION_COST } from '../../lib/rpg/actions';
 import { getPlayerStats } from '../../lib/rpg/combat';
+import { addItemToInventory } from '../../lib/rpg/inventory';
+import i18next from 'i18next';
+import { i18nItem, i18nEvent } from '../../lib/i18n/display';
 
 @ApplyOptions<Command.Options>({
   name: 'explore',
@@ -65,24 +68,26 @@ export class ExploreCommand extends Command {
     outcome.exp = expGain;
 
     if (outcome.item) {
-      const inv = user.items.find((i) => i.itemId === outcome.item!.id);
-      if (inv) inv.qty += outcome.item.qty;
-      else user.items.push({ itemId: outcome.item.id, qty: outcome.item.qty });
+      // Keep DB populated with en-US for backward compatibility
+      const dbName = i18next.t(`explore/items:${outcome.item.id}.name`, {
+        lng: 'en-US',
+        defaultValue: outcome.item.id,
+      });
+      const dbDesc = i18next.t(`explore/items:${outcome.item.id}.desc`, {
+        lng: 'en-US',
+        defaultValue: outcome.item.id,
+      });
 
-      await db.item.updateOne(
-        { itemId: outcome.item.id },
-        {
-          $set: {
-            name: outcome.item.name,
-            emoji: outcome.item.emoji,
-            type: outcome.item.type,
-            rarity: outcome.item.rarity,
-            sellPrice: outcome.item.sellPrice,
-            description: outcome.item.description,
-          },
-        },
-        { upsert: true },
-      );
+      await addItemToInventory(user.discordId, {
+        itemId: outcome.item.id,
+        name: dbName,
+        emoji: outcome.item.emoji,
+        type: outcome.item.type,
+        rarity: outcome.item.rarity,
+        sellPrice: outcome.item.sellPrice,
+        description: dbDesc,
+        effects: outcome.item.effects,
+      });
     }
 
     let levelUpText = '';
@@ -96,6 +101,8 @@ export class ExploreCommand extends Command {
 
     await user.save();
 
+    const eventText = i18nEvent('explore', outcome.id, t);
+    const itemName = outcome.item ? i18nItem('explore', outcome.item.id, t) : '';
     const embed = new EmbedBuilder()
       .setColor(RARITY_COLOR[outcome.rarity as keyof typeof RARITY_COLOR])
       .setTitle(
@@ -105,11 +112,11 @@ export class ExploreCommand extends Command {
         }),
       )
       .setDescription(
-        `*${outcome.text}*\n\n` +
+        `*${eventText}*\n\n` +
           `> **${t('commands/explore:coins', { coins: outcome.coins, defaultValue: `+${outcome.coins} coins` })}**\n` +
           `> **${t('commands/explore:exp', { exp: outcome.exp, defaultValue: `+${outcome.exp} EXP` })}**` +
           (outcome.item
-            ? `\n> **${t('commands/explore:item', { qty: outcome.item.qty, emoji: outcome.item.emoji, name: outcome.item.name, defaultValue: `+${outcome.item.qty}x ${outcome.item.emoji} ${outcome.item.name}` })}** ${RARITY_EMOJI[outcome.item.rarity as keyof typeof RARITY_EMOJI]}`
+            ? `\n> **${t('commands/explore:item', { qty: outcome.item.qty, emoji: outcome.item.emoji, name: itemName, defaultValue: `+${outcome.item.qty}x ${outcome.item.emoji} ${itemName}` })}** ${RARITY_EMOJI[outcome.item.rarity as keyof typeof RARITY_EMOJI]}`
             : '') +
           levelUpText,
       )
