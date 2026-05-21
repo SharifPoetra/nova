@@ -156,7 +156,7 @@ export class ProfileCommand extends Command {
       const nextUnlock = BASE_MONSTERS.filter((m) => m.minLevel > level).sort(
         (a, b) => a.minLevel - b.minLevel,
       )[0];
-      const nextUnlockName = i18nMonster('hunt', nextUnlock.id, t);
+      const nextUnlockName = nextUnlock ? i18nMonster('hunt', nextUnlock.id, t) : '';
 
       const footerText = nextUnlock
         ? t('commands/profile:footer_next', {
