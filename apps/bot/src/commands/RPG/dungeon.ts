@@ -244,6 +244,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
             avatar: interaction.user.displayAvatarURL(),
           },
           0,
+          t,
         );
         const useMenu = inv.components.find((c) => JSON.stringify(c).includes('inv_use_'));
         const closeRow = new ActionRowBuilder<ButtonBuilder>().addComponents(

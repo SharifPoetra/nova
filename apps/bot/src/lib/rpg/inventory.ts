@@ -15,6 +15,8 @@ import {
   type EquipmentSlot,
   type IUser,
 } from '@nova/db';
+import type { TFunction } from 'i18next';
+import { getItemDisplay } from './item-registry';
 
 const ITEMS_PER_PAGE = 10;
 const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
@@ -106,6 +108,7 @@ export async function renderInventoryPage(
   container: any,
   user: RenderUser,
   page = 0,
+  t: TFunction,
   messageId?: string,
 ) {
   const cache = messageId
@@ -130,12 +133,17 @@ export async function renderInventoryPage(
     for (const inv of user.items) {
       const data = itemMap.get(inv.itemId);
       if (!data) continue;
+
+      const display = await getItemDisplay(inv.itemId, t);
+      const name = display?.name ?? data.name;
+      const desc = display?.description || data.description || '-';
+
       const value = (data.sellPrice ?? 0) * inv.qty;
       totalValue += value;
       allItems.push({
         id: inv.itemId,
-        text: `${data.emoji} **${data.name}** x${inv.qty}`,
-        sub: `> ${value.toLocaleString(locale)} 💰 • ${data.description || '-'}`,
+        text: `${data.emoji} **${name}** x${inv.qty}`,
+        sub: `> ${value.toLocaleString(locale)} 💰 • ${desc}`,
         value,
         rarity: data.rarity || 'Common',
       });

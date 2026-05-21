@@ -10,6 +10,7 @@ import {
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR } from '../../lib/utils';
+import { getItemDisplay } from '../../lib/rpg/item-registry';
 
 const RARITY_ORDER = ['Mythic', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'] as const;
 const ITEMS_PER_PAGE = 10;
@@ -60,16 +61,35 @@ export class InventoryCommand extends Command {
     for (const inv of user.items) {
       const data = itemMap.get(inv.itemId);
       if (!data) continue;
+
+      const display = await getItemDisplay(inv.itemId, t);
+      const name = display?.name ?? data.name;
+      const desc = display?.description || data.description || '-';
+
       const value = (data.sellPrice ?? 0) * inv.qty;
       totalValue += value;
       allItems.push({
         id: inv.itemId,
-        text: `${data.emoji} **${data.name}** x${inv.qty}`,
-        sub: `> ${value.toLocaleString(interaction.locale)} 💰 • ${data.description || '-'}`,
+        text: `${data.emoji} **${name}** x${inv.qty}`,
+        sub: `> ${value.toLocaleString(interaction.locale)} 💰 • ${desc}`,
         value,
         rarity: data.rarity || 'Common',
       });
     }
+
+    // for (const inv of user.items) {
+    //   const data = itemMap.get(inv.itemId);
+    //   if (!data) continue;
+    //   const value = (data.sellPrice ?? 0) * inv.qty;
+    //   totalValue += value;
+    //   allItems.push({
+    //     id: inv.itemId,
+    //     text: `${data.emoji} **${data.name}** x${inv.qty}`,
+    //     sub: `> ${value.toLocaleString(interaction.locale)} 💰 • ${data.description || '-'}`,
+    //     value,
+    //     rarity: data.rarity || 'Common',
+    //   });
+    // }
 
     allItems.sort((a, b) => {
       const ra = RARITY_ORDER.indexOf(a.rarity as any);
@@ -162,10 +182,11 @@ export class InventoryCommand extends Command {
             .addOptions(
               consumables.map((c) => {
                 const d = itemMap.get(c.itemId)!;
+                const desc = d.description?.trim();
                 return {
                   label: `${d.name} x${c.qty}`,
                   value: c.itemId,
-                  description: d.description?.slice(0, 50) || '',
+                  ...(desc ? { description: desc.slice(0, 50) } : {}), // hanya tambah kalau ada
                   emoji: sanitizeEmoji(d.emoji),
                 };
               }),

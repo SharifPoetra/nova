@@ -14,6 +14,8 @@ import { getPlayerStats } from '../lib/rpg/combat';
 import { renderInventoryPage } from '../lib/rpg/inventory';
 import { RARITY_ORDER } from '../lib/utils';
 import type { EquipmentSlot, IEquipmentStat, IUser, IItem } from '@nova/db';
+import { getItemDisplay } from '../lib/rpg/item-registry';
+import { fetchT } from '@sapphire/plugin-i18next';
 
 const SLOT_LABEL: Record<string, string> = {
   weapon: '⚔️ Weapon',
@@ -38,6 +40,7 @@ export class InvEquipmentHandler extends InteractionHandler {
   }
 
   public override async run(interaction: ButtonInteraction | StringSelectMenuInteraction) {
+    const t = await fetchT(interaction);
     const parts = interaction.customId.split('_');
     const userId = interaction.customId.startsWith('inv_back_') ? parts[2] : parts[3];
     if (interaction.user.id !== userId)
@@ -58,6 +61,7 @@ export class InvEquipmentHandler extends InteractionHandler {
           avatar: interaction.user.displayAvatarURL(),
         },
         0,
+        t,
         interaction.message.id,
       );
       return interaction.editReply({ embeds: [embed], components });
@@ -179,6 +183,7 @@ export class InvEquipmentHandler extends InteractionHandler {
   }
 
   private async renderEquip(interaction: any, user: any) {
+    const t = await fetchT(interaction);
     const stats = await getPlayerStats(user);
     const itemMap = new Map(
       (
@@ -213,6 +218,23 @@ export class InvEquipmentHandler extends InteractionHandler {
         : [],
     );
 
+    const equippedFields = await Promise.all(
+      (['weapon', 'armor', 'helmet', 'accessory', 'tool'] as const).map(async (s) => {
+        const itemId = user.equipped?.[s];
+        if (!itemId) {
+          return { name: SLOT_LABEL[s], value: '❌ None', inline: true };
+        }
+        const data = eqMap.get(itemId);
+        const display = await getItemDisplay(itemId, t);
+        const name = display?.name ?? data?.name ?? itemId;
+        return {
+          name: SLOT_LABEL[s],
+          value: `${data?.emoji} **${name}**\n> ${this.formatStats(data?.stats)}`,
+          inline: true,
+        };
+      }),
+    );
+
     const embed = new EmbedBuilder()
       .setAuthor({
         name: `${interaction.user.username}'s Equipment`,
@@ -226,13 +248,7 @@ export class InvEquipmentHandler extends InteractionHandler {
         { name: '💥 Crit Rate', value: `${(stats.critRate * 100).toFixed(1)}%`, inline: true },
         { name: '💢 Crit DMG', value: `${(stats.critDmg * 100).toFixed(0)}%`, inline: true },
         { name: '\u200b', value: '\u200b', inline: true },
-        ...(['weapon', 'armor', 'helmet', 'accessory', 'tool'] as const).map((s) => ({
-          name: SLOT_LABEL[s],
-          value: user.equipped?.[s]
-            ? `${eqMap.get(user.equipped[s])?.emoji} **${eqMap.get(user.equipped[s])?.name}**\n> ${this.formatStats(eqMap.get(user.equipped?.[s])?.stats)}`
-            : '❌ None',
-          inline: true,
-        })),
+        ...equippedFields,
       );
 
     const comps: ActionRowBuilder<StringSelectMenuBuilder | ButtonBuilder>[] = [];
@@ -245,19 +261,22 @@ export class InvEquipmentHandler extends InteractionHandler {
               `Equip (${start + 1}-${Math.min(start + perPage, equips.length)}/${equips.length})`,
             )
             .addOptions(
-              paged.map((i) => {
-                const d = itemMap.get(i.itemId)!;
-                return {
-                  label: `${d.name} x${i.qty}`.slice(0, 100),
-                  value: `${d.slot}:${i.itemId}`,
-                  description:
-                    `${SLOT_LABEL[d.slot]} • ${d.rarity} • ${this.formatStats(d.stats)}`.slice(
-                      0,
-                      100,
-                    ),
-                  emoji: sanitize(d.emoji),
-                };
-              }),
+              await Promise.all(
+                paged.map(async (i) => {
+                  const d = itemMap.get(i.itemId)!;
+                  const display = await getItemDisplay(i.itemId, t);
+                  return {
+                    label: `${display?.name ?? d.name} x${i.qty}`.slice(0, 100),
+                    value: `${d.slot}:${i.itemId}`,
+                    description:
+                      `${SLOT_LABEL[d.slot]} • ${d.rarity} • ${this.formatStats(d.stats)}`.slice(
+                        0,
+                        100,
+                      ),
+                    emoji: sanitize(d.emoji),
+                  };
+                }),
+              ),
             ),
         ),
       );

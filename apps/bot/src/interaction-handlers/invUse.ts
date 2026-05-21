@@ -3,6 +3,8 @@ import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework
 import { MessageFlags, StringSelectMenuInteraction } from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { getPlayerStats } from '../lib/rpg/combat';
+import { getItemDisplay } from '../lib/rpg/item-registry';
+import { fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions<InteractionHandler.Options>({
   name: 'invUse',
@@ -14,6 +16,7 @@ export class InvUseHandler extends InteractionHandler {
   }
 
   public override async run(interaction: StringSelectMenuInteraction) {
+    const t = await fetchT(interaction);
     const userId = interaction.customId.split('_')[2];
     if (interaction.user.id !== userId)
       return interaction.reply({ content: 'Not yours!', flags: MessageFlags.Ephemeral });
@@ -28,7 +31,9 @@ export class InvUseHandler extends InteractionHandler {
     const invItem = user.items.find((i) => i.itemId === itemId);
     if (!item || !invItem) return interaction.editReply('Item not found');
 
-    let msg = `✅ Used ${item.emoji} **${item.name}**`;
+    const display = await getItemDisplay(itemId, t);
+    const itemName = display?.name ?? item.name;
+    let msg = `✅ Used ${item.emoji} **${itemName}**`;
     let applied = 0;
     const stats = await getPlayerStats(user);
 

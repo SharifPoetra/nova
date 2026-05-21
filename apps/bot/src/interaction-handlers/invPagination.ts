@@ -3,6 +3,7 @@ import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework
 import { ButtonInteraction, MessageFlags } from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { renderInventoryPage } from '../lib/rpg/inventory';
+import { fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions<InteractionHandler.Options>({
   name: 'invPagination',
@@ -16,6 +17,7 @@ export class InvPaginationHandler extends InteractionHandler {
   }
 
   public override async run(interaction: ButtonInteraction) {
+    const t = await fetchT(interaction);
     const [, dir, pageStr, userId] = interaction.customId.split('_');
     if (interaction.user.id !== userId)
       return interaction.reply({ content: 'Not your inventory!', flags: MessageFlags.Ephemeral });
@@ -37,6 +39,7 @@ export class InvPaginationHandler extends InteractionHandler {
         avatar: interaction.user.displayAvatarURL(),
       },
       page,
+      t,
       interaction.message.id,
     );
     await interaction.editReply({ embeds: [embed], components });
