@@ -65,9 +65,9 @@ export class FishCommand extends Command {
       const rod = await Item.findOne({ itemId: toolId }).lean();
       if (rod?.stats?.fishBonus) {
         fishBonus = rod.stats.fishBonus;
-        const rodDisplayName = i18next.t(`shop/items:${toolId}.name`, { 
-          lng: interaction.locale ?? 'en-US', 
-          defaultValue: rod.name 
+        const rodDisplayName = i18next.t(`shop/items:${toolId}.name`, {
+          lng: interaction.locale ?? 'en-US',
+          defaultValue: rod.name,
         });
         rodName = `${rod.emoji} ${rodDisplayName}`;
       }
@@ -85,7 +85,10 @@ export class FishCommand extends Command {
     const fishDesc = i18nFishDesc(fish.id, t);
 
     // Keep DB populated with en-US for backward compatibility
-    const dbName = i18next.t(`fish/species:${fish.id}.name`, { lng: 'en-US', defaultValue: fish.id });
+    const dbName = i18next.t(`fish/species:${fish.id}.name`, {
+      lng: 'en-US',
+      defaultValue: fish.id,
+    });
     const dbDesc = i18next.t(`fish/species:${fish.id}.desc`, { lng: 'en-US', defaultValue: '' });
 
     await addItemToInventory(
@@ -138,7 +141,10 @@ export class FishCommand extends Command {
         },
         {
           name: t('commands/fish:sell', { defaultValue: '💰 Sell' }),
-          value: t('commands/fish:sell_value', { price: fish.sellPrice, defaultValue: `${fish.sellPrice} coins` }),
+          value: t('commands/fish:sell_value', {
+            price: fish.sellPrice,
+            defaultValue: `${fish.sellPrice} coins`,
+          }),
           inline: true,
         },
         {

@@ -6,6 +6,7 @@ import { catchFish } from '../../lib/rpg/fishes';
 import { rollExplore } from '../../lib/rpg/explorations';
 import { getScaledMonster } from '../../lib/rpg/monsters';
 import { RARITY_COLOR } from '../../lib/utils';
+import { i18nFish } from '../../lib/i18n/display';
 
 @ApplyOptions<Command.Options>({
   name: 'simdroprate',
@@ -54,7 +55,7 @@ export class SimDroprateCommand extends Command {
         emoji = '';
       if (type === 'fish') {
         const f = catchFish();
-        key = f.name;
+        key = i18nFish(f.id, t);
         emoji = f.emoji;
       }
       if (type === 'explore') {
