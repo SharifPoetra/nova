@@ -1,3 +1,6 @@
+import { i18nItem, i18nItemDesc, i18nFish, i18nFishDesc } from '../i18n/display';
+import type { TFunction } from 'i18next';
+
 export const ITEM_I18N: Record<string, { ns: string; key: string; origin: string; dup?: boolean }> =
   {
     // ===== FISH (13) - fishes.ts =====
@@ -216,3 +219,22 @@ export const ITEM_I18N: Record<string, { ns: string; key: string; origin: string
     silk: { ns: 'shop/items', key: 'silk', origin: 'shop' },
     soul_wisp: { ns: 'shop/items', key: 'soul_wisp', origin: 'shop' },
   };
+
+export async function getItemDisplay(itemId: string, t: TFunction) {
+  const entry = ITEM_I18N[itemId];
+  if (!entry) return null;
+
+  const [domain, category] = entry.ns.split('/') as [any, any];
+
+  let name: string;
+  let desc: string = '';
+
+  if (domain === 'fish') {
+    name = i18nFish(itemId, t);
+    desc = i18nFishDesc(itemId, t);
+  } else {
+    name = i18nItem(domain as any, itemId, t);
+    desc = i18nItemDesc(domain as any, itemId, t);
+  }
+  return { name, description: desc };
+}
