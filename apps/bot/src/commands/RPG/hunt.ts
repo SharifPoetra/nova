@@ -24,6 +24,8 @@ import {
   type PlayerStats,
 } from '../../lib/rpg/combat';
 import { getSkill, SkillContext } from '../../lib/rpg/skills';
+import { addItemToInventory } from '../../lib/rpg/inventory';
+import { i18nMonster, i18nItem } from '../../lib/i18n/display';
 
 @ApplyOptions({ name: 'hunt', description: 'Hunt monsters', fullCategory: ['RPG'] })
 export class HuntCommand extends Command {
@@ -39,38 +41,33 @@ export class HuntCommand extends Command {
     const db = this.container.db;
     const user = await db.user.findOne({ discordId: interaction.user.id });
     if (!user) return interaction.editReply(t('common:need_start'));
-
     applyPassiveRegen(user);
     const now = Date.now();
-
     if (now - (user.lastHunt?.getTime() ?? 0) < 45000) {
       await user.save();
       const s = Math.ceil((45000 - (now - user.lastHunt!.getTime())) / 1000);
       return interaction.editReply(t('common:error.cooldown', { s }));
     }
-
     if ((user.stamina ?? 0) < ACTION_COST.hunt) {
       await user.save();
       return interaction.editReply(
         t('common:error.low_stamina', { current: user.stamina, need: ACTION_COST.hunt }),
       );
     }
-
     const initialStats = await getPlayerStats(user);
     if (initialStats.hp < 20) {
       await user.save();
       return interaction.editReply(t('commands/hunt:low_hp', { hp: initialStats.hp }));
     }
-
     user.stamina -= ACTION_COST.hunt;
     user.lastHunt = new Date();
     resetSkillCooldowns(user);
-
     const baseMonster = getScaledMonster(user.level ?? 1);
     const isElite = Math.random() < 0.05;
+    const monsterName = i18nMonster('hunt', baseMonster.id, t);
     const monster = {
       ...baseMonster,
-      name: isElite ? `Elite ${baseMonster.name}` : baseMonster.name,
+      name: isElite ? `Elite ${monsterName}` : monsterName,
       emoji: isElite ? `💀${baseMonster.emoji}` : baseMonster.emoji,
       hp: isElite ? Math.floor(baseMonster.hp * 1.8) : baseMonster.hp,
       dmg: isElite
@@ -82,28 +79,24 @@ export class HuntCommand extends Command {
       xp: isElite ? Math.floor(baseMonster.xp * 2.5) : baseMonster.xp,
       isElite,
     };
-
     let monsterCurrentHp = monster.hp;
     const monsterMaxHp = monster.hp;
     let totalDamageDealt = 0;
     let totalDamageTaken = 0;
     const battleLog: string[] = [];
-
     if (isElite) {
       battleLog.push(
         t('commands/hunt:elite_spawn', {
           emoji: monster.emoji,
-          name: baseMonster.name,
-          defaultValue: `💀 **ELITE ${baseMonster.name}** appeared! HP & ATK boosted!`,
+          name: monsterName,
+          defaultValue: `💀 **ELITE ${monsterName}** appeared! HP & ATK boosted!`,
         }),
       );
     }
-
     const playerClass = user.class ?? 'warrior';
     const isWarrior = playerClass === 'warrior';
     const isMage = playerClass === 'mage';
     const classIcon = isWarrior ? '🛡️' : isMage ? '🪄' : '🏹';
-
     const embed = new EmbedBuilder()
       .setColor(isElite ? 0x8e44ad : 0xe67e22)
       .setAuthor({
@@ -117,9 +110,7 @@ export class HuntCommand extends Command {
           elite: isElite ? t('commands/dungeon:elite_tag', { defaultValue: ' **ELITE!**' }) : '',
         }),
       );
-
     let playerStats: PlayerStats = await getPlayerStats(user);
-
     const updateBattleEmbed = async (showButtons = true) => {
       playerStats = await getPlayerStats(user);
       const atkBuff = playerStats.activeBuffs.find((b) => b.type === 'atk');
@@ -127,7 +118,6 @@ export class HuntCommand extends Command {
       const playerSkillId = playerStats.availableSkills[0] ?? null;
       const playerSkill = playerSkillId ? getSkill(playerSkillId) : null;
       const skillCooldown = playerSkill ? getSkillCooldown(user, playerSkill.id) : 0;
-
       embed
         .setDescription(
           battleLog.slice(-4).join('\n') ||
@@ -149,7 +139,6 @@ export class HuntCommand extends Command {
             inline: false,
           },
         );
-
       const components: ActionRowBuilder<ButtonBuilder>[] = [];
       if (showButtons && monsterCurrentHp > 0 && playerStats.hp > 0) {
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -175,10 +164,8 @@ export class HuntCommand extends Command {
       }
       await interaction.editReply({ embeds: [embed], components });
     };
-
     await updateBattleEmbed(true);
     await sleep(1000);
-
     while (monsterCurrentHp > 0 && playerStats.hp > 0) {
       await updateBattleEmbed(true);
       const turn = await interaction.channel
@@ -189,7 +176,6 @@ export class HuntCommand extends Command {
           componentType: ComponentType.Button,
         })
         .catch(() => null);
-
       if (!turn) {
         const { damage, isCrit } = calculateDamage(
           playerStats,
@@ -246,9 +232,7 @@ export class HuntCommand extends Command {
         await updateBattleEmbed(false);
         await sleep(700);
       }
-
       if (monsterCurrentHp <= 0) break;
-
       let monsterDamage =
         Math.floor(Math.random() * (monster.dmg[1] - monster.dmg[0] + 1)) + monster.dmg[0];
       let blockedDamage = 0;
@@ -272,9 +256,7 @@ export class HuntCommand extends Command {
       await updateBattleEmbed(false);
       await sleep(850);
     }
-
     const battleSummary = battleLog.slice(-7).join('\n');
-
     if (user.hp <= 0) {
       const loseExp = Math.floor(getScaledExp(monster.xp, user.level, 'hunt') / 3);
       user.exp += loseExp;
@@ -299,7 +281,6 @@ export class HuntCommand extends Command {
         .setFields();
       return interaction.editReply({ embeds: [embed], components: [] });
     }
-
     const dropRoll = Math.random() * 100;
     let cumulativeChance = 0;
     let selectedDrop = monster.drops.find((d) => {
@@ -309,32 +290,35 @@ export class HuntCommand extends Command {
     });
     if (!selectedDrop) selectedDrop = monster.drops[0];
 
-    const inventoryItem = user.items.find((i) => i.itemId === selectedDrop.id);
-    if (inventoryItem) inventoryItem.qty += 1;
-    else user.items.push({ itemId: selectedDrop.id, qty: 1 });
+    // Keep DB populated with en-US for backward compatibility
+    const dbName = i18next.t(`hunt/items:${selectedDrop.id}.name`, {
+      lng: 'en-US',
+      defaultValue: fish.id,
+    });
+    const dbDesc = i18next.t(`hunt/items:${selectedDrop.id}.desc`, {
+      lng: 'en-US',
+      defaultValue: '',
+    });
 
+    await addItemToInventory(
+      user.discordId,
+      {
+        itemId: selectedDrop.id,
+        name: dbName,
+        emoji: selectedDrop.emoji,
+        type: selectedDrop.type as any,
+        rarity: selectedDrop.rarity,
+        sellPrice: selectedDrop.sellPrice,
+        description: dbDesc,
+        slot: selectedDrop.slot,
+        stats: selectedDrop.stats,
+        effects: selectedDrop.effects,
+      },
+      1,
+    );
     const expGain = getScaledExp(monster.xp, user.level, 'hunt', monster.isElite);
     user.balance += expGain * 2;
     user.exp += expGain;
-
-    await db.item.updateOne(
-      { itemId: selectedDrop.id },
-      {
-        $set: {
-          name: selectedDrop.name,
-          emoji: selectedDrop.emoji,
-          type: selectedDrop.type,
-          rarity: selectedDrop.rarity,
-          sellPrice: selectedDrop.sellPrice,
-          description: selectedDrop.description,
-          slot: selectedDrop.slot ?? null,
-          stats: selectedDrop.stats ?? null,
-          effects: selectedDrop.effects ?? null,
-        },
-      },
-      { upsert: true },
-    );
-
     let levelUpText = '';
     const levelUp = checkLevelUp(user);
     if (levelUp) {
@@ -346,15 +330,13 @@ export class HuntCommand extends Command {
         defaultValue: `🎉 LEVEL UP → ${levelUp.level}!`,
       });
     }
-
     resetSkillCooldowns(user);
     user.buffs = user.buffs.filter((b) => !b.battle);
     await user.save();
-
     const finalPlayerStats = await getPlayerStats(user);
     const finalAtkBuff = finalPlayerStats.activeBuffs.find((b) => b.type === 'atk');
     const finalBuffInfo = finalAtkBuff ? ` • 🔥 ATK +${Math.floor(finalAtkBuff.value * 100)}%` : '';
-
+    const dropName = i18nItem('hunt', selectedDrop.id, t);
     embed
       .setColor(RARITY_COLOR[selectedDrop.rarity as keyof typeof RARITY_COLOR])
       .setTitle(
@@ -367,7 +349,7 @@ export class HuntCommand extends Command {
           buff: finalBuffInfo,
           levelup: levelUpText,
           dropEmoji: selectedDrop.emoji,
-          dropName: selectedDrop.name,
+          dropName,
           rarityEmoji: RARITY_EMOJI[selectedDrop.rarity as keyof typeof RARITY_EMOJI],
           rarity: selectedDrop.rarity,
           summary: battleSummary,
@@ -389,7 +371,6 @@ export class HuntCommand extends Command {
           inline: true,
         },
       );
-
     await interaction.editReply({ embeds: [embed], components: [] });
   }
 }

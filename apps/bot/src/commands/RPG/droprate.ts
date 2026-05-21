@@ -6,7 +6,7 @@ import { FISHES } from '../../lib/rpg/fishes';
 import { EXPLORES } from '../../lib/rpg/explorations';
 import { BASE_MONSTERS } from '../../lib/rpg/monsters';
 import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
-import { i18nFish } from '../../lib/i18n/display';
+import { i18nFish, i18nItem, i18nMonster } from '../../lib/i18n/display';
 
 const groupByRarity = <T extends { rarity: string }>(arr: T[]) => {
   return arr.reduce(
@@ -134,11 +134,13 @@ export class DroprateCommand extends Command {
         const drops = m.drops
           .map(
             (d) =>
-              `${d.emoji} **${d.name}** — \`${d.chance}%\` • ${d.sellPrice}💰 ${RARITY_EMOJI[d.rarity as keyof typeof RARITY_EMOJI]}`,
+              `${d.emoji} **${i18nItem('hunt', d.id, t)}** — \`${d.chance}%\` • ${d.sellPrice}💰 ${RARITY_EMOJI[d.rarity as keyof typeof RARITY_EMOJI]}`,
           )
           .join('\n> ');
-        return `${m.emoji} **${m.name}** (Lv.${m.minLevel}+)\n> HP ${m.hp} • DMG ${m.dmg[0]}-${m.dmg[1]} • XP ${m.xp}\n> ${drops}`;
-      }).join('\n\n');
+        return `${m.emoji} **${i18nMonster('hunt', m.id, t)}** (Lv.${m.minLevel}+)\n> HP ${m.hp} • DMG ${m.dmg[0]}-${m.dmg[1]} • XP ${m.xp}\n> ${drops}`;
+      })
+        .join('\n\n')
+        .slice(0, 4096);
       return interaction.reply({
         embeds: [
           new EmbedBuilder()

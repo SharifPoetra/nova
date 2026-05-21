@@ -17,10 +17,10 @@ const tx = (
 export const i18nMonster = (domain: 'dungeon' | 'hunt', id: string, t: TFunction) =>
   tx(domain, 'monsters', id, t);
 
-export const i18nItem = (domain: 'dungeon' | 'shop', id: string, t: TFunction) =>
+export const i18nItem = (domain: 'dungeon' | 'shop' | 'hunt', id: string, t: TFunction) =>
   tx(domain, 'items', id, t);
 
-export const i18nItemDesc = (domain: 'dungeon' | 'shop', id: string, t: TFunction) =>
+export const i18nItemDesc = (domain: 'dungeon' | 'shop' | 'hunt', id: string, t: TFunction) =>
   tx(domain, 'items', id, t, 'desc');
 
 export const i18nFish = (id: string, t: TFunction) => tx('fish', 'species', id, t);

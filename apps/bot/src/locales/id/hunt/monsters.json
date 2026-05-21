@@ -1,0 +1,20 @@
+{
+  "wild_boar": { "name": "Babi Hutan" },
+  "goblin_scout": { "name": "Pengintai Goblin" },
+  "swamp_lizard": { "name": "Kadal Rawa" },
+  "forest_wolf": { "name": "Serigala Hutan" },
+  "cave_bear": { "name": "Beruang Gua" },
+  "skeleton_warrior": { "name": "Prajurit Tengkorak" },
+  "venom_spider": { "name": "Laba-laba Bisa" },
+  "harpy": { "name": "Harpy" },
+  "orc_berserker": { "name": "Orc Berserker" },
+  "shadow_panther": { "name": "Panther Bayangan" },
+  "lava_slime": { "name": "Slime Lava" },
+  "frost_troll": { "name": "Troll Es" },
+  "sand_worm": { "name": "Cacing Pasir" },
+  "dark_knight": { "name": "Ksatria Kegelapan" },
+  "thunder_eagle": { "name": "Elang Petir" },
+  "crystal_golem": { "name": "Golem Kristal" },
+  "hydra": { "name": "Hydra" },
+  "phoenix": { "name": "Phoenix" }
+}

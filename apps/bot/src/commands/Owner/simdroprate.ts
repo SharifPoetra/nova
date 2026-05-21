@@ -6,7 +6,7 @@ import { catchFish } from '../../lib/rpg/fishes';
 import { rollExplore } from '../../lib/rpg/explorations';
 import { getScaledMonster } from '../../lib/rpg/monsters';
 import { RARITY_COLOR } from '../../lib/utils';
-import { i18nFish } from '../../lib/i18n/display';
+import { i18nFish, i18nMonster } from '../../lib/i18n/display';
 
 @ApplyOptions<Command.Options>({
   name: 'simdroprate',
@@ -68,7 +68,8 @@ export class SimDroprateCommand extends Command {
         const roll = Math.random() * 100;
         let cum = 0;
         const d = m.drops.find((x) => (cum += x.chance) >= roll);
-        key = d ? d.name : t('commands/droprate:no_drop');
+
+        key = d ? i18nMonster('hunt', d.id, t) : t('commands/droprate:no_drop');
         emoji = d?.emoji ?? '❌';
       }
       if (!counts[key]) counts[key] = { c: 0, emoji };

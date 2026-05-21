@@ -10,6 +10,7 @@ import { colorBar } from '../../lib/utils';
 import { getPlayerStats } from '../../lib/rpg/combat';
 import { SKILLS } from '../../lib/rpg/skills';
 import { localized } from '../../lib/i18n/localize';
+import { i18nMonster } from '../../lib/i18n/display';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',
@@ -155,13 +156,14 @@ export class ProfileCommand extends Command {
       const nextUnlock = BASE_MONSTERS.filter((m) => m.minLevel > level).sort(
         (a, b) => a.minLevel - b.minLevel,
       )[0];
+      const nextUnlockName = i18nMonster('hunt', nextUnlock.id, t);
 
       const footerText = nextUnlock
         ? t('commands/profile:footer_next', {
-            name: nextUnlock.name,
+            name: nextUnlockName,
             level: nextUnlock.minLevel,
             exp: expNext,
-            defaultValue: `🎯 ${nextUnlock.name} unlocks at Lv.${nextUnlock.minLevel} • ${expNext} EXP left`,
+            defaultValue: `🎯 ${nextUnlockName} unlocks at Lv.${nextUnlock.minLevel} • ${expNext} EXP left`,
           })
         : t('commands/profile:footer_max', {
             defaultValue: '🏆 All monsters unlocked! You are a Nova legend',

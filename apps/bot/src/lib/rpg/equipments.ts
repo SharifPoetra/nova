@@ -14,6 +14,7 @@ export interface EquipmentData {
 }
 
 export const EQUIPMENTS: Record<string, EquipmentData> = {
+  // === COMMON-UNCOMMON ===
   slime_boots: {
     id: 'slime_boots',
     name: 'Slime Boots',
@@ -135,6 +136,8 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     description: 'Berat tapi mematikan',
     stats: { atk: 12, classLock: ['warrior'] },
   },
+
+  // === RARE ===
   bear_paw_gauntlet: {
     id: 'bear_paw_gauntlet',
     name: 'Gauntlet Cakar Beruang',
@@ -234,6 +237,19 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     description: 'Kalung dari taring alpha. +ATK +Crit',
     stats: { atk: 8, critRate: 0.05 },
   },
+  cursed_blade: {
+    id: 'cursed_blade',
+    name: 'Pedang Terkutuk',
+    emoji: '🗡️',
+    type: 'equipment',
+    slot: 'weapon',
+    rarity: 'Rare',
+    sellPrice: 240,
+    description: 'Haus darah',
+    stats: { atk: 22, critRate: 0.06, classLock: ['warrior'] },
+  },
+
+  // === EPIC ===
   berserker_armor: {
     id: 'berserker_armor',
     name: 'Armor Berserk',
@@ -333,6 +349,19 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     description: 'Rantai penjaga yang tak terpatahkan',
     stats: { def: 8, hp: 40 },
   },
+  thunder_bow: {
+    id: 'thunder_bow',
+    name: 'Busur Petir',
+    emoji: '🏹⚡',
+    type: 'equipment',
+    slot: 'weapon',
+    rarity: 'Epic',
+    sellPrice: 600,
+    description: 'Busur elang petir. +ATK +CritRate +CritDmg',
+    stats: { atk: 25, critRate: 0.08, critDmg: 0.3, classLock: ['rogue'] },
+  },
+
+  // === LEGENDARY ===
   inferno_staff: {
     id: 'inferno_staff',
     name: 'Inferno Staff',
@@ -366,6 +395,41 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     description: 'Mahkota kehampaan',
     stats: { atk: 15, critRate: 0.15, hp: 30 },
   },
+  void_armor: {
+    id: 'void_armor',
+    name: 'Armor Void',
+    emoji: '🛡️🕳️',
+    type: 'equipment',
+    slot: 'armor',
+    rarity: 'Legendary',
+    sellPrice: 900,
+    description: 'Armor kegelapan. +DEF +HP +ATK',
+    stats: { def: 10, hp: 50, atk: 15 },
+  },
+  crystal_staff: {
+    id: 'crystal_staff',
+    name: 'Tongkat Kristal',
+    emoji: '🪄💎',
+    type: 'equipment',
+    slot: 'weapon',
+    rarity: 'Legendary',
+    sellPrice: 1100,
+    description: 'Tongkat golem kristal. +ATK +CritDmg +HP',
+    stats: { atk: 28, critDmg: 0.4, hp: 30, classLock: ['mage'] },
+  },
+  hydra_venom_dagger: {
+    id: 'hydra_venom_dagger',
+    name: 'Belati Bisa Hydra',
+    emoji: '🗡️🐉',
+    type: 'equipment',
+    slot: 'weapon',
+    rarity: 'Legendary',
+    sellPrice: 1200,
+    description: 'Belati dari kepala hydra. +ATK +Crit +CritDmg',
+    stats: { atk: 35, critRate: 0.1, critDmg: 0.4, classLock: ['rogue'] },
+  },
+
+  // === MYTHIC ===
   nova_blade: {
     id: 'nova_blade',
     name: 'Nova Blade',
@@ -377,7 +441,19 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     description: 'Pedang dari inti nova. +ATK +Crit +HP',
     stats: { atk: 40, critRate: 0.1, critDmg: 0.5, hp: 50 },
   },
-  // === TOOLS - FISHING ===
+  phoenix_wings: {
+    id: 'phoenix_wings',
+    name: 'Sayap Phoenix',
+    emoji: '🔥🪽',
+    type: 'equipment',
+    slot: 'armor',
+    rarity: 'Mythic',
+    sellPrice: 3000,
+    description: 'Sayap phoenix. +ATK +CritDmg +HP +Stamina',
+    stats: { atk: 40, critDmg: 0.5, hp: 60 },
+  },
+
+  // === TOOLS ===
   wooden_rod: {
     id: 'wooden_rod',
     name: 'Wooden Rod',
@@ -422,8 +498,6 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     description: 'From the deep. +50% rare fish chance',
     stats: { fishBonus: 0.5 },
   },
-
-  // === TOOLS - MINING ===
   stone_pickaxe: {
     id: 'stone_pickaxe',
     name: 'Stone Pickaxe',
@@ -457,8 +531,6 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     description: 'Light and strong. +35% ore yield',
     stats: { mineBonus: 0.35 },
   },
-
-  // === TOOLS - GATHERING ===
   forager_bag: {
     id: 'forager_bag',
     name: "Forager's Bag",
@@ -472,14 +544,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
   },
 };
 
-export function getEquipment(id: string): EquipmentData | null {
-  return EQUIPMENTS[id] ?? null;
-}
-
-export function getAllEquipments(): EquipmentData[] {
-  return Object.values(EQUIPMENTS);
-}
-
-export function getEquipmentsBySlot(slot: EquipmentSlot): EquipmentData[] {
-  return getAllEquipments().filter((e) => e.slot === slot);
-}
+export const getEquipment = (id: string) => EQUIPMENTS[id] ?? null;
+export const getAllEquipments = () => Object.values(EQUIPMENTS);
+export const getEquipmentsBySlot = (slot: EquipmentSlot) =>
+  getAllEquipments().filter((e) => e.slot === slot);

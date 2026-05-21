@@ -80,9 +80,7 @@ export class FishCommand extends Command {
     const expGain = getScaledExp(fish.xp, user.level, 'fish');
     user.exp += expGain;
 
-    // Localized names for display
     const fishName = i18nFish(fish.id, t);
-    const fishDesc = i18nFishDesc(fish.id, t);
 
     // Keep DB populated with en-US for backward compatibility
     const dbName = i18next.t(`fish/species:${fish.id}.name`, {
