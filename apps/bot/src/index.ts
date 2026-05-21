@@ -72,6 +72,7 @@ const client = new SapphireClient({
         'dungeon/monsters',
         'dungeon/lore',
         'dungeon/events',
+        'fish/species',
         'commands/names',
         'commands/descriptions',
         'commands/hunt',
