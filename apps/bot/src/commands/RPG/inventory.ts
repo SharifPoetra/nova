@@ -77,20 +77,6 @@ export class InventoryCommand extends Command {
       });
     }
 
-    // for (const inv of user.items) {
-    //   const data = itemMap.get(inv.itemId);
-    //   if (!data) continue;
-    //   const value = (data.sellPrice ?? 0) * inv.qty;
-    //   totalValue += value;
-    //   allItems.push({
-    //     id: inv.itemId,
-    //     text: `${data.emoji} **${data.name}** x${inv.qty}`,
-    //     sub: `> ${value.toLocaleString(interaction.locale)} 💰 • ${data.description || '-'}`,
-    //     value,
-    //     rarity: data.rarity || 'Common',
-    //   });
-    // }
-
     allItems.sort((a, b) => {
       const ra = RARITY_ORDER.indexOf(a.rarity as any);
       const rb = RARITY_ORDER.indexOf(b.rarity as any);
