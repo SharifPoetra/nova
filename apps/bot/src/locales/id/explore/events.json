@@ -1,0 +1,22 @@
+{
+  "mist": { "text": "Kabut tebal, kamu hanya dapat pengalaman." },
+  "gold_coins": { "text": "Koin emas di akar pohon." },
+  "mushroom_found": { "text": "Kamu memetik jamur hutan." },
+  "chili_found": { "text": "Semak cabai liar ditemukan!" },
+  "wood_found": { "text": "Kamu menemukan batang kayu tumbang." },
+  "stone_found": { "text": "Kamu mengumpulkan batu-batu kecil." },
+  "string_found": { "text": "Serat tanaman untuk membuat tali." },
+  "forest_slime": { "text": "Slime hutan kamu tebas!" },
+  "beehive": { "text": "Sarang lebah kecil jatuh dari pohon." },
+  "herb_found": { "text": "Daun herbal berkilau di rawa." },
+  "bark_found": { "text": "Kulit kayu kuno untuk ramuan." },
+  "iron_vein": { "text": "Kamu menemukan urat bijih besi!" },
+  "mythril_vein": { "text": "Kilau ungu dari mythril ore!" },
+  "ancient_chest": { "text": "Peti kuno berdebu terbuka!" },
+  "mana_crystal_found": { "text": "Kristal mana kecil bersinar." },
+  "moonflower_found": { "text": "Kamu menemukan bunga moonlight langka!" },
+  "monster_egg_found": { "text": "Telur monster kecil masih hangat." },
+  "honey_altar": { "text": "DUNGEON! Altar madu suci." },
+  "buried_treasure": { "text": "HARTA KARUN! Peti emas terkubur!" },
+  "ancient_ruins": { "text": "Kamu menemukan reruntuhan kuno dewa!" }
+}
