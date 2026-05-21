@@ -1,6 +1,12 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { EmbedBuilder } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+  EmbedBuilder,
+} from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { FISHES } from '../../lib/rpg/fishes';
 import { EXPLORES } from '../../lib/rpg/explorations';
@@ -64,7 +70,6 @@ export class DroprateCommand extends Command {
             `${RARITY_EMOJI[r as keyof typeof RARITY_EMOJI]} **${r}**: ${arr.reduce((a, b) => a + b.chance, 0)}%`,
         )
         .join(' • ');
-
       const ev = Math.round(FISHES.reduce((a, f) => a + f.sellPrice * (f.chance / 100), 0));
       return interaction.reply({
         embeds: [
@@ -97,7 +102,6 @@ export class DroprateCommand extends Command {
           : '';
         return `${e.emoji} **${e.text}** ${RARITY_EMOJI[e.rarity]}\n> ${t('commands/droprate:chance')}: \`${e.chance}%\` • +${e.coins}💰 • +${e.exp}XP${item}`;
       }).join('\n\n');
-
       const byRarity = groupByRarity(EXPLORES);
       const summary = Object.entries(byRarity)
         .map(
@@ -105,7 +109,6 @@ export class DroprateCommand extends Command {
             `${RARITY_EMOJI[r as keyof typeof RARITY_EMOJI]} ${r}: ${arr.reduce((a, b) => a + b.chance, 0)}%`,
         )
         .join(' • ');
-
       const avgC = Math.round(EXPLORES.reduce((a, e) => a + e.coins * (e.chance / 100), 0));
       return interaction.reply({
         embeds: [
@@ -130,27 +133,65 @@ export class DroprateCommand extends Command {
     }
 
     if (tipe === 'hunt') {
-      const desc = BASE_MONSTERS.map((m) => {
-        const drops = m.drops
-          .map(
-            (d) =>
-              `${d.emoji} **${i18nItem('hunt', d.id, t)}** — \`${d.chance}%\` • ${d.sellPrice}💰 ${RARITY_EMOJI[d.rarity as keyof typeof RARITY_EMOJI]}`,
+      await interaction.deferReply();
+      const perPage = 6;
+      const pages = Math.ceil(BASE_MONSTERS.length / perPage);
+      let page = 0;
+
+      const makeEmbed = (p: number) => {
+        const slice = BASE_MONSTERS.slice(p * perPage, (p + 1) * perPage);
+        const desc = slice
+          .map((m) => {
+            const drops = m.drops
+              .map(
+                (d) =>
+                  `${d.emoji} **${i18nItem('hunt', d.id, t)}** — \`${d.chance}%\` • ${d.sellPrice}💰 ${RARITY_EMOJI[d.rarity as keyof typeof RARITY_EMOJI]}`,
+              )
+              .join('\n> ');
+            return `${m.emoji} **${i18nMonster('hunt', m.id, t)}** (Lv.${m.minLevel}+)\n> HP ${m.hp} • DMG ${m.dmg[0]}-${m.dmg[1]} • XP ${m.xp}\n> ${drops}`;
+          })
+          .join('\n\n');
+        return new EmbedBuilder()
+          .setColor(RARITY_COLOR.Legendary)
+          .setTitle(
+            t('commands/droprate:hunt_title', { defaultValue: '⚔️ Drop Rate Detail — Hunt' }),
           )
-          .join('\n> ');
-        return `${m.emoji} **${i18nMonster('hunt', m.id, t)}** (Lv.${m.minLevel}+)\n> HP ${m.hp} • DMG ${m.dmg[0]}-${m.dmg[1]} • XP ${m.xp}\n> ${drops}`;
-      })
-        .join('\n\n')
-        .slice(0, 4096);
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(RARITY_COLOR.Legendary)
-            .setTitle(
-              t('commands/droprate:hunt_title', { defaultValue: '⚔️ Drop Rate Detail — Hunt' }),
-            )
-            .setDescription(desc),
-        ],
+          .setDescription(desc)
+          .setFooter({ text: `Page ${p + 1}/${pages} • ${BASE_MONSTERS.length} monsters` });
+      };
+
+      const row = () =>
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId('prev')
+            .setLabel('◀')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page === 0),
+          new ButtonBuilder()
+            .setCustomId('next')
+            .setLabel('▶')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(page === pages - 1),
+        );
+
+      const msg = await interaction.editReply({
+        embeds: [makeEmbed(page)],
+        components: pages > 1 ? [row()] : [],
       });
+      if (pages <= 1) return;
+
+      const collector = msg.createMessageComponentCollector({
+        componentType: ComponentType.Button,
+        time: 60_000,
+        filter: (i) => i.user.id === interaction.user.id,
+      });
+      collector.on('collect', async (i) => {
+        await i.deferUpdate();
+        if (i.customId === 'prev' && page > 0) page--;
+        if (i.customId === 'next' && page < pages - 1) page++;
+        await interaction.editReply({ embeds: [makeEmbed(page)], components: [row()] });
+      });
+      collector.on('end', () => interaction.editReply({ components: [] }).catch(() => {}));
     }
   }
 }

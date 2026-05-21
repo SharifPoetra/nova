@@ -87,7 +87,10 @@ export class FishCommand extends Command {
       lng: 'en-US',
       defaultValue: fish.id,
     });
-    const dbDesc = i18next.t(`fish/species:${fish.id}.desc`, { lng: 'en-US', defaultValue: '' });
+    const dbDesc = i18next.t(`fish/species:${fish.id}.desc`, {
+      lng: 'en-US',
+      defaultValue: fish.id,
+    });
 
     await addItemToInventory(
       user.discordId,

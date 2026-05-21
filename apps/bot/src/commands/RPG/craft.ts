@@ -18,8 +18,11 @@ import { getPlayerStats } from '../../lib/rpg/combat';
 const CATEGORY_FILTERS: Record<string, (r: any) => boolean> = {
   tool: (r) => r.category === 'tool',
   weapon: (r) => r.category === 'weapon',
+  helmet: (r) => r.category === 'helmet',
   armor: (r) => r.category === 'armor',
 };
+
+const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
 
 @ApplyOptions({
   name: 'craft',
@@ -35,8 +38,9 @@ export class CraftCommand extends Command {
             .setName('category')
             .setDescription('Filter by category')
             .addChoices(
-              { name: 'Tools (rod, pickaxe)', value: 'tool' },
+              { name: 'Tools', value: 'tool' },
               { name: 'Weapons', value: 'weapon' },
+              { name: 'Helmet', value: 'helmet' },
               { name: 'Armor', value: 'armor' },
             ),
         )
@@ -94,7 +98,7 @@ export class CraftCommand extends Command {
         pageItems.map((r) => ({
           label: `${r.name}`.slice(0, 100),
           value: r.id,
-          emoji: r.emoji,
+          emoji: sanitizeEmoji(r.emoji),
           description: r.ingredients
             .map((i: any) => `${i.qty}x ${i.id}`)
             .join(', ')

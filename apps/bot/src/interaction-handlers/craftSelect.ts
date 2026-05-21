@@ -15,13 +15,17 @@ import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { ACTION_COST } from '../lib/rpg/actions';
 import { getPlayerStats } from '../lib/rpg/combat';
 import { EQUIPMENTS } from '../lib/rpg/equipments';
+import { addItemToInventory, removeItemFromInventory } from '../lib/rpg/inventory';
 
 const CATEGORY_FILTERS: Record<string, (r: any) => boolean> = {
   tool: (r) => r.category === 'tool',
   weapon: (r) => r.category === 'weapon',
+  helmet: (r) => r.category === 'helmet',
   armor: (r) => r.category === 'armor',
   all: () => true,
 };
+
+const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
 
 @ApplyOptions({
   name: 'craftSelect',
@@ -71,7 +75,7 @@ export class CraftSelectHandler extends InteractionHandler {
           pageItems.map((r) => ({
             label: r.name.slice(0, 100),
             value: r.id,
-            emoji: r.emoji,
+            emoji: sanitizeEmoji(r.emoji),
             description: r.ingredients
               .map((i) => `${i.qty}x ${i.id}`)
               .join(', ')
@@ -129,26 +133,24 @@ export class CraftSelectHandler extends InteractionHandler {
     // consume
     for (const ing of recipe.ingredients) {
       const it = user.items.find((i) => i.itemId === ing.id)!;
-      it.qty -= ing.qty;
+      await removeItemFromInventory(user.discordId, it.itemId, ing.qty);
     }
     user.items = user.items.filter((i) => i.qty > 0);
     user.stamina -= ACTION_COST.craft;
 
     // add result to inventory + ensure Item DB has stats
     const result = recipe.result;
-    const equipData = EQUIPMENTS[result.itemId as keyof typeof EQUIPMENTS];
+    const { id, ...equipData } = EQUIPMENTS[result.itemId as keyof typeof EQUIPMENTS];
     if (equipData) {
-      await this.container.db.item.updateOne(
-        { itemId: result.itemId },
-        { $set: equipData },
-        { upsert: true },
+      await addItemToInventory(
+        user.discordId,
+        {
+          itemId: id,
+          ...equipData,
+        },
+        result.qty,
       );
     }
-    const inv = user.items.find((i) => i.itemId === result.itemId);
-    if (inv) inv.qty += result.qty;
-    else user.items.push({ itemId: result.itemId, qty: result.qty });
-
-    await user.save();
 
     const embed = new EmbedBuilder()
       .setColor(0x2ecc71)

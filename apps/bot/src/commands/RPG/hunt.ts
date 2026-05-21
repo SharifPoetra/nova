@@ -8,6 +8,7 @@ import {
   ComponentType,
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
+import i18next from 'i18next';
 import { sleep, ratioBar, RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
@@ -293,11 +294,11 @@ export class HuntCommand extends Command {
     // Keep DB populated with en-US for backward compatibility
     const dbName = i18next.t(`hunt/items:${selectedDrop.id}.name`, {
       lng: 'en-US',
-      defaultValue: fish.id,
+      defaultValue: selectedDrop.id,
     });
     const dbDesc = i18next.t(`hunt/items:${selectedDrop.id}.desc`, {
       lng: 'en-US',
-      defaultValue: '',
+      defaultValue: selectedDrop.id,
     });
 
     await addItemToInventory(
