@@ -217,27 +217,17 @@ export class CookSelectHandler extends InteractionHandler {
     user.stamina -= ACTION_COST.cook;
     user.exp += recipe.exp || 0;
 
-    // Tambah hasil masak — AUTO UPSERT ke DB
+    // Tambah hasil masak
     const cookedData = COOKED_ITEMS.find((i) => i.itemId === recipe.resultItemId)!;
-    const dbName = t(`cook/items:${cookedData.itemId}.name`, {
-      lng: 'en-US',
-      defaultValue: cookedData.itemId,
-    });
-    const dbDesc = t(`cook/items:${cookedData.itemId}.desc`, {
-      lng: 'en-US',
-      defaultValue: '',
-    });
 
     await addItemToInventory(
       userId,
       {
         itemId: cookedData.itemId,
-        name: dbName,
         emoji: cookedData.emoji,
         type: cookedData.type as any,
         rarity: cookedData.rarity,
         sellPrice: cookedData.sellPrice,
-        description: dbDesc,
         effects: cookedData.effects,
       },
       1,

@@ -128,14 +128,12 @@ export class CraftSelectHandler extends InteractionHandler {
     if ((user.stamina ?? 0) < ACTION_COST.craft) {
       return interaction.editReply({
         embeds: [
-          new EmbedBuilder()
-            .setColor(0xe74c3c)
-            .setDescription(
-              t('commands/craft:need_stamina', {
-                cost: ACTION_COST.craft,
-                defaultValue: `⚡ Need ${ACTION_COST.craft} stamina`,
-              }),
-            ),
+          new EmbedBuilder().setColor(0xe74c3c).setDescription(
+            t('commands/craft:need_stamina', {
+              cost: ACTION_COST.craft,
+              defaultValue: `⚡ Need ${ACTION_COST.craft} stamina`,
+            }),
+          ),
         ],
         components: [],
       });

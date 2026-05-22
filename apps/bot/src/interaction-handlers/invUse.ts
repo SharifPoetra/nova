@@ -38,7 +38,7 @@ export class InvUseHandler extends InteractionHandler {
       );
 
     const display = await getItemDisplay(itemId, t);
-    const itemName = display?.name ?? item.name;
+    const itemName = display?.name ?? itemId;
     let msg = t('commands/inventory:used', {
       emoji: item.emoji,
       name: itemName,

@@ -115,7 +115,7 @@ export class InvEquipmentHandler extends InteractionHandler {
       await user.save();
 
       const display = await getItemDisplay(itemId, t);
-      const name = display?.name ?? item.name;
+      const name = display?.name ?? itemId;
       await interaction.followUp({
         content: t('commands/equipment:equipped', {
           emoji: item.emoji,
