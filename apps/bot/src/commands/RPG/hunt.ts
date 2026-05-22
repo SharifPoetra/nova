@@ -257,7 +257,7 @@ export class HuntCommand extends Command {
       await updateBattleEmbed(false);
       await sleep(850);
     }
-    const battleSummary = battleLog.slice(-7).join('\n');
+    const battleSummary = battleLog.slice(-15).join('\n');
     if (user.hp <= 0) {
       const loseExp = Math.floor(getScaledExp(monster.xp, user.level, 'hunt') / 3);
       user.exp += loseExp;

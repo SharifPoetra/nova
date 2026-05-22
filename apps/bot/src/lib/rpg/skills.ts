@@ -55,8 +55,9 @@ export const SKILLS: Record<string, SkillData> = {
     effects: [{ type: 'buff', value: 'buff:atk:0.3', duration: 3 }],
     use: (ctx) => {
       ctx.addBuff('atk', 0.3, 3); // 0.3 = 30% multiplier
-      ctx.addLog(`✨ 😡 Rage! +30% ATK for 3 turns`);
-      return { damage: 0, heal: 0, isCrit: false };
+      const { damage } = calculateDamage(ctx.stats, ctx.enemy, 0.8);
+      ctx.addLog(`✨ 😡 Rage! 🗡 ${damage} • +30% ATK (3 turns)`);
+      return { damage, heal: 0, isCrit: false };
     },
   },
 

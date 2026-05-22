@@ -47,7 +47,7 @@ function applyBuffs(base: number, buffs: IUser['buffs'], buffType: string): numb
   for (const buff of buffs) {
     // Cek turnsLeft dulu kalo battle buff
     const isActive = buff.battle
-      ? (buff.turnsLeft ?? 0) > 0 // buff battle harus ada turnsLeft
+      ? (buff.turnsLeft ?? 0) >= 0 // buff battle harus ada turnsLeft
       : buff.expires
         ? buff.expires.getTime() > Date.now() // buff passive pake expires
         : false; // kalo dua-duanya nggak ada, anggap inactive
@@ -137,7 +137,7 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
 
   stats.activeBuffs = user.buffs
     .filter((b) => {
-      if (b.turnsLeft !== undefined) return b.turnsLeft > 0;
+      if (b.turnsLeft !== undefined) return b.turnsLeft >= 0;
       return (b.expires?.getTime() ?? 0) > Date.now();
     })
     .map((b) => ({
@@ -207,7 +207,7 @@ export function tickBuffs(user: IUser): void {
     if (b.battle) {
       if (b.turnsLeft === undefined) return false; // kalo nggak ada turnsLeft, hapus aja. Nggak boleh ada dummy
       b.turnsLeft -= 1;
-      return b.turnsLeft > 0;
+      return b.turnsLeft >= 0;
     }
     // Buff passive: pake expires kayak biasa
     if (b.expires) {
