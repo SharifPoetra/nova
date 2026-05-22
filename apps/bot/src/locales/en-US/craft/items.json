@@ -1,6 +1,6 @@
 {
   "wooden_rod": {
-    "name": "Wooden Rod",
+    "name": "Wooden Fishing Rod",
     "desc": "Basic fishing rod. +10% rare fish chance"
   },
   "stone_pickaxe": {
@@ -20,7 +20,7 @@
     "desc": "Mage staff. Boosts ATK + a bit of crit for early game."
   },
   "iron_rod": {
-    "name": "Iron Rod",
+    "name": "Iron Fishing Rod",
     "desc": "Sturdy rod. +20% rare fish chance"
   },
   "iron_pickaxe": {
@@ -32,7 +32,7 @@
     "desc": "Extra pockets. +15% gather yield"
   },
   "mythril_rod": {
-    "name": "Mythril Rod",
+    "name": "Mythril Fishing Rod",
     "desc": "Gleaming rod. +35% rare fish chance"
   },
   "mythril_pickaxe": {
@@ -40,7 +40,7 @@
     "desc": "Light and strong. +35% ore yield"
   },
   "abyssal_rod": {
-    "name": "Abyssal Rod",
+    "name": "Abyssal Fishing Rod",
     "desc": "From the deep. +50% rare fish chance"
   }
 }

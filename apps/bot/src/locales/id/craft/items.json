@@ -1,46 +1,46 @@
 {
   "wooden_rod": {
-    "name": "Wooden Rod",
-    "desc": "Basic fishing rod. +10% rare fish chance"
+    "name": "Joran Kayu",
+    "desc": "Joran pancing pemula. +10% peluang ikan langka"
   },
   "stone_pickaxe": {
-    "name": "Stone Pickaxe",
-    "desc": "Basic pickaxe. +10% ore yield"
+    "name": "Pickaxe Batu",
+    "desc": "Pickaxe pemula. +10% hasil ore"
   },
   "hunter_bow": {
     "name": "Hunter Bow",
-    "desc": "Busur pemburu. Crit damage tinggi buat rogue."
+    "desc": "Busur pemburu. Crit damage tinggi buat Rogue."
   },
   "iron_sword": {
     "name": "Iron Sword",
-    "desc": "Pedang besi standar warrior. Balance ATK."
+    "desc": "Pedang andalan Warrior. ATK seimbang."
   },
   "mage_staff": {
     "name": "Mage Staff",
-    "desc": "Tongkat mage. Naikin ATK + crit dikit buat early."
+    "desc": "Tongkat sihir pemula. Naikin ATK + crit tipis."
   },
   "iron_rod": {
-    "name": "Iron Rod",
-    "desc": "Sturdy rod. +20% rare fish chance"
+    "name": "Joran Besi",
+    "desc": "Joran kokoh. +20% peluang ikan langka"
   },
   "iron_pickaxe": {
-    "name": "Iron Pickaxe",
-    "desc": "Reliable pick. +20% ore yield"
+    "name": "Pickaxe Besi",
+    "desc": "Pickaxe solid. +20% hasil ore"
   },
   "forager_bag": {
-    "name": "Forager's Bag",
-    "desc": "Extra pockets. +15% gather yield"
+    "name": "Forager Bag",
+    "desc": "Tas tambahan. +15% hasil gathering"
   },
   "mythril_rod": {
-    "name": "Mythril Rod",
-    "desc": "Gleaming rod. +35% rare fish chance"
+    "name": "Joran Mythril",
+    "desc": "Joran berkilau. +35% peluang ikan langka"
   },
   "mythril_pickaxe": {
-    "name": "Mythril Pickaxe",
-    "desc": "Light and strong. +35% ore yield"
+    "name": "Pickaxe Mythril",
+    "desc": "Enteng tapi nampol. +35% hasil ore"
   },
   "abyssal_rod": {
-    "name": "Abyssal Rod",
-    "desc": "From the deep. +50% rare fish chance"
+    "name": "Joran Abyssal",
+    "desc": "Joran dari abyss. +50% peluang ikan langka"
   }
 }
