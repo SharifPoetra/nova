@@ -1,4 +1,5 @@
-import { ItemInput } from './inventory';
+import { IItemEffect, EquipmentSlot, IEquipmentStat } from '@nova/db';
+import type { Rarity } from '../utils';
 
 export interface Ingredient {
   id: string;
@@ -7,7 +8,6 @@ export interface Ingredient {
 
 export interface Recipe {
   id: string;
-  name: string;
   emoji: string;
   ingredients: Ingredient[];
   resultItemId: string;
@@ -15,11 +15,21 @@ export interface Recipe {
   levelReq?: number;
 }
 
+export interface CookedItem {
+  itemId: string;
+  emoji: string;
+  rarity: Rarity;
+  sellPrice: number;
+  type: 'material' | 'equipment' | 'consumable';
+  slot?: EquipmentSlot;
+  effects?: IItemEffect[];
+  stats?: IEquipmentStat;
+}
+
 export const RECIPES: Recipe[] = [
   // === BASIC ===
   {
     id: 'fish_sardine',
-    name: 'Sarden Bakar',
     emoji: '🐟',
     ingredients: [{ id: 'fish_sardine', qty: 1 }],
     resultItemId: 'cooked_sardine',
@@ -27,7 +37,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'fish_mackerel',
-    name: 'Kembung Goreng',
     emoji: '🐟',
     ingredients: [{ id: 'fish_mackerel', qty: 1 }],
     resultItemId: 'cooked_mackerel',
@@ -35,7 +44,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'fish_tilapia',
-    name: 'Nila Bakar',
     emoji: '🐠',
     ingredients: [{ id: 'fish_tilapia', qty: 1 }],
     resultItemId: 'cooked_tilapia',
@@ -43,7 +51,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'fish_salmon',
-    name: 'Salmon Panggang',
     emoji: '🍣',
     ingredients: [{ id: 'fish_salmon', qty: 1 }],
     resultItemId: 'cooked_salmon',
@@ -51,7 +58,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'fish_tuna',
-    name: 'Tuna Steak',
     emoji: '🐟',
     ingredients: [{ id: 'fish_tuna', qty: 1 }],
     resultItemId: 'cooked_tuna',
@@ -59,7 +65,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'meat',
-    name: 'Steak Daging',
     emoji: '🥩',
     ingredients: [{ id: 'meat', qty: 1 }],
     resultItemId: 'cooked_meat',
@@ -67,7 +72,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'hide',
-    name: 'Sup Kulit',
     emoji: '🦌',
     ingredients: [{ id: 'hide', qty: 1 }],
     resultItemId: 'hide_soup',
@@ -75,7 +79,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'wolf_meat',
-    name: 'Steak Serigala',
     emoji: '🍖',
     ingredients: [{ id: 'wolf_meat', qty: 1 }],
     resultItemId: 'cooked_wolf',
@@ -83,7 +86,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'bear_meat',
-    name: 'Bear Steak',
     emoji: '🥩',
     ingredients: [{ id: 'bear_meat', qty: 1 }],
     resultItemId: 'cooked_bear',
@@ -91,7 +93,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'lizard_meat',
-    name: 'Sate Kadal',
     emoji: '🍗',
     ingredients: [{ id: 'lizard_meat', qty: 1 }],
     resultItemId: 'cooked_lizard',
@@ -99,7 +100,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'honey',
-    name: 'Madu Hangat',
     emoji: '🍯',
     ingredients: [{ id: 'honey', qty: 1 }],
     resultItemId: 'warm_honey',
@@ -109,7 +109,6 @@ export const RECIPES: Recipe[] = [
   // === BUFF BASIC ===
   {
     id: 'spicy_stew',
-    name: 'Spicy Stew',
     emoji: '🌶️',
     ingredients: [
       { id: 'meat', qty: 2 },
@@ -120,7 +119,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'herbal_tea',
-    name: 'Herbal Tea',
     emoji: '🍵',
     ingredients: [
       { id: 'herb', qty: 1 },
@@ -131,7 +129,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'mushroom_soup',
-    name: 'Sup Jamur',
     emoji: '🍄',
     ingredients: [
       { id: 'mushroom', qty: 3 },
@@ -142,7 +139,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'ginseng_brew',
-    name: 'Ginseng Brew',
     emoji: '🌱',
     ingredients: [
       { id: 'root', qty: 2 },
@@ -153,7 +149,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'mana_potion',
-    name: 'Mana Potion',
     emoji: '🔷',
     ingredients: [
       { id: 'mana_crystal', qty: 1 },
@@ -165,7 +160,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'bark_tea',
-    name: 'Bark Tea',
     emoji: '🪵',
     ingredients: [
       { id: 'bark', qty: 2 },
@@ -176,7 +170,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'moon_elixir',
-    name: 'Moon Elixir',
     emoji: '🌸',
     ingredients: [
       { id: 'moonflower', qty: 1 },
@@ -188,7 +181,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'golden_omelette',
-    name: 'Golden Omelette',
     emoji: '🥚',
     ingredients: [
       { id: 'monster_egg', qty: 1 },
@@ -202,7 +194,6 @@ export const RECIPES: Recipe[] = [
   // === MID GAME ===
   {
     id: 'venom_soup',
-    name: 'Venom Soup',
     emoji: '🧪',
     ingredients: [
       { id: 'venom_sac', qty: 1 },
@@ -213,7 +204,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'spider_silk_pie',
-    name: 'Silk Pie',
     emoji: '🕸️',
     ingredients: [
       { id: 'spider_silk', qty: 3 },
@@ -224,7 +214,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'harpy_wings',
-    name: 'Crispy Harpy',
     emoji: '🦅',
     ingredients: [
       { id: 'feather', qty: 5 },
@@ -235,7 +224,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'berserk_stew',
-    name: 'Berserk Stew',
     emoji: '🩸',
     ingredients: [
       { id: 'berserk_blood', qty: 1 },
@@ -247,7 +235,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'shadow_curry',
-    name: 'Shadow Curry',
     emoji: '🐆',
     ingredients: [
       { id: 'panther_pelt', qty: 2 },
@@ -258,7 +245,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'lava_jelly',
-    name: 'Lava Jelly',
     emoji: '🟠',
     ingredients: [
       { id: 'magma_jelly', qty: 2 },
@@ -271,7 +257,6 @@ export const RECIPES: Recipe[] = [
   // === LATE GAME ===
   {
     id: 'troll_ragout',
-    name: 'Troll Ragout',
     emoji: '🧌',
     ingredients: [
       { id: 'troll_fat', qty: 2 },
@@ -282,7 +267,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'worm_sushi',
-    name: 'Worm Sushi',
     emoji: '🪱',
     ingredients: [
       { id: 'worm_meat', qty: 2 },
@@ -293,7 +277,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'dark_knight_feast',
-    name: 'Knight Feast',
     emoji: '🗡️',
     ingredients: [
       { id: 'dark_steel', qty: 1 },
@@ -305,7 +288,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'storm_broth',
-    name: 'Storm Broth',
     emoji: '⚡',
     ingredients: [
       { id: 'storm_feather', qty: 3 },
@@ -316,7 +298,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'crystal_soup',
-    name: 'Crystal Soup',
     emoji: '💎',
     ingredients: [
       { id: 'crystal_shard', qty: 5 },
@@ -330,7 +311,6 @@ export const RECIPES: Recipe[] = [
   // === END GAME ===
   {
     id: 'hydra_gumbo',
-    name: 'Hydra Gumbo',
     emoji: '🐉',
     ingredients: [
       { id: 'hydra_scale', qty: 3 },
@@ -342,7 +322,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'phoenix_rebirth',
-    name: 'Phoenix Rebirth',
     emoji: '🔥',
     ingredients: [
       { id: 'phoenix_tear', qty: 1 },
@@ -356,7 +335,6 @@ export const RECIPES: Recipe[] = [
   // === DUNGEON SPECIALS ===
   {
     id: 'slime_jelly',
-    name: 'Slime Jelly',
     emoji: '🟢',
     ingredients: [
       { id: 'slime_core', qty: 2 },
@@ -367,7 +345,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'void_soup',
-    name: 'Void Soup',
     emoji: '🌫️',
     ingredients: [
       { id: 'void_essence', qty: 2 },
@@ -379,7 +356,6 @@ export const RECIPES: Recipe[] = [
   },
   {
     id: 'drake_flame_grill',
-    name: 'Drake Flame Grill',
     emoji: '🐲',
     ingredients: [
       { id: 'drake_scale', qty: 4 },
@@ -393,401 +369,331 @@ export const RECIPES: Recipe[] = [
 
 export const getRecipe = (id: string) => RECIPES.find((r) => r.id === id);
 
-// === ITEM DEFINITIONS FOR DB SEED - 100% match Item.ts schema ===
-export const COOKED_ITEMS: ItemInput[] = [
+// === ITEM DEFINITIONS FOR DB SEED ===
+export const COOKED_ITEMS: CookedItem[] = [
   {
     itemId: 'cooked_sardine',
-    name: 'Sarden Bakar',
     emoji: '🐟',
     type: 'consumable',
     rarity: 'Common',
-    description: 'Restores 20 HP',
     sellPrice: 8,
     effects: [{ type: 'heal', value: 20 }],
   },
   {
     itemId: 'cooked_mackerel',
-    name: 'Kembung Goreng',
     emoji: '🐟',
     type: 'consumable',
     rarity: 'Common',
-    description: 'Restores 25 HP',
     sellPrice: 10,
     effects: [{ type: 'heal', value: 25 }],
   },
   {
     itemId: 'cooked_tilapia',
-    name: 'Nila Bakar',
     emoji: '🐠',
     type: 'consumable',
     rarity: 'Common',
-    description: 'Restores 30 HP',
     sellPrice: 12,
     effects: [{ type: 'heal', value: 30 }],
   },
   {
     itemId: 'cooked_salmon',
-    name: 'Salmon Panggang',
     emoji: '🍣',
     type: 'consumable',
     rarity: 'Uncommon',
-    description: 'Restores 45 HP',
     sellPrice: 20,
     effects: [{ type: 'heal', value: 45 }],
   },
   {
     itemId: 'cooked_tuna',
-    name: 'Tuna Steak',
     emoji: '🐟',
     type: 'consumable',
     rarity: 'Uncommon',
-    description: 'Restores 40 HP',
     sellPrice: 18,
     effects: [{ type: 'heal', value: 40 }],
   },
   {
     itemId: 'cooked_meat',
-    name: 'Steak Daging',
     emoji: '🥩',
     type: 'consumable',
     rarity: 'Common',
-    description: 'Restores 30 HP',
     sellPrice: 12,
     effects: [{ type: 'heal', value: 30 }],
   },
   {
     itemId: 'hide_soup',
-    name: 'Sup Kulit',
     emoji: '🦌',
     type: 'consumable',
     rarity: 'Common',
-    description: 'Restores 15 HP',
     sellPrice: 6,
     effects: [{ type: 'heal', value: 15 }],
   },
   {
     itemId: 'cooked_wolf',
-    name: 'Steak Serigala',
     emoji: '🍖',
     type: 'consumable',
     rarity: 'Common',
-    description: 'Restores 35 HP',
     sellPrice: 14,
     effects: [{ type: 'heal', value: 35 }],
   },
   {
     itemId: 'cooked_bear',
-    name: 'Bear Steak',
     emoji: '🥩',
     type: 'consumable',
     rarity: 'Rare',
-    description: 'Restores 70 HP',
     sellPrice: 35,
     effects: [{ type: 'heal', value: 70 }],
   },
   {
     itemId: 'cooked_lizard',
-    name: 'Sate Kadal',
     emoji: '🍗',
     type: 'consumable',
     rarity: 'Common',
-    description: 'Restores 25 HP',
     sellPrice: 10,
     effects: [{ type: 'heal', value: 25 }],
   },
   {
     itemId: 'warm_honey',
-    name: 'Madu Hangat',
     emoji: '🍯',
     type: 'consumable',
     rarity: 'Uncommon',
-    description: 'Restores 40 HP',
     sellPrice: 18,
     effects: [{ type: 'heal', value: 40 }],
   },
   {
     itemId: 'spicy_stew',
-    name: 'Spicy Stew',
     emoji: '🌶️',
     type: 'consumable',
     rarity: 'Uncommon',
-    description: 'Restores 40 HP + ATK boost',
     sellPrice: 25,
     effects: [
       { type: 'heal', value: 40 },
-      { type: 'buff', value: 5 },
+      { type: 'buff', value: 0.05 },
     ],
   },
   {
     itemId: 'herbal_tea',
-    name: 'Herbal Tea',
     emoji: '🍵',
     type: 'consumable',
     rarity: 'Common',
-    description: 'Restores 25 HP + stamina regen',
     sellPrice: 15,
     effects: [
       { type: 'heal', value: 25 },
-      { type: 'buff', value: 2 },
+      { type: 'buff', value: 0.02 },
     ],
   },
   {
     itemId: 'mushroom_soup',
-    name: 'Sup Jamur',
     emoji: '🍄',
     type: 'consumable',
     rarity: 'Common',
-    description: 'Restores 35 HP',
     sellPrice: 14,
     effects: [{ type: 'heal', value: 35 }],
   },
   {
     itemId: 'ginseng_brew',
-    name: 'Ginseng Brew',
     emoji: '🌱',
     type: 'consumable',
     rarity: 'Rare',
-    description: 'Restores 50 HP + stamina regen',
     sellPrice: 30,
     effects: [
       { type: 'heal', value: 50 },
-      { type: 'buff', value: 3 },
+      { type: 'buff', value: 0.03 },
     ],
   },
   {
     itemId: 'mana_potion',
-    name: 'Mana Potion',
     emoji: '🔷',
     type: 'consumable',
     rarity: 'Rare',
-    description: 'Restores 15 HP + ATK boost',
     sellPrice: 28,
     effects: [
       { type: 'heal', value: 15 },
-      { type: 'buff', value: 8 },
+      { type: 'buff', value: 0.08 },
     ],
   },
   {
     itemId: 'bark_tea',
-    name: 'Bark Tea',
     emoji: '🪵',
     type: 'consumable',
     rarity: 'Common',
-    description: 'Restores 20 HP',
     sellPrice: 8,
     effects: [{ type: 'heal', value: 20 }],
   },
   {
     itemId: 'moon_elixir',
-    name: 'Moon Elixir',
     emoji: '🌸',
     type: 'consumable',
     rarity: 'Epic',
-    description: 'Restores 80 HP + ATK boost',
     sellPrice: 60,
     effects: [
       { type: 'heal', value: 80 },
-      { type: 'buff', value: 12 },
+      { type: 'buff', value: 0.12 },
     ],
   },
   {
     itemId: 'golden_omelette',
-    name: 'Golden Omelette',
     emoji: '🥚',
     type: 'consumable',
     rarity: 'Epic',
-    description: 'Restores 100 HP + ATK boost',
     sellPrice: 80,
     effects: [
       { type: 'heal', value: 100 },
-      { type: 'buff', value: 15 },
+      { type: 'buff', value: 0.15 },
     ],
   },
   {
     itemId: 'venom_soup',
-    name: 'Venom Soup',
     emoji: '🧪',
     type: 'consumable',
     rarity: 'Rare',
-    description: 'Restores 45 HP + stamina regen',
     sellPrice: 30,
     effects: [
       { type: 'heal', value: 45 },
-      { type: 'buff', value: 4 },
+      { type: 'buff', value: 0.04 },
     ],
   },
   {
     itemId: 'silk_pie',
-    name: 'Silk Pie',
     emoji: '🕸️',
     type: 'consumable',
     rarity: 'Uncommon',
-    description: 'Restores 55 HP',
     sellPrice: 25,
     effects: [{ type: 'heal', value: 55 }],
   },
   {
     itemId: 'crispy_harpy',
-    name: 'Crispy Harpy',
     emoji: '🦅',
     type: 'consumable',
     rarity: 'Uncommon',
-    description: 'Restores 60 HP',
     sellPrice: 28,
     effects: [{ type: 'heal', value: 60 }],
   },
   {
     itemId: 'berserk_stew',
-    name: 'Berserk Stew',
     emoji: '🩸',
     type: 'consumable',
     rarity: 'Rare',
-    description: 'Restores 75 HP + ATK boost',
     sellPrice: 45,
     effects: [
       { type: 'heal', value: 75 },
-      { type: 'buff', value: 10 },
+      { type: 'buff', value: 0.1 },
     ],
   },
   {
     itemId: 'shadow_curry',
-    name: 'Shadow Curry',
     emoji: '🐆',
     type: 'consumable',
     rarity: 'Rare',
-    description: 'Restores 80 HP + stamina regen',
     sellPrice: 48,
     effects: [
       { type: 'heal', value: 80 },
-      { type: 'buff', value: 5 },
+      { type: 'buff', value: 0.05 },
     ],
   },
   {
     itemId: 'lava_jelly',
-    name: 'Lava Jelly',
     emoji: '🟠',
     type: 'consumable',
     rarity: 'Rare',
-    description: 'Restores 65 HP',
     sellPrice: 35,
     effects: [{ type: 'heal', value: 65 }],
   },
   {
     itemId: 'troll_ragout',
-    name: 'Troll Ragout',
     emoji: '🧌',
     type: 'consumable',
     rarity: 'Epic',
-    description: 'Restores 95 HP',
     sellPrice: 55,
     effects: [{ type: 'heal', value: 95 }],
   },
   {
     itemId: 'worm_sushi',
-    name: 'Worm Sushi',
     emoji: '🪱',
     type: 'consumable',
     rarity: 'Epic',
-    description: 'Restores 110 HP',
     sellPrice: 65,
     effects: [{ type: 'heal', value: 110 }],
   },
   {
     itemId: 'knight_feast',
-    name: 'Knight Feast',
     emoji: '🗡️',
     type: 'consumable',
     rarity: 'Epic',
-    description: 'Restores 125 HP + ATK boost',
     sellPrice: 85,
     effects: [
       { type: 'heal', value: 125 },
-      { type: 'buff', value: 18 },
+      { type: 'buff', value: 0.18 },
     ],
   },
   {
     itemId: 'storm_broth',
-    name: 'Storm Broth',
     emoji: '⚡',
     type: 'consumable',
     rarity: 'Legendary',
-    description: 'Restores 140 HP + stamina regen',
     sellPrice: 100,
     effects: [
       { type: 'heal', value: 140 },
-      { type: 'buff', value: 7 },
+      { type: 'buff', value: 0.07 },
     ],
   },
   {
     itemId: 'crystal_soup',
-    name: 'Crystal Soup',
     emoji: '💎',
     type: 'consumable',
     rarity: 'Legendary',
-    description: 'Restores 160 HP',
     sellPrice: 120,
     effects: [{ type: 'heal', value: 160 }],
   },
   {
     itemId: 'hydra_gumbo',
-    name: 'Hydra Gumbo',
     emoji: '🐉',
     type: 'consumable',
     rarity: 'Legendary',
-    description: 'Restores 200 HP + ATK boost',
     sellPrice: 180,
     effects: [
       { type: 'heal', value: 200 },
-      { type: 'buff', value: 25 },
+      { type: 'buff', value: 0.25 },
     ],
   },
   {
     itemId: 'phoenix_rebirth',
-    name: 'Phoenix Rebirth',
     emoji: '🔥',
     type: 'consumable',
     rarity: 'Mythic',
-    description: 'Restores 250 HP + ATK boost',
     sellPrice: 250,
     effects: [
       { type: 'heal', value: 250 },
-      { type: 'buff', value: 30 },
+      { type: 'buff', value: 0.3 },
     ],
   },
   {
     itemId: 'slime_jelly',
-    name: 'Slime Jelly',
     emoji: '🟢',
     type: 'consumable',
     rarity: 'Uncommon',
-    description: 'Restores 35 HP',
     sellPrice: 16,
     effects: [{ type: 'heal', value: 35 }],
   },
   {
     itemId: 'void_soup',
-    name: 'Void Soup',
     emoji: '🌫️',
     type: 'consumable',
     rarity: 'Legendary',
-    description: 'Restores 180 HP + stamina regen',
     sellPrice: 150,
     effects: [
       { type: 'heal', value: 180 },
-      { type: 'buff', value: 8 },
+      { type: 'buff', value: 0.08 },
     ],
   },
   {
     itemId: 'drake_grill',
-    name: 'Drake Flame Grill',
     emoji: '🐲',
     type: 'consumable',
     rarity: 'Mythic',
-    description: 'Restores 220 HP + ATK boost',
     sellPrice: 200,
     effects: [
       { type: 'heal', value: 220 },
-      { type: 'buff', value: 22 },
+      { type: 'buff', value: 0.22 },
     ],
   },
 ];

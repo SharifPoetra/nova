@@ -93,7 +93,7 @@ export class ProfileCommand extends Command {
         defaultValue: classData?.name ?? 'Adventurer',
       });
 
-      const bonusAtk = getAtkBuff(userData);
+      const bonusAtk = getAtkBuff(userData); // desimal 0.3
       const activeBuffs = (userData.buffs || []).filter(
         (b) => new Date(b.expires ?? 0) > new Date(),
       );
@@ -107,12 +107,19 @@ export class ProfileCommand extends Command {
               );
               const icon = b.type === 'atk' ? '⚔️' : b.type === 'stamina_regen' ? '⚡' : '✨';
               const label = t(`commands/profile:buff_${b.type}`, { defaultValue: b.type });
-              return `${icon} ${label} +${b.value} (${mins}m)`;
+              // Ubah value jadi persen untuk display
+              const displayValue =
+                b.type === 'atk' || b.type === 'hp' || b.type === 'def'
+                  ? `${Math.round(b.value * 100)}%`
+                  : `+${b.value}`;
+              return `${icon} ${label} ${displayValue} (${mins}m)`;
             })
             .join('\n')
         : t('commands/profile:no_buffs', { defaultValue: 'None' });
 
-      const atkDisplay = bonusAtk > 0 ? `**${stats.atk}** (+${bonusAtk}) 🔥` : `**${stats.atk}**`;
+      const bonusAtkPercent = Math.round(bonusAtk * 100);
+      const atkDisplay =
+        bonusAtk > 0 ? `**${stats.atk}** (+${bonusAtkPercent}%) 🔥` : `**${stats.atk}**`;
 
       const equippedIds = [
         userData.equipped?.weapon,
