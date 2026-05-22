@@ -15,6 +15,7 @@ import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { ACTION_COST } from '../lib/rpg/actions';
 import { getPlayerStats } from '../lib/rpg/combat';
 import { addItemToInventory, removeItemFromInventory } from '../lib/rpg/inventory';
+import { getItemDisplay } from '../lib/rpg/item-registry';
 
 const TIER_FILTERS: Record<string, (r: any) => boolean> = {
   basic: (r) =>
@@ -112,27 +113,33 @@ export class CookSelectHandler extends InteractionHandler {
       const pageRecipes = availableRecipes.slice(startIndex, startIndex + 25);
       const totalPages = Math.ceil(availableRecipes.length / 25);
 
+      const options = await Promise.all(
+        pageRecipes.map(async (recipe) => {
+          const item = COOKED_ITEMS.find((i) => i.itemId === recipe.resultItemId);
+          const heal = item?.effects?.find((e) => e.type === 'heal')?.value || 0;
+          const buff = item?.effects?.find((e) => e.type === 'buff');
+          const recipeName = t(`cook/recipes:${recipe.id}.name`, { defaultValue: recipe.id });
+          const ingNames = await Promise.all(
+            recipe.ingredients.map(async (i) => {
+              const disp = await getItemDisplay(i.id, t);
+              return `${i.qty}x ${disp?.name ?? i.id}`;
+            }),
+          );
+          return {
+            label: `${recipeName} (+${heal} HP)${buff ? ` [+${buff.value}]` : ''}`.slice(0, 100),
+            value: recipe.id,
+            emoji: recipe.emoji,
+            description: ingNames.join(', ').slice(0, 100),
+          };
+        }),
+      );
+
       const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(`cook_${userId}_${newPage}_${tier}`)
         .setPlaceholder(
           t('commands/cook:select_placeholder', { page: newPage + 1, total: totalPages }),
         )
-        .addOptions(
-          pageRecipes.map((recipe) => {
-            const item = COOKED_ITEMS.find((i) => i.itemId === recipe.resultItemId);
-            const heal = item?.effects?.find((e) => e.type === 'heal')?.value || 0;
-            const buff = item?.effects?.find((e) => e.type === 'buff');
-            return {
-              label: `${recipe.name} (+${heal} HP)${buff ? ` [+${buff.value}]` : ''}`.slice(0, 100),
-              value: recipe.id,
-              emoji: recipe.emoji,
-              description: recipe.ingredients
-                .map((i) => `${i.qty}x ${i.id}`)
-                .join(', ')
-                .slice(0, 100),
-            };
-          }),
-        );
+        .addOptions(options);
 
       const components: ActionRowBuilder<any>[] = [
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu),
@@ -140,12 +147,12 @@ export class CookSelectHandler extends InteractionHandler {
       if (availableRecipes.length > 25) {
         const prevButton = new ButtonBuilder()
           .setCustomId(`cookprev_${userId}_${newPage}_${tier}`)
-          .setLabel(t('common:ui.prev'))
+          .setLabel(t('common:ui.prev', { defaultValue: '◀ Previous' }))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(newPage === 0);
         const nextButton = new ButtonBuilder()
           .setCustomId(`cooknext_${userId}_${newPage}_${tier}`)
-          .setLabel(t('common:ui.next'))
+          .setLabel(t('common:ui.next', { defaultValue: 'Next ▶' }))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(startIndex + 25 >= availableRecipes.length);
         components.push(new ActionRowBuilder().addComponents(prevButton, nextButton));
@@ -155,13 +162,16 @@ export class CookSelectHandler extends InteractionHandler {
         .setColor(0xf39c12)
         .setTitle(t('commands/cook:title', { defaultValue: '🍳 Nova Kitchen' }))
         .setDescription(
-          `${t('commands/cook:hp')}: ${stats.hp}/${stats.maxHp}\n${t('commands/cook:stamina')}: ${user.stamina}/${user.maxStamina}\n${t('commands/cook:cost', { cost: ACTION_COST.cook })}`,
+          `${t('commands/cook:hp', { defaultValue: '❤️ HP' })}: ${stats.hp}/${stats.maxHp}\n${t('commands/cook:stamina', { defaultValue: '⚡ Stamina' })}: ${user.stamina}/${user.maxStamina}\n${t('commands/cook:cost', { cost: ACTION_COST.cook, defaultValue: `Cost: -${ACTION_COST.cook}` })}`,
         )
         .setFooter({
           text:
             tier !== 'all'
-              ? t('commands/cook:filter', { tier: tier.toUpperCase() })
-              : t('commands/cook:all'),
+              ? t('commands/cook:filter', {
+                  tier: tier.toUpperCase(),
+                  defaultValue: `Filter: ${tier.toUpperCase()}`,
+                })
+              : t('commands/cook:all', { defaultValue: 'All cookable recipes' }),
         });
       return interaction.editReply({ embeds: [embed], components });
     }
@@ -174,11 +184,13 @@ export class CookSelectHandler extends InteractionHandler {
     if ((user.stamina ?? 0) < ACTION_COST.cook) {
       return interaction.editReply({
         embeds: [
-          new EmbedBuilder()
-            .setColor(0xe74c3c)
-            .setDescription(
-              t('common:error.low_stamina', { current: user.stamina, need: ACTION_COST.cook }),
-            ),
+          new EmbedBuilder().setColor(0xe74c3c).setDescription(
+            t('common:error.low_stamina', {
+              current: user.stamina,
+              need: ACTION_COST.cook,
+              defaultValue: `Not enough stamina (${user.stamina}/${ACTION_COST.cook})`,
+            }),
+          ),
         ],
         components: [],
       });
@@ -189,7 +201,11 @@ export class CookSelectHandler extends InteractionHandler {
     );
     if (!hasIngredients)
       return interaction.editReply({
-        embeds: [new EmbedBuilder().setColor(0xe74c3c).setDescription(t('commands/cook:missing'))],
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0xe74c3c)
+            .setDescription(t('commands/cook:missing', { defaultValue: 'Missing ingredients' })),
+        ],
         components: [],
       });
 
@@ -203,27 +219,56 @@ export class CookSelectHandler extends InteractionHandler {
 
     // Tambah hasil masak — AUTO UPSERT ke DB
     const cookedData = COOKED_ITEMS.find((i) => i.itemId === recipe.resultItemId)!;
-    await addItemToInventory(userId, cookedData, 1);
+    const dbName = t(`cook/items:${cookedData.itemId}.name`, {
+      lng: 'en-US',
+      defaultValue: cookedData.itemId,
+    });
+    const dbDesc = t(`cook/items:${cookedData.itemId}.desc`, {
+      lng: 'en-US',
+      defaultValue: '',
+    });
+
+    await addItemToInventory(
+      userId,
+      {
+        itemId: cookedData.itemId,
+        name: dbName,
+        emoji: cookedData.emoji,
+        type: cookedData.type as any,
+        rarity: cookedData.rarity,
+        sellPrice: cookedData.sellPrice,
+        description: dbDesc,
+        effects: cookedData.effects,
+      },
+      1,
+    );
 
     await user.save();
 
     const heal = cookedData.effects?.find((e) => e.type === 'heal')?.value || 0;
     const buff = cookedData.effects?.find((e) => e.type === 'buff');
+    const recipeName = t(`cook/recipes:${recipe.id}.name`, { defaultValue: recipe.id });
+    const cookedName = (await getItemDisplay(cookedData.itemId, t))?.name ?? cookedData.itemId;
 
     const resultEmbed = new EmbedBuilder()
       .setColor(0x2ecc71)
-      .setTitle(t('commands/cook:success_title', { name: recipe.name }))
+      .setTitle(
+        t('commands/cook:success_title', {
+          name: recipeName,
+          defaultValue: `${recipeName} cooked!`,
+        }),
+      )
       .setDescription(
-        `${recipe.emoji} **${recipe.name}** ${t('commands/cook:success_desc', { defaultValue: 'cooked successfully!' })}\n\n📦 Added to inventory: ${cookedData.emoji} ${cookedData.name}${buff ? `\n✨ Buff: +${buff.value}` : ''}`,
+        `${recipe.emoji} **${recipeName}** ${t('commands/cook:success_desc', { defaultValue: 'cooked successfully!' })}\n\n📦 ${t('commands/cook:added', { defaultValue: 'Added to inventory' })}: ${cookedData.emoji} ${cookedName}${buff ? `\n✨ Buff: +${buff.value}` : ''}`,
       )
       .addFields(
         {
-          name: t('commands/cook:hp'),
-          value: `${stats.hp}/${stats.maxHp} (+${heal} when used)`,
+          name: t('commands/cook:hp', { defaultValue: '❤️ HP' }),
+          value: `${stats.hp}/${stats.maxHp} (+${heal} ${t('commands/cook:when_used', { defaultValue: 'when used' })})`,
           inline: true,
         },
         {
-          name: t('commands/cook:stamina'),
+          name: t('commands/cook:stamina', { defaultValue: '⚡ Stamina' }),
           value: `${user.stamina + ACTION_COST.cook} → ${user.stamina}`,
           inline: true,
         },

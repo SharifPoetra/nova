@@ -10,6 +10,7 @@ import {
   ChatInputCommandInteraction,
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
+import { getItemDisplay } from '../../lib/rpg/item-registry';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RECIPES, COOKED_ITEMS } from '../../lib/rpg/cooking-recipes';
 import { ACTION_COST } from '../../lib/rpg/actions';
@@ -147,6 +148,30 @@ export class CookCommand extends Command {
     const pageRecipes = recipeList.slice(startIndex, startIndex + 25);
     const totalPages = Math.ceil(recipeList.length / 25);
 
+    const options = await Promise.all(
+      pageRecipes.map(async (recipe) => {
+        const item = COOKED_ITEMS.find((i) => i.itemId === recipe.resultItemId);
+        const heal = item?.effects?.find((e) => e.type === 'heal')?.value || 0;
+        const buff = item?.effects?.find((e) => e.type === 'buff');
+        // pakai i18n untuk nama resep
+        const recipeName = t(`cook/recipes:${recipe.id}.name`, { defaultValue: recipe.name });
+
+        const ingNames = await Promise.all(
+          recipe.ingredients.map(async (ing: any) => {
+            const disp = await getItemDisplay(ing.id, t);
+            return `${ing.qty}x ${disp?.name ?? ing.id}`;
+          }),
+        );
+
+        return {
+          label: `${recipeName} (+${heal} HP)${buff ? ` [+${buff.value}]` : ''}`.slice(0, 100),
+          value: recipe.id,
+          emoji: recipe.emoji,
+          description: ingNames.join(', ').slice(0, 100),
+        };
+      }),
+    );
+
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId(`cook_${interaction.user.id}_${page}_${tier}`)
       .setPlaceholder(
@@ -156,22 +181,7 @@ export class CookCommand extends Command {
           defaultValue: `Choose recipe — Page ${page + 1}/${totalPages}`,
         }),
       )
-      .addOptions(
-        pageRecipes.map((recipe) => {
-          const item = COOKED_ITEMS.find((i) => i.itemId === recipe.resultItemId);
-          const heal = item?.effects?.find((e) => e.type === 'heal')?.value || 0;
-          const buff = item?.effects?.find((e) => e.type === 'buff');
-          return {
-            label: `${recipe.name} (+${heal} HP)${buff ? ` [+${buff.value}]` : ''}`.slice(0, 100),
-            value: recipe.id,
-            emoji: recipe.emoji,
-            description: recipe.ingredients
-              .map((ing: any) => `${ing.qty}x ${ing.id}`)
-              .join(', ')
-              .slice(0, 100),
-          };
-        }),
-      );
+      .addOptions(options);
 
     const components: ActionRowBuilder<any>[] = [
       new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu),
@@ -227,22 +237,29 @@ export class CookCommand extends Command {
   }
 
   public override async autocompleteRun(interaction: AutocompleteInteraction) {
+    const t = await fetchT(interaction);
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user) return interaction.respond([]);
     const query = interaction.options.getFocused().toLowerCase();
+
     const availableRecipes = RECIPES.filter((recipe) => {
       const hasIngredients = recipe.ingredients.every(
         (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
       );
-      const matchesQuery = recipe.name.toLowerCase().includes(query) || recipe.id.includes(query);
+      const name = t(`cook/recipes:${recipe.id}.name`, { defaultValue: recipe.id }).toLowerCase();
+      const matchesQuery = name.includes(query) || recipe.id.includes(query);
       return hasIngredients && matchesQuery;
     }).slice(0, 25);
+
     return interaction.respond(
-      availableRecipes.map((recipe) => {
-        const item = COOKED_ITEMS.find((i) => i.itemId === recipe.resultItemId);
-        const heal = item?.effects?.find((e) => e.type === 'heal')?.value || 0;
-        return { name: `${recipe.emoji} ${recipe.name} (+${heal} HP)`, value: recipe.id };
-      }),
+      await Promise.all(
+        availableRecipes.map(async (recipe) => {
+          const item = COOKED_ITEMS.find((i) => i.itemId === recipe.resultItemId);
+          const heal = item?.effects?.find((e) => e.type === 'heal')?.value || 0;
+          const name = t(`cook/recipes:${recipe.id}.name`, { defaultValue: recipe.id });
+          return { name: `${recipe.emoji} ${name} (+${heal} HP)`, value: recipe.id };
+        }),
+      ),
     );
   }
 }
