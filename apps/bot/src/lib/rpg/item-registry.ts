@@ -67,6 +67,8 @@ export const ITEM_I18N: Record<string, { ns: string; origin: string; dup?: boole
   stone_fragment: { ns: 'dungeon/items', origin: 'dungeon' },
   warden_cape: { ns: 'dungeon/items', origin: 'dungeon' },
   warden_chain: { ns: 'dungeon/items', origin: 'dungeon' },
+  star_blade: { ns: 'dungeon/items', origin: 'craft' },
+  void_crown: { ns: 'dungeon/items', origin: 'craft' },
 
   // dup di hunt
   // slime_core: { ns: 'dungeon/items', origin: 'dungeon', dup: true },
@@ -173,9 +175,7 @@ export const ITEM_I18N: Record<string, { ns: string; origin: string; dup?: boole
   mage_staff: { ns: 'craft/items', origin: 'craft' },
   mythril_pickaxe: { ns: 'craft/items', origin: 'craft' },
   mythril_rod: { ns: 'craft/items', origin: 'craft' },
-  star_blade: { ns: 'craft/items', origin: 'craft' },
   stone_pickaxe: { ns: 'craft/items', origin: 'craft' },
-  void_crown: { ns: 'craft/items', origin: 'craft' },
   wooden_rod: { ns: 'craft/items', origin: 'craft' },
 
   // ===== COOK (35) - cooking-recipes.ts =====

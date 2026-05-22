@@ -79,6 +79,7 @@ const client = new SapphireClient({
         'explore/events',
         'cook/recipes',
         'cook/items',
+        'craft/items',
         'commands/names',
         'commands/descriptions',
         'commands/hunt',

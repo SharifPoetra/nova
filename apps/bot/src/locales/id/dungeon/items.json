@@ -27,10 +27,6 @@
     "name": "Belati Karat",
     "desc": "Belati curian, masih bisa dipakai"
   },
-  "hunter_bow": {
-    "name": "Hunter Bow",
-    "desc": "Busur pemburu. Crit damage tinggi buat rogue."
-  },
   "ice_club": {
     "name": "Gada Es",
     "desc": "Membekukan musuh"
@@ -39,17 +35,9 @@
     "name": "Iron Gauntlet",
     "desc": "Sarung tangan besi. +ATK"
   },
-  "iron_sword": {
-    "name": "Iron Sword",
-    "desc": "Pedang besi standar warrior. Balance ATK."
-  },
   "lizard_scale_armor": {
     "name": "Armor Sisik Kadal",
     "desc": "Armor ringan dari sisik kadal. +HP +DEF"
-  },
-  "mage_staff": {
-    "name": "Mage Staff",
-    "desc": "Tongkat mage. Naikin ATK + crit dikit buat early."
   },
   "rusted_sword": {
     "name": "Pedang Karat",
@@ -146,38 +134,6 @@
   "nova_blade": {
     "name": "Nova Blade",
     "desc": "Pedang dari inti nova. +ATK +Crit +HP"
-  },
-  "wooden_rod": {
-    "name": "Wooden Rod",
-    "desc": "Basic fishing rod. +10% rare fish chance"
-  },
-  "iron_rod": {
-    "name": "Iron Rod",
-    "desc": "Sturdy rod. +20% rare fish chance"
-  },
-  "mythril_rod": {
-    "name": "Mythril Rod",
-    "desc": "Gleaming rod. +35% rare fish chance"
-  },
-  "abyssal_rod": {
-    "name": "Abyssal Rod",
-    "desc": "From the deep. +50% rare fish chance"
-  },
-  "stone_pickaxe": {
-    "name": "Stone Pickaxe",
-    "desc": "Basic pickaxe. +10% ore yield"
-  },
-  "iron_pickaxe": {
-    "name": "Iron Pickaxe",
-    "desc": "Reliable pick. +20% ore yield"
-  },
-  "mythril_pickaxe": {
-    "name": "Mythril Pickaxe",
-    "desc": "Light and strong. +35% ore yield"
-  },
-  "forager_bag": {
-    "name": "Forager's Bag",
-    "desc": "Extra pockets. +15% gather yield"
   },
   "star_dust": {
     "name": "Star Dust",

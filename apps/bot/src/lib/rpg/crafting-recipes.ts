@@ -123,7 +123,7 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
     result: { itemId: 'mythril_rod', qty: 1 },
     ingredients: [
       { id: 'mythril_ore', qty: 8 },
-      { id: 'silk', qty: 5 },
+      { id: 'spider_silk', qty: 5 },
       { id: 'mana_crystal', qty: 2 },
     ],
     requiredLevel: 15,
