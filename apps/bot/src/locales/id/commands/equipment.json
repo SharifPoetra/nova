@@ -1,0 +1,21 @@
+{
+  "slot.weapon": "⚔️ Senjata",
+  "slot.armor": "🛡️ Armor",
+  "slot.helmet": "🪖 Helm",
+  "slot.accessory": "💍 Aksesoris",
+  "slot.tool": "🔧 Alat",
+  "title": "Equipment {{username}}",
+  "none": "❌ Kosong",
+  "crit_rate": "💥 Crit Rate",
+  "crit_dmg": "💢 Crit DMG",
+  "equip_placeholder": "Equip ({{start}}-{{end}}/{{total}})",
+  "unequip_placeholder": "Lepas...",
+  "back": "Kembali ke Inventory",
+  "equipped": "✅ Memakai {{emoji}} **{{name}}** → {{slot}}",
+  "unequipped": "📤 Melepas {{slot}}",
+  "invalid": "Tidak valid",
+  "empty": "Kosong",
+  "not_equip": "Item ini bukan equipment",
+  "wrong_slot": "Item ini untuk slot {{slot}}, bukan {{need}}",
+  "class_lock": "Hanya class {{classes}} yang bisa pakai ini"
+}
