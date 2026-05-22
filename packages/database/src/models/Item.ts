@@ -25,12 +25,10 @@ export interface IEquipmentStat {
 
 export interface IItem extends Document {
   itemId: string;
-  name: string;
   emoji: string;
   rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary' | 'Mythic';
   sellPrice: number;
   type: 'material' | 'equipment' | 'consumable';
-  description: string;
   effects?: IItemEffect[];
   slot?: EquipmentSlot;
   stats?: IEquipmentStat;
@@ -39,7 +37,6 @@ export interface IItem extends Document {
 const ItemSchema = new Schema<IItem>(
   {
     itemId: { type: String, required: true, unique: true },
-    name: { type: String, required: true },
     emoji: { type: String, required: true },
     rarity: {
       type: String,
@@ -48,7 +45,6 @@ const ItemSchema = new Schema<IItem>(
     },
     sellPrice: { type: Number, default: 0 },
     type: { type: String, enum: ['material', 'equipment', 'consumable'], default: 'material' },
-    description: { type: String, default: '' },
     effects: [
       {
         type: { type: String, enum: ['heal', 'stamina', 'mana', 'buff'], required: true },
