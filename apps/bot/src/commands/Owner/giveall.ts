@@ -73,7 +73,7 @@ export class GiveAllCommand extends Command {
     COOKED_ITEMS.forEach(add);
     // 7. Craft results (biar kebikin di DB juga)
     CRAFTING_RECIPES.forEach((r) =>
-      add({ id: r.result.itemId, name: r.name, emoji: r.emoji, type: 'equipment' }),
+      add({ id: r.result.itemId, emoji: r.emoji, type: 'equipment' }),
     );
 
     const ALL = [...map.values()];

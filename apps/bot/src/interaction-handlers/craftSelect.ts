@@ -16,6 +16,7 @@ import { ACTION_COST } from '../lib/rpg/actions';
 import { getPlayerStats } from '../lib/rpg/combat';
 import { EQUIPMENTS } from '../lib/rpg/equipments';
 import { addItemToInventory, removeItemFromInventory } from '../lib/rpg/inventory';
+import { getItemDisplay } from '../lib/rpg/item-registry';
 
 const CATEGORY_FILTERS: Record<string, (r: any) => boolean> = {
   tool: (r) => r.category === 'tool',
@@ -43,11 +44,9 @@ export class CraftSelectHandler extends InteractionHandler {
     const [, userId, pageStr, cat = 'all'] = interaction.customId.split('_');
     const isPrev = interaction.customId.startsWith('craftprev');
     const isNext = interaction.customId.startsWith('craftnext');
-
     if (interaction.user.id !== userId)
       return interaction.reply({ content: 'Not your forge 😅', ephemeral: true });
     await interaction.deferUpdate();
-
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (!user) return;
     applyPassiveRegen(user);
@@ -68,20 +67,35 @@ export class CraftSelectHandler extends InteractionHandler {
       const pageItems = available.slice(start, start + 25);
       const total = Math.ceil(available.length / 25);
 
-      const select = new StringSelectMenuBuilder()
-        .setCustomId(`craft_${userId}_${newPage}_${cat}`)
-        .setPlaceholder(`Choose recipe — Page ${newPage + 1}/${total}`)
-        .addOptions(
-          pageItems.map((r) => ({
-            label: r.name.slice(0, 100),
+      const options = await Promise.all(
+        pageItems.map(async (r) => {
+          const display = await getItemDisplay(r.result.itemId, t);
+          const name = display?.name ?? r.result.itemId;
+          const ingNames = await Promise.all(
+            r.ingredients.map(async (i) => {
+              const ingDisplay = await getItemDisplay(i.id, t);
+              return `${i.qty}x ${ingDisplay?.name ?? i.id}`;
+            }),
+          );
+          return {
+            label: name.slice(0, 100),
             value: r.id,
             emoji: sanitizeEmoji(r.emoji),
-            description: r.ingredients
-              .map((i) => `${i.qty}x ${i.id}`)
-              .join(', ')
-              .slice(0, 100),
-          })),
-        );
+            description: ingNames.join(', ').slice(0, 100),
+          };
+        }),
+      );
+
+      const select = new StringSelectMenuBuilder()
+        .setCustomId(`craft_${userId}_${newPage}_${cat}`)
+        .setPlaceholder(
+          t('commands/craft:choose', {
+            page: newPage + 1,
+            total,
+            defaultValue: `Choose recipe — Page ${newPage + 1}/${total}`,
+          }),
+        )
+        .addOptions(options);
 
       const components: any[] = [new ActionRowBuilder().addComponents(select)];
       if (available.length > 25) {
@@ -101,7 +115,8 @@ export class CraftSelectHandler extends InteractionHandler {
         .setColor(0x3498db)
         .setTitle('🔨 Nova Forge')
         .setDescription(
-          `❤️ HP: ${stats.hp}/${stats.maxHp}\n⚡ Stamina: ${user.stamina}/${user.maxStamina}`,
+          `❤️ HP: ${stats.hp}/${stats.maxHp}
+⚡ Stamina: ${user.stamina}/${user.maxStamina}`,
         );
       return interaction.editReply({ embeds: [embed], components });
     }
@@ -110,13 +125,17 @@ export class CraftSelectHandler extends InteractionHandler {
     const recipeId = (interaction as StringSelectMenuInteraction).values[0];
     const recipe = getCraftingRecipe(recipeId);
     if (!recipe) return;
-
     if ((user.stamina ?? 0) < ACTION_COST.craft) {
       return interaction.editReply({
         embeds: [
           new EmbedBuilder()
             .setColor(0xe74c3c)
-            .setDescription(`⚡ Need ${ACTION_COST.craft} stamina`),
+            .setDescription(
+              t('commands/craft:need_stamina', {
+                cost: ACTION_COST.craft,
+                defaultValue: `⚡ Need ${ACTION_COST.craft} stamina`,
+              }),
+            ),
         ],
         components: [],
       });
@@ -126,10 +145,13 @@ export class CraftSelectHandler extends InteractionHandler {
     );
     if (!has)
       return interaction.editReply({
-        embeds: [new EmbedBuilder().setColor(0xe74c3c).setDescription('📦 Missing materials')],
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0xe74c3c)
+            .setDescription(t('commands/craft:missing', { defaultValue: '📦 Missing materials' })),
+        ],
         components: [],
       });
-
     // consume
     for (const ing of recipe.ingredients) {
       const it = user.items.find((i) => i.itemId === ing.id)!;
@@ -137,7 +159,6 @@ export class CraftSelectHandler extends InteractionHandler {
     }
     user.items = user.items.filter((i) => i.qty > 0);
     user.stamina -= ACTION_COST.craft;
-
     // add result to inventory + ensure Item DB has stats
     const result = recipe.result;
     const { id, ...equipData } = EQUIPMENTS[result.itemId as keyof typeof EQUIPMENTS];
@@ -152,18 +173,29 @@ export class CraftSelectHandler extends InteractionHandler {
       );
     }
 
+    const display = await getItemDisplay(result.itemId, t);
+    const itemName = display?.name ?? result.itemId;
+    const itemDesc = display?.description ?? '';
+
     const embed = new EmbedBuilder()
       .setColor(0x2ecc71)
-      .setTitle('✅ Crafted!')
+      .setTitle(t('commands/craft:success_title', { defaultValue: '✅ Crafted!' }))
       .setDescription(
-        `${recipe.emoji} **${recipe.name}** crafted successfully!\n\n📦 Added to inventory`,
+        `${recipe.emoji} **${itemName}** ${t('commands/craft:success_desc', { defaultValue: 'crafted successfully!' })}
+
+${
+  itemDesc
+    ? `_${itemDesc}_
+
+`
+    : ''
+}📦 ${t('commands/craft:added', { defaultValue: 'Added to inventory' })}`,
       )
       .addFields({
         name: 'Stamina',
         value: `${user.stamina + ACTION_COST.craft} → ${user.stamina}`,
         inline: true,
       });
-
     return interaction.editReply({ embeds: [embed], components: [] });
   }
 }

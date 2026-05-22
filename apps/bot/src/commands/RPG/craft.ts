@@ -14,6 +14,7 @@ import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { CRAFTING_RECIPES } from '../../lib/rpg/crafting-recipes';
 import { ACTION_COST } from '../../lib/rpg/actions';
 import { getPlayerStats } from '../../lib/rpg/combat';
+import { getItemDisplay } from '../../lib/rpg/item-registry';
 
 const CATEGORY_FILTERS: Record<string, (r: any) => boolean> = {
   tool: (r) => r.category === 'tool',
@@ -56,14 +57,11 @@ export class CraftCommand extends Command {
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user)
       return interaction.editReply(t('common:need_start', { defaultValue: 'Use /start first!' }));
-
     applyPassiveRegen(user);
     await user.save();
     const selectedCategory = interaction.options.getString('category');
     const selectedRecipeId = interaction.options.getString('recipe');
-
     if (selectedRecipeId) return this.craftDirectly(interaction, selectedRecipeId);
-
     let available = CRAFTING_RECIPES.filter(
       (r) =>
         r.ingredients.every(
@@ -71,10 +69,12 @@ export class CraftCommand extends Command {
         ) && user.level >= (r.requiredLevel ?? 0),
     );
     if (selectedCategory) available = available.filter(CATEGORY_FILTERS[selectedCategory]);
-
     if (!available.length)
-      return interaction.editReply('📦 No craftable items! Get materials from /explore or /hunt');
-
+      return interaction.editReply(
+        t('commands/craft:none', {
+          defaultValue: '📦 No craftable items! Get materials from /explore or /hunt',
+        }),
+      );
     return this.sendPage(interaction, user, available, 0, selectedCategory || 'all');
   }
 
@@ -91,20 +91,38 @@ export class CraftCommand extends Command {
     const pageItems = list.slice(start, start + 25);
     const total = Math.ceil(list.length / 25);
 
-    const select = new StringSelectMenuBuilder()
-      .setCustomId(`craft_${interaction.user.id}_${page}_${cat}`)
-      .setPlaceholder(`Choose recipe — Page ${page + 1}/${total}`)
-      .addOptions(
-        pageItems.map((r) => ({
-          label: `${r.name}`.slice(0, 100),
+    const options = await Promise.all(
+      pageItems.map(async (r) => {
+        const display = await getItemDisplay(r.result.itemId, t);
+        const name = display?.name ?? r.result.itemId;
+
+        const ingNames = await Promise.all(
+          r.ingredients.map(async (i: any) => {
+            const ingDisplay = await getItemDisplay(i.id, t);
+            const ingName = ingDisplay?.name ?? i.id;
+            return `${i.qty}x ${ingName}`;
+          }),
+        );
+
+        return {
+          label: name.slice(0, 100),
           value: r.id,
           emoji: sanitizeEmoji(r.emoji),
-          description: r.ingredients
-            .map((i: any) => `${i.qty}x ${i.id}`)
-            .join(', ')
-            .slice(0, 100),
-        })),
-      );
+          description: ingNames.join(', ').slice(0, 100),
+        };
+      }),
+    );
+
+    const select = new StringSelectMenuBuilder()
+      .setCustomId(`craft_${interaction.user.id}_${page}_${cat}`)
+      .setPlaceholder(
+        t('commands/craft:choose', {
+          page: page + 1,
+          total,
+          defaultValue: `Choose recipe — Page ${page + 1}/${total}`,
+        }),
+      )
+      .addOptions(options);
 
     const components: any[] = [new ActionRowBuilder().addComponents(select)];
     if (list.length > 25) {
@@ -120,15 +138,15 @@ export class CraftCommand extends Command {
         .setDisabled(start + 25 >= list.length);
       components.push(new ActionRowBuilder().addComponents(prev, next));
     }
-
     const embed = new EmbedBuilder()
       .setColor(0x3498db)
       .setTitle('🔨 Nova Forge')
       .setDescription(
-        `❤️ HP: ${stats.hp}/${stats.maxHp}\n⚡ Stamina: ${user.stamina}/${user.maxStamina}\n💰 Cost: -${ACTION_COST.craft} stamina`,
+        `❤️ HP: ${stats.hp}/${stats.maxHp}
+⚡ Stamina: ${user.stamina}/${user.maxStamina}
+💰 Cost: -${ACTION_COST.craft} stamina`,
       )
       .setFooter({ text: cat !== 'all' ? `Filter: ${cat.toUpperCase()}` : 'All craftable' });
-
     return interaction.editReply({ embeds: [embed], components });
   }
 
@@ -151,15 +169,34 @@ export class CraftCommand extends Command {
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user) return interaction.respond([]);
     const q = interaction.options.getFocused().toLowerCase();
+    const t = await fetchT(interaction);
+
     const available = CRAFTING_RECIPES.filter((r) => {
       const has = r.ingredients.every(
         (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
       );
-      const match = r.name.toLowerCase().includes(q) || r.id.includes(q);
-      return has && match && user.level >= (r.requiredLevel ?? 0);
-    }).slice(0, 25);
+      return has && user.level >= (r.requiredLevel ?? 0);
+    }).slice(0, 50);
+
+    const results = await Promise.all(
+      available.map(async (r) => {
+        const display = await getItemDisplay(r.result.itemId, t);
+        const name = display?.name ?? r.id;
+        return { recipe: r, name };
+      }),
+    );
+
+    const filtered = results
+      .filter(
+        ({ name, recipe }) => name.toLowerCase().includes(q) || recipe.id.toLowerCase().includes(q),
+      )
+      .slice(0, 25);
+
     return interaction.respond(
-      available.map((r) => ({ name: `${r.emoji} ${r.name}`, value: r.id })),
+      filtered.map(({ recipe, name }) => ({
+        name: `${recipe.emoji} ${name}`,
+        value: recipe.id,
+      })),
     );
   }
 }

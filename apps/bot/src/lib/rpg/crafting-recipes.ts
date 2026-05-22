@@ -4,9 +4,9 @@ export interface CraftingIngredient {
   id: string;
   qty: number;
 }
+
 export interface CraftingRecipe {
   id: string;
-  name: string;
   emoji: string;
   result: { itemId: string; qty: number };
   ingredients: CraftingIngredient[];
@@ -17,7 +17,6 @@ export interface CraftingRecipe {
 export const CRAFTING_RECIPES: CraftingRecipe[] = [
   {
     id: 'craft_wooden_rod',
-    name: 'Wooden Rod',
     emoji: '🎣',
     category: 'tool',
     result: { itemId: 'wooden_rod', qty: 1 },
@@ -29,7 +28,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_stone_pickaxe',
-    name: 'Stone Pickaxe',
     emoji: '⛏️',
     category: 'tool',
     result: { itemId: 'stone_pickaxe', qty: 1 },
@@ -41,7 +39,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_hunter_bow',
-    name: 'Hunter Bow',
     emoji: '🏹',
     category: 'weapon',
     result: { itemId: 'hunter_bow', qty: 1 },
@@ -54,7 +51,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_iron_sword',
-    name: 'Iron Sword',
     emoji: '⚔️',
     category: 'weapon',
     result: { itemId: 'iron_sword', qty: 1 },
@@ -66,7 +62,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_mage_staff',
-    name: 'Mage Staff',
     emoji: '🪄',
     category: 'weapon',
     result: { itemId: 'mage_staff', qty: 1 },
@@ -79,7 +74,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_iron_rod',
-    name: 'Iron Rod',
     emoji: '🎣',
     category: 'tool',
     result: { itemId: 'iron_rod', qty: 1 },
@@ -92,7 +86,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_iron_pickaxe',
-    name: 'Iron Pickaxe',
     emoji: '⛏️',
     category: 'tool',
     result: { itemId: 'iron_pickaxe', qty: 1 },
@@ -104,7 +97,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_forager_bag',
-    name: "Forager's Bag",
     emoji: '🎒',
     category: 'tool',
     result: { itemId: 'forager_bag', qty: 1 },
@@ -117,7 +109,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_mythril_rod',
-    name: 'Mythril Rod',
     emoji: '✨🎣',
     category: 'tool',
     result: { itemId: 'mythril_rod', qty: 1 },
@@ -130,7 +121,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_mythril_pickaxe',
-    name: 'Mythril Pickaxe',
     emoji: '✨⛏️',
     category: 'tool',
     result: { itemId: 'mythril_pickaxe', qty: 1 },
@@ -143,7 +133,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_star_blade',
-    name: 'Star Blade',
     emoji: '⚔️⭐',
     category: 'weapon',
     result: { itemId: 'star_blade', qty: 1 },
@@ -156,7 +145,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_void_crown',
-    name: 'Void Crown',
     emoji: '👑🌫️',
     category: 'helmet',
     result: { itemId: 'void_crown', qty: 1 },
@@ -169,7 +157,6 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
   },
   {
     id: 'craft_abyssal_rod',
-    name: 'Abyssal Rod',
     emoji: '🌊🎣',
     category: 'tool',
     result: { itemId: 'abyssal_rod', qty: 1 },
