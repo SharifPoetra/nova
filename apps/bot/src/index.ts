@@ -98,7 +98,7 @@ const client = new SapphireClient({
         'commands/shop',
         'commands/daily',
         'commands/reset',
-        'commands/craft'
+        'commands/craft',
       ],
     },
   },
