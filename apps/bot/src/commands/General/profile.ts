@@ -175,8 +175,7 @@ export class ProfileCommand extends Command {
         : t('commands/profile:footer_max', {
             defaultValue: '🏆 All monsters unlocked! You are a Nova legend',
           });
-          
-      console.log(interaction.locale)
+
       const embed = new EmbedBuilder()
         .setAuthor({
           name: t('commands/profile:author', {

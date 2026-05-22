@@ -46,7 +46,7 @@ function findKeys(): Map<string, { file: string; line: number }[]> {
 
         const line = getLineNumber(content, m.index);
         const relFile = path.relative(SRC, file);
-        
+
         if (!keys.has(key)) keys.set(key, []);
         keys.get(key)!.push({ file: relFile, line });
       }
@@ -102,9 +102,9 @@ function main() {
       console.log(`❌ ${key}`);
       console.log(`   missing in: ${missing.join(', ')}`);
       const usages = keysMap.get(key)!;
-      const unique = [...new Map(usages.map(u => [`${u.file}:${u.line}`, u])).values()]
+      const unique = [...new Map(usages.map((u) => [`${u.file}:${u.line}`, u])).values()]
         .slice(0, 3)
-        .map(u => `${u.file}:${u.line}`)
+        .map((u) => `${u.file}:${u.line}`)
         .join(', ');
       console.log(`   used in: ${unique}`);
     }
