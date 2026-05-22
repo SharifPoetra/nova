@@ -241,7 +241,7 @@ export async function renderInventoryPage(
             consumablesData.slice(0, 25).map((c) => ({
               label: `${c.name} x${c.qty}`.slice(0, 100),
               value: c.id,
-              description: `${c.rarity} • ${c.desc}`.slice(0, 50),
+              description: `${c.rarity} • ${c.desc}`.slice(0, 100),
               emoji: c.emoji,
             })),
           ),
