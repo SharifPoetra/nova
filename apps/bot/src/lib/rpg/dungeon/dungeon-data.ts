@@ -2,16 +2,14 @@ import type { IEquipmentStat, EquipmentSlot } from '@nova/db';
 import type { TFunction } from 'i18next';
 import type { Rarity } from '../../utils';
 import { EQUIPMENTS } from '../equipments';
-import { i18nMonster, i18nLore } from '../../i18n/display';
+import { i18nLore } from '../../i18n/display';
 
 export type DropItem = {
   id: string;
-  name: string;
   emoji: string;
   rarity: Rarity;
   sellPrice: number;
   type: 'material' | 'equipment' | 'consumable';
-  description: string;
   effects?: { type: 'heal' | 'stamina' | 'mana' | 'buff'; value: number }[];
   slot?: EquipmentSlot;
   stats?: IEquipmentStat;
@@ -132,149 +130,43 @@ export const BOSSES: Record<number, { id: string; emoji: string }> = {
 
 export const DUNGEON_DROPS: Record<string, DropItem[]> = {
   slime: [
-    {
-      id: 'star_dust',
-      name: 'Star Dust',
-      emoji: '✨',
-      rarity: 'Common',
-      sellPrice: 15,
-      type: 'material',
-      description: 'Debu bintang yang ditinggalkan slime',
-    },
-    {
-      id: 'slime_core',
-      name: 'Slime Core',
-      emoji: '🟣',
-      rarity: 'Uncommon',
-      sellPrice: 40,
-      type: 'material',
-      description: 'Inti berlendir sumber kehidupan slime',
-    },
+    { id: 'star_dust', emoji: '✨', rarity: 'Common', sellPrice: 15, type: 'material' },
+    { id: 'slime_core', emoji: '🟣', rarity: 'Uncommon', sellPrice: 40, type: 'material' },
     { ...EQUIPMENTS.slime_boots },
     {
       id: 'gooey_jelly',
-      name: 'Gooey Jelly',
       emoji: '🟢',
       rarity: 'Common',
       sellPrice: 10,
       type: 'consumable',
-      description: 'Jeli lengket, pulihkan 15 HP',
       effects: [{ type: 'heal', value: 15 }],
     },
   ],
   golem: [
-    {
-      id: 'crystal_shard',
-      name: 'Crystal Shard',
-      emoji: '🔹',
-      rarity: 'Uncommon',
-      sellPrice: 55,
-      type: 'material',
-      description: 'Pecahan kristal dari tubuh golem',
-    },
-    {
-      id: 'stone_fragment',
-      name: 'Stone Fragment',
-      emoji: '🪨',
-      rarity: 'Common',
-      sellPrice: 20,
-      type: 'material',
-      description: 'Pecahan batu biasa',
-    },
+    { id: 'crystal_shard', emoji: '🔹', rarity: 'Uncommon', sellPrice: 55, type: 'material' },
+    { id: 'stone_fragment', emoji: '🪨', rarity: 'Common', sellPrice: 20, type: 'material' },
     { ...EQUIPMENTS.iron_gauntlet },
-    {
-      id: 'golem_heart',
-      name: 'Golem Heart',
-      emoji: '🗿',
-      rarity: 'Rare',
-      sellPrice: 120,
-      type: 'material',
-      description: 'Jantung batu yang masih berdenyut',
-    },
+    { id: 'golem_heart', emoji: '🗿', rarity: 'Rare', sellPrice: 120, type: 'material' },
   ],
   specter: [
-    {
-      id: 'void_essence',
-      name: 'Void Essence',
-      emoji: '🌫️',
-      rarity: 'Rare',
-      sellPrice: 150,
-      type: 'material',
-      description: 'Esensi kehampaan dari specter',
-    },
+    { id: 'void_essence', emoji: '🌫️', rarity: 'Rare', sellPrice: 150, type: 'material' },
     { ...EQUIPMENTS.specter_hood },
-    {
-      id: 'ectoplasm',
-      name: 'Ectoplasm',
-      emoji: '🟢👻',
-      rarity: 'Uncommon',
-      sellPrice: 60,
-      type: 'material',
-      description: 'Lendir hantu',
-    },
+    { id: 'ectoplasm', emoji: '🟢👻', rarity: 'Uncommon', sellPrice: 60, type: 'material' },
   ],
   drake: [
-    {
-      id: 'drake_scale',
-      name: 'Drake Scale',
-      emoji: '🐲',
-      rarity: 'Rare',
-      sellPrice: 180,
-      type: 'material',
-      description: 'Sisik drake tahan api',
-    },
+    { id: 'drake_scale', emoji: '🐲', rarity: 'Rare', sellPrice: 180, type: 'material' },
     { ...EQUIPMENTS.drake_claw_dagger },
-    {
-      id: 'charred_bone',
-      name: 'Charred Bone',
-      emoji: '🦴🔥',
-      rarity: 'Uncommon',
-      sellPrice: 70,
-      type: 'material',
-      description: 'Tulang hangus',
-    },
+    { id: 'charred_bone', emoji: '🦴🔥', rarity: 'Uncommon', sellPrice: 70, type: 'material' },
   ],
   warden: [
-    {
-      id: 'frost_crystal',
-      name: 'Frost Crystal',
-      emoji: '❄️',
-      rarity: 'Epic',
-      sellPrice: 400,
-      type: 'material',
-      description: 'Kristal es abadi',
-    },
+    { id: 'frost_crystal', emoji: '❄️', rarity: 'Epic', sellPrice: 400, type: 'material' },
     { ...EQUIPMENTS.warden_cape },
-    {
-      id: 'ice_shard',
-      name: 'Ice Shard',
-      emoji: '🧊',
-      rarity: 'Uncommon',
-      sellPrice: 90,
-      type: 'material',
-      description: 'Pecahan es',
-    },
+    { id: 'ice_shard', emoji: '🧊', rarity: 'Uncommon', sellPrice: 90, type: 'material' },
   ],
   guardian: [
-    {
-      id: 'astral_fragment',
-      name: 'Astral Fragment',
-      emoji: '💫',
-      rarity: 'Epic',
-      sellPrice: 500,
-      type: 'material',
-      description: 'Fragmen dari bintang jatuh',
-    },
+    { id: 'astral_fragment', emoji: '💫', rarity: 'Epic', sellPrice: 500, type: 'material' },
     { ...EQUIPMENTS.star_blade },
-    {
-      id: 'stardust',
-      name: 'Stardust',
-      emoji: '✨',
-      rarity: 'Rare',
-      sellPrice: 300,
-      type: 'material',
-      description: 'Debu bintang murni',
-    },
+    { id: 'stardust', emoji: '✨', rarity: 'Rare', sellPrice: 300, type: 'material' },
   ],
 };
 
@@ -283,12 +175,10 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
     { ...EQUIPMENTS.slime_crown },
     {
       id: 'royal_jelly',
-      name: 'Royal Jelly',
       emoji: '🍯👑',
       rarity: 'Epic',
       sellPrice: 300,
       type: 'consumable',
-      description: 'Jeli kerajaan, heal 100 HP',
       effects: [{ type: 'heal', value: 100 }],
     },
   ],
@@ -296,86 +186,46 @@ export const BOSS_DROPS: Record<string, DropItem[]> = {
     { ...EQUIPMENTS.obsidian_plate },
     {
       id: 'heart_of_crystal',
-      name: 'Heart of Crystal',
       emoji: '💎❤️',
       rarity: 'Legendary',
       sellPrice: 600,
       type: 'material',
-      description: 'Jantung kristal murni',
     },
   ],
   specter: [{ ...EQUIPMENTS.reaper_scythe }, { ...EQUIPMENTS.void_crown }],
   drake: [
-    {
-      id: 'inferno_fang',
-      name: 'Inferno Fang',
-      emoji: '🦷',
-      rarity: 'Epic',
-      sellPrice: 350,
-      type: 'material',
-      description: 'Taring yang masih membara',
-    },
+    { id: 'inferno_fang', emoji: '🦷', rarity: 'Epic', sellPrice: 350, type: 'material' },
     {
       id: 'dragon_heart',
-      name: 'Dragon Heart',
       emoji: '❤️‍🔥',
       rarity: 'Legendary',
       sellPrice: 800,
       type: 'consumable',
-      description: 'Jantung naga, pulihkan 80 stamina',
       effects: [{ type: 'stamina', value: 80 }],
     },
     { ...EQUIPMENTS.inferno_staff },
   ],
   warden: [
     { ...EQUIPMENTS.warden_chain },
-    {
-      id: 'absolute_shard',
-      name: 'Absolute Shard',
-      emoji: '🧊💎',
-      rarity: 'Legendary',
-      sellPrice: 950,
-      type: 'material',
-      description: 'Pecahan nol mutlak',
-    },
+    { id: 'absolute_shard', emoji: '🧊💎', rarity: 'Legendary', sellPrice: 950, type: 'material' },
   ],
   guardian: [
-    {
-      id: 'star_core',
-      name: 'Star Core',
-      emoji: '🌟',
-      rarity: 'Legendary',
-      sellPrice: 1200,
-      type: 'material',
-      description: 'Inti bintang murni',
-    },
-    {
-      id: 'nebula_silk',
-      name: 'Nebula Silk',
-      emoji: '🌌',
-      rarity: 'Legendary',
-      sellPrice: 1500,
-      type: 'material',
-      description: 'Sutra dari awan nebula',
-    },
+    { id: 'star_core', emoji: '🌟', rarity: 'Legendary', sellPrice: 1200, type: 'material' },
+    { id: 'nebula_silk', emoji: '🌌', rarity: 'Legendary', sellPrice: 1500, type: 'material' },
     {
       id: 'quantum_orb',
-      name: 'Quantum Orb',
       emoji: '⚛️',
       rarity: 'Legendary',
       sellPrice: 2000,
       type: 'consumable',
-      description: 'Bola energi kuantum, heal 250 HP',
       effects: [{ type: 'heal', value: 250 }],
     },
     {
       id: 'nova_essence',
-      name: 'Nova Essence',
       emoji: '💥🌟',
       rarity: 'Mythic',
       sellPrice: 3000,
       type: 'consumable',
-      description: 'Esensi ledakan nova, heal 500 HP + 50 stamina',
       effects: [
         { type: 'heal', value: 500 },
         { type: 'stamina', value: 50 },
@@ -402,6 +252,5 @@ export function getFloorLore(floor: number, t: TFunction): string {
     LORE_FLOORS.slice()
       .reverse()
       .find((f) => floor >= f) ?? 1;
-
   return i18nLore(`floor_${loreFloor}`, t);
 }
