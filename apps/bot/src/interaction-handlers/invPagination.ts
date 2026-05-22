@@ -20,17 +20,23 @@ export class InvPaginationHandler extends InteractionHandler {
     const t = await fetchT(interaction);
     const [, dir, pageStr, userId] = interaction.customId.split('_');
     if (interaction.user.id !== userId)
-      return interaction.reply({ content: 'Not your inventory!', flags: MessageFlags.Ephemeral });
+      return interaction.reply({
+        content: t('commands/inventory:not_yours', { defaultValue: 'Not your inventory!' }),
+        flags: MessageFlags.Ephemeral,
+      });
 
     await interaction.deferUpdate();
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (!user) return;
     applyPassiveRegen(user);
+    await user.save(); // ← penting, biar stamina update
 
     let page = Number.parseInt(pageStr, 10);
     page = dir === 'next' ? page + 1 : page - 1;
 
-    const { embed, components } = await renderInventoryPage(
+    // JANGAN pakai message.id untuk cache kalau mau rebuild consumables dengan locale baru
+    // pass undefined biar renderInventoryPage query fresh
+    const { embed, components, allItems, totalValue } = await renderInventoryPage(
       this.container,
       {
         ...user.toObject(),
@@ -40,8 +46,36 @@ export class InvPaginationHandler extends InteractionHandler {
       },
       page,
       t,
-      interaction.message.id,
+      undefined, // jangan pakai cache lama
     );
+
+    // localize ulang embed
+    embed
+      .setAuthor({
+        name: t('commands/inventory:author', {
+          username: interaction.user.username,
+          defaultValue: `${interaction.user.username}'s Inventory`,
+        }),
+        iconURL: interaction.user.displayAvatarURL(),
+      })
+      .setFooter({
+        text: t('commands/inventory:footer', {
+          total: totalValue.toLocaleString(interaction.locale),
+          page: page + 1,
+          totalPages: Math.max(1, Math.ceil(allItems.length / 10)),
+          defaultValue: `Total value: ${totalValue.toLocaleString()} coins | Page ${page + 1}/${Math.ceil(allItems.length / 10)}`,
+        }),
+      });
+
     await interaction.editReply({ embeds: [embed], components });
+
+    // update cache dengan data baru
+    this.container.invCache?.set(interaction.message.id, {
+      allItems,
+      totalValue,
+      userId,
+      t: Date.now(),
+      locale: interaction.locale,
+    });
   }
 }

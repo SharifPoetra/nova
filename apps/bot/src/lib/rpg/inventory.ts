@@ -207,37 +207,47 @@ export async function renderInventoryPage(
 
   const consumableIds = user.items.map((i) => i.itemId);
   const consumableData = consumableIds.length
-    ? ((await container.db.item.find({ itemId: { $in: consumableIds } }).lean()) as IItem[])
+    ? ((await container.db.item
+        .find({ itemId: { $in: consumableIds }, type: 'consumable' })
+        .lean()) as IItem[])
     : [];
-  const itemMap = new Map<string, IItem>(consumableData.map((i) => [i.itemId, i]));
+  const consumableMap = new Map<string, IItem>(consumableData.map((i) => [i.itemId, i]));
 
-  const consumables = user.items
-    .filter((i) => itemMap.get(i.itemId)?.type === 'consumable')
-    .map((i) => ({ inv: i, data: itemMap.get(i.itemId)! }))
-    .sort((a, b) => {
-      const ra = RARITY_ORDER.indexOf(a.data.rarity as (typeof RARITY_ORDER)[number]);
-      const rb = RARITY_ORDER.indexOf(b.data.rarity as (typeof RARITY_ORDER)[number]);
-      return ra !== rb ? ra - rb : b.inv.qty - a.inv.qty;
-    })
-    .slice(0, 25)
-    .map((x) => x.inv);
+  const consumablesData: any[] = [];
+  for (const inv of user.items) {
+    const d = consumableMap.get(inv.itemId);
+    if (!d) continue;
+    const display = await getItemDisplay(inv.itemId, t);
+    consumablesData.push({
+      id: inv.itemId,
+      qty: inv.qty,
+      name: display?.name ?? d.name,
+      desc: display?.description || d.description || '',
+      rarity: d.rarity || 'Common',
+      emoji: sanitizeEmoji(d.emoji),
+    });
+  }
+  consumablesData.sort((a, b) => {
+    const ra = RARITY_ORDER.indexOf(a.rarity as any);
+    const rb = RARITY_ORDER.indexOf(b.rarity as any);
+    return ra !== rb ? ra - rb : b.qty - a.qty;
+  });
 
-  if (consumables.length) {
+  if (consumablesData.length) {
     components.push(
       new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
         new StringSelectMenuBuilder()
           .setCustomId(`inv_use_${user.discordId}`)
-          .setPlaceholder('Use consumable...')
+          .setPlaceholder(
+            t('commands/inventory:use_placeholder', { defaultValue: 'Use consumable...' }),
+          )
           .addOptions(
-            consumables.map((c) => {
-              const d = itemMap.get(c.itemId)!;
-              return {
-                label: `${d.name} x${c.qty}`.slice(0, 100),
-                value: c.itemId,
-                description: `${d.rarity} • ${(d.description || '').slice(0, 40)}`,
-                emoji: sanitizeEmoji(d.emoji),
-              };
-            }),
+            consumablesData.slice(0, 25).map((c) => ({
+              label: `${c.name} x${c.qty}`.slice(0, 100),
+              value: c.id,
+              description: `${c.rarity} • ${c.desc}`.slice(0, 50),
+              emoji: c.emoji,
+            })),
           ),
       ),
     );

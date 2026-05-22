@@ -17,13 +17,6 @@ import type { EquipmentSlot, IEquipmentStat, IUser, IItem } from '@nova/db';
 import { getItemDisplay } from '../lib/rpg/item-registry';
 import { fetchT } from '@sapphire/plugin-i18next';
 
-const SLOT_LABEL: Record<string, string> = {
-  weapon: '⚔️ Weapon',
-  armor: '🛡️ Armor',
-  helmet: '🪖 Helmet',
-  accessory: '💍 Accessory',
-  tool: '🔧 Tool',
-};
 const sanitize = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
 
 @ApplyOptions<InteractionHandler.Options>({
@@ -41,10 +34,21 @@ export class InvEquipmentHandler extends InteractionHandler {
 
   public override async run(interaction: ButtonInteraction | StringSelectMenuInteraction) {
     const t = await fetchT(interaction);
+    const SLOT_LABEL: Record<string, string> = {
+      weapon: t('commands/equipment:slot.weapon', { defaultValue: '⚔️ Weapon' }),
+      armor: t('commands/equipment:slot.armor', { defaultValue: '🛡️ Armor' }),
+      helmet: t('commands/equipment:slot.helmet', { defaultValue: '🪖 Helmet' }),
+      accessory: t('commands/equipment:slot.accessory', { defaultValue: '💍 Accessory' }),
+      tool: t('commands/equipment:slot.tool', { defaultValue: '🔧 Tool' }),
+    };
+
     const parts = interaction.customId.split('_');
     const userId = interaction.customId.startsWith('inv_back_') ? parts[2] : parts[3];
     if (interaction.user.id !== userId)
-      return interaction.reply({ content: 'Not yours', flags: MessageFlags.Ephemeral });
+      return interaction.reply({
+        content: t('commands/inventory:not_yours', { defaultValue: 'Not yours' }),
+        flags: MessageFlags.Ephemeral,
+      });
 
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (!user) return;
@@ -62,14 +66,14 @@ export class InvEquipmentHandler extends InteractionHandler {
         },
         0,
         t,
-        interaction.message.id,
+        undefined,
       );
       return interaction.editReply({ embeds: [embed], components });
     }
 
     if (interaction.customId.startsWith('inv_equip_view_')) {
       await interaction.deferUpdate();
-      return this.renderEquip(interaction, user);
+      return this.renderEquip(interaction, user, t, SLOT_LABEL);
     }
 
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith('inv_equip_select_')) {
@@ -77,9 +81,12 @@ export class InvEquipmentHandler extends InteractionHandler {
       const [slot, itemId] = interaction.values[0].split(':') as [EquipmentSlot, string];
       const item = await this.container.db.item.findOne({ itemId });
       if (!item || item.slot !== slot)
-        return interaction.followUp({ content: 'Invalid', flags: MessageFlags.Ephemeral });
+        return interaction.followUp({
+          content: t('commands/equipment:invalid', { defaultValue: 'Invalid' }),
+          flags: MessageFlags.Ephemeral,
+        });
 
-      const error = this.validateEquip(user, item, slot);
+      const error = this.validateEquip(user, item, slot, t);
       if (error)
         return interaction.followUp({ content: `❌ ${error}`, flags: MessageFlags.Ephemeral });
 
@@ -102,20 +109,23 @@ export class InvEquipmentHandler extends InteractionHandler {
 
       await user.save();
 
-      // HP clamp setelah equip
       const afterStats = await getPlayerStats(user);
-      if (wasFullHp) {
-        user.hp = afterStats.maxHp; // full heal ke max baru
-      } else {
-        user.hp = Math.min(user.hp, afterStats.maxHp); // clamp kalau overflow
-      }
+      if (wasFullHp) user.hp = afterStats.maxHp;
+      else user.hp = Math.min(user.hp, afterStats.maxHp);
       await user.save();
 
+      const display = await getItemDisplay(itemId, t);
+      const name = display?.name ?? item.name;
       await interaction.followUp({
-        content: `✅ Equipped ${item.emoji} **${item.name}** → ${SLOT_LABEL[slot]}`,
+        content: t('commands/equipment:equipped', {
+          emoji: item.emoji,
+          name,
+          slot: SLOT_LABEL[slot],
+          defaultValue: `✅ Equipped ${item.emoji} **${name}** → ${SLOT_LABEL[slot]}`,
+        }),
         flags: MessageFlags.Ephemeral,
       });
-      return this.renderEquip(interaction, user);
+      return this.renderEquip(interaction, user, t, SLOT_LABEL);
     }
 
     if (
@@ -125,7 +135,11 @@ export class InvEquipmentHandler extends InteractionHandler {
       await interaction.deferUpdate();
       const slot = interaction.values[0] as EquipmentSlot;
       const itemId = user.equipped?.[slot];
-      if (!itemId) return interaction.followUp({ content: 'Empty', flags: MessageFlags.Ephemeral });
+      if (!itemId)
+        return interaction.followUp({
+          content: t('commands/equipment:empty', { defaultValue: 'Empty' }),
+          flags: MessageFlags.Ephemeral,
+        });
 
       const beforeStats = await getPlayerStats(user);
       const wasFullHp = user.hp >= beforeStats.maxHp;
@@ -135,33 +149,40 @@ export class InvEquipmentHandler extends InteractionHandler {
       else user.items.push({ itemId, qty: 1 });
       user.equipped[slot] = null;
       user.markModified('equipped');
-
       await user.save();
 
-      // HP clamp setelah unequip
       const afterStats = await getPlayerStats(user);
-      if (wasFullHp) {
-        user.hp = afterStats.maxHp; // tetap full setelah max turun
-      } else {
-        user.hp = Math.min(user.hp, afterStats.maxHp); // potong kalau kelebihan
-      }
-      if (user.hp < 0) user.hp = 0; // safety
-      await user.save(); // save lagi setelah adjust HP
+      if (wasFullHp) user.hp = afterStats.maxHp;
+      else user.hp = Math.min(user.hp, afterStats.maxHp);
+      if (user.hp < 0) user.hp = 0;
+      await user.save();
 
       await interaction.followUp({
-        content: `📤 Unequipped ${SLOT_LABEL[slot]}`,
+        content: t('commands/equipment:unequipped', {
+          slot: SLOT_LABEL[slot],
+          defaultValue: `📤 Unequipped ${SLOT_LABEL[slot]}`,
+        }),
         flags: MessageFlags.Ephemeral,
       });
-      return this.renderEquip(interaction, user);
+      return this.renderEquip(interaction, user, t, SLOT_LABEL);
     }
   }
 
-  private validateEquip(user: IUser, item: IItem, slot: EquipmentSlot): string | null {
-    if (item.type !== 'equipment') return 'Item ini bukan equipment';
-    if (item.slot !== slot) return `Item ini slot ${item.slot}, bukan ${slot}`;
+  private validateEquip(user: IUser, item: IItem, slot: EquipmentSlot, t: any): string | null {
+    if (item.type !== 'equipment')
+      return t('commands/equipment:not_equip', { defaultValue: 'Item ini bukan equipment' });
+    if (item.slot !== slot)
+      return t('commands/equipment:wrong_slot', {
+        slot: item.slot,
+        need: slot,
+        defaultValue: `Item ini slot ${item.slot}, bukan ${slot}`,
+      });
     if (item.stats?.classLock?.length) {
       if (user.class && !item.stats?.classLock?.includes(user.class)) {
-        return `Hanya class ${item.stats.classLock.join('/')} yang bisa equip ini`;
+        return t('commands/equipment:class_lock', {
+          classes: item.stats.classLock.join('/'),
+          defaultValue: `Hanya class ${item.stats.classLock.join('/')} yang bisa equip ini`,
+        });
       }
     }
     return null;
@@ -182,8 +203,12 @@ export class InvEquipmentHandler extends InteractionHandler {
     return parts.join(' • ') || '-';
   }
 
-  private async renderEquip(interaction: any, user: any) {
-    const t = await fetchT(interaction);
+  private async renderEquip(
+    interaction: any,
+    user: any,
+    t: any,
+    SLOT_LABEL: Record<string, string>,
+  ) {
     const stats = await getPlayerStats(user);
     const itemMap = new Map(
       (
@@ -222,7 +247,11 @@ export class InvEquipmentHandler extends InteractionHandler {
       (['weapon', 'armor', 'helmet', 'accessory', 'tool'] as const).map(async (s) => {
         const itemId = user.equipped?.[s];
         if (!itemId) {
-          return { name: SLOT_LABEL[s], value: '❌ None', inline: true };
+          return {
+            name: SLOT_LABEL[s],
+            value: t('commands/equipment:none', { defaultValue: '❌ None' }),
+            inline: true,
+          };
         }
         const data = eqMap.get(itemId);
         const display = await getItemDisplay(itemId, t);
@@ -237,7 +266,10 @@ export class InvEquipmentHandler extends InteractionHandler {
 
     const embed = new EmbedBuilder()
       .setAuthor({
-        name: `${interaction.user.username}'s Equipment`,
+        name: t('commands/equipment:title', {
+          username: interaction.user.username,
+          defaultValue: `${interaction.user.username}'s Equipment`,
+        }),
         iconURL: interaction.user.displayAvatarURL(),
       })
       .setColor(0x3498db)
@@ -245,8 +277,16 @@ export class InvEquipmentHandler extends InteractionHandler {
         { name: '⚔️ ATK', value: `${stats.atk}`, inline: true },
         { name: '🛡️ DEF', value: `${stats.def}`, inline: true },
         { name: '❤️ HP', value: `${stats.hp}/${stats.maxHp}`, inline: true },
-        { name: '💥 Crit Rate', value: `${(stats.critRate * 100).toFixed(1)}%`, inline: true },
-        { name: '💢 Crit DMG', value: `${(stats.critDmg * 100).toFixed(0)}%`, inline: true },
+        {
+          name: t('commands/equipment:crit_rate', { defaultValue: '💥 Crit Rate' }),
+          value: `${(stats.critRate * 100).toFixed(1)}%`,
+          inline: true,
+        },
+        {
+          name: t('commands/equipment:crit_dmg', { defaultValue: '💢 Crit DMG' }),
+          value: `${(stats.critDmg * 100).toFixed(0)}%`,
+          inline: true,
+        },
         { name: '\u200b', value: '\u200b', inline: true },
         ...equippedFields,
       );
@@ -258,7 +298,12 @@ export class InvEquipmentHandler extends InteractionHandler {
           new StringSelectMenuBuilder()
             .setCustomId(`inv_equip_select_${user.discordId}_${page}`)
             .setPlaceholder(
-              `Equip (${start + 1}-${Math.min(start + perPage, equips.length)}/${equips.length})`,
+              t('commands/equipment:equip_placeholder', {
+                start: start + 1,
+                end: Math.min(start + perPage, equips.length),
+                total: equips.length,
+                defaultValue: `Equip (${start + 1}-${Math.min(start + perPage, equips.length)}/${equips.length})`,
+              }),
             )
             .addOptions(
               await Promise.all(
@@ -303,7 +348,9 @@ export class InvEquipmentHandler extends InteractionHandler {
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
           new StringSelectMenuBuilder()
             .setCustomId(`inv_unequip_select_${user.discordId}`)
-            .setPlaceholder('Unequip...')
+            .setPlaceholder(
+              t('commands/equipment:unequip_placeholder', { defaultValue: 'Unequip...' }),
+            )
             .addOptions(
               unequipped.map((s) => ({
                 label: SLOT_LABEL[s],
@@ -317,7 +364,7 @@ export class InvEquipmentHandler extends InteractionHandler {
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId(`inv_back_${user.discordId}`)
-          .setLabel('Back to Inventory')
+          .setLabel(t('commands/equipment:back', { defaultValue: 'Back to Inventory' }))
           .setStyle(ButtonStyle.Secondary)
           .setEmoji('📦'),
       ),
