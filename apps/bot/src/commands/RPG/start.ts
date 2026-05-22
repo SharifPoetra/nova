@@ -1,15 +1,9 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-  MessageFlags,
-} from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { CLASSES, getClass } from '../../lib/rpg/classes';
-import { SKILLS } from '../../lib/rpg/skills'; // <-- HAPUS PASSIVES
+import { SKILLS } from '../../lib/rpg/skills';
 
 @ApplyOptions<Command.Options>({
   name: 'start',
@@ -67,9 +61,9 @@ export class StartCommand extends Command {
         }),
       )
       .addFields(
-        classList.map(([key, c]) => {
+        classList.map(([, c]) => {
           const skill = SKILLS[c.skillId];
-          const passive = c.passiveId ? SKILLS[c.passiveId] : null; // <-- AMBIL DARI SKILLS
+          const passive = c.passiveId ? SKILLS[c.passiveId] : null;
           const critPercent = (c.baseCritRate * 100).toFixed(0);
 
           return {

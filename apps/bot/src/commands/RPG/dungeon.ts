@@ -441,9 +441,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
             player.discordId,
             {
               itemId,
-              name: itemName, // TODO: remove field name from db schema
               emoji: def.emoji,
-              description: '', // TODO: remove field description from db schema
               type: def.type as any,
               rarity: def.rarity as any,
               sellPrice: def.sellPrice,

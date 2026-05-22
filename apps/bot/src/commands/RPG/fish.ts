@@ -2,7 +2,6 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import i18next from 'i18next';
 import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR } from '../../lib/utils';
@@ -11,7 +10,8 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 import { getPlayerStats } from '../../lib/rpg/combat';
 import { addItemToInventory } from '../../lib/rpg/inventory';
 import { Item } from '@nova/db';
-import { i18nFish, i18nFishDesc } from '../../lib/i18n/display';
+import { i18nFish } from '../../lib/i18n/display';
+import { getItemDisplay } from '../../lib/rpg/item-registry';
 
 @ApplyOptions({
   name: 'fish',
@@ -65,10 +65,7 @@ export class FishCommand extends Command {
       const rod = await Item.findOne({ itemId: toolId }).lean();
       if (rod?.stats?.fishBonus) {
         fishBonus = rod.stats.fishBonus;
-        const rodDisplayName = i18next.t(`shop/items:${toolId}.name`, {
-          lng: interaction.locale ?? 'en-US',
-          defaultValue: rod.name,
-        });
+        const rodDisplayName = (await getItemDisplay(toolId, t))?.name ?? toolId;
         rodName = `${rod.emoji} ${rodDisplayName}`;
       }
     }
@@ -82,26 +79,14 @@ export class FishCommand extends Command {
 
     const fishName = i18nFish(fish.id, t);
 
-    // Keep DB populated with en-US for backward compatibility
-    const dbName = i18next.t(`fish/species:${fish.id}.name`, {
-      lng: 'en-US',
-      defaultValue: fish.id,
-    });
-    const dbDesc = i18next.t(`fish/species:${fish.id}.desc`, {
-      lng: 'en-US',
-      defaultValue: fish.id,
-    });
-
     await addItemToInventory(
       user.discordId,
       {
         itemId: fish.id,
-        name: dbName,
         emoji: fish.emoji,
         type: fish.type,
         rarity: fish.rarity,
         sellPrice: fish.sellPrice,
-        description: dbDesc,
       },
       1,
     );

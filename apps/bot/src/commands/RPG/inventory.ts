@@ -99,7 +99,9 @@ export class InventoryCommand extends Command {
             .setColor(0x808080);
           await interaction.editReply({ embeds: [expired], components: [] });
           this.container.invCache.delete(msg.id);
-        } catch {}
+        } catch {
+          /* ignore */
+        }
       },
       5 * 60 * 1000,
     );

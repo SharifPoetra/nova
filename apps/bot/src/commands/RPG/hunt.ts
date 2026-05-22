@@ -8,7 +8,6 @@ import {
   ComponentType,
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import i18next from 'i18next';
 import { sleep, ratioBar, RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
@@ -26,7 +25,8 @@ import {
 } from '../../lib/rpg/combat';
 import { getSkill, SkillContext } from '../../lib/rpg/skills';
 import { addItemToInventory } from '../../lib/rpg/inventory';
-import { i18nMonster, i18nItem } from '../../lib/i18n/display';
+import { i18nMonster } from '../../lib/i18n/display';
+import { getItemDisplay } from '../../lib/rpg/item-registry';
 
 @ApplyOptions({ name: 'hunt', description: 'Hunt monsters', fullCategory: ['RPG'] })
 export class HuntCommand extends Command {
@@ -291,26 +291,14 @@ export class HuntCommand extends Command {
     });
     if (!selectedDrop) selectedDrop = monster.drops[0];
 
-    // Keep DB populated with en-US for backward compatibility
-    const dbName = i18next.t(`hunt/items:${selectedDrop.id}.name`, {
-      lng: 'en-US',
-      defaultValue: selectedDrop.id,
-    });
-    const dbDesc = i18next.t(`hunt/items:${selectedDrop.id}.desc`, {
-      lng: 'en-US',
-      defaultValue: selectedDrop.id,
-    });
-
     await addItemToInventory(
       user.discordId,
       {
         itemId: selectedDrop.id,
-        name: dbName,
         emoji: selectedDrop.emoji,
         type: selectedDrop.type as any,
         rarity: selectedDrop.rarity,
         sellPrice: selectedDrop.sellPrice,
-        description: dbDesc,
         slot: selectedDrop.slot,
         stats: selectedDrop.stats,
         effects: selectedDrop.effects,
@@ -337,7 +325,7 @@ export class HuntCommand extends Command {
     const finalPlayerStats = await getPlayerStats(user);
     const finalAtkBuff = finalPlayerStats.activeBuffs.find((b) => b.type === 'atk');
     const finalBuffInfo = finalAtkBuff ? ` • 🔥 ATK +${Math.floor(finalAtkBuff.value * 100)}%` : '';
-    const dropName = i18nItem('hunt', selectedDrop.id, t);
+    const dropName = (await getItemDisplay(selectedDrop.id, t))?.name ?? selectedDrop.id;
     embed
       .setColor(RARITY_COLOR[selectedDrop.rarity as keyof typeof RARITY_COLOR])
       .setTitle(

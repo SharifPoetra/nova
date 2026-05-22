@@ -9,8 +9,8 @@ import { rollExplore } from '../../lib/rpg/explorations';
 import { ACTION_COST } from '../../lib/rpg/actions';
 import { getPlayerStats } from '../../lib/rpg/combat';
 import { addItemToInventory } from '../../lib/rpg/inventory';
-import i18next from 'i18next';
-import { i18nItem, i18nEvent } from '../../lib/i18n/display';
+import { i18nEvent } from '../../lib/i18n/display';
+import { getItemDisplay } from '../../lib/rpg/item-registry';
 
 @ApplyOptions<Command.Options>({
   name: 'explore',
@@ -68,24 +68,12 @@ export class ExploreCommand extends Command {
     outcome.exp = expGain;
 
     if (outcome.item) {
-      // Keep DB populated with en-US for backward compatibility
-      const dbName = i18next.t(`explore/items:${outcome.item.id}.name`, {
-        lng: 'en-US',
-        defaultValue: outcome.item.id,
-      });
-      const dbDesc = i18next.t(`explore/items:${outcome.item.id}.desc`, {
-        lng: 'en-US',
-        defaultValue: outcome.item.id,
-      });
-
       await addItemToInventory(user.discordId, {
         itemId: outcome.item.id,
-        name: dbName,
         emoji: outcome.item.emoji,
         type: outcome.item.type,
         rarity: outcome.item.rarity,
         sellPrice: outcome.item.sellPrice,
-        description: dbDesc,
         effects: outcome.item.effects,
       });
     }
@@ -102,7 +90,9 @@ export class ExploreCommand extends Command {
     await user.save();
 
     const eventText = i18nEvent('explore', outcome.id, t);
-    const itemName = outcome.item ? i18nItem('explore', outcome.item.id, t) : '';
+    const itemName = outcome.item
+      ? ((await getItemDisplay(outcome.item.id, t))?.name ?? outcome.item.id)
+      : '';
     const embed = new EmbedBuilder()
       .setColor(RARITY_COLOR[outcome.rarity as keyof typeof RARITY_COLOR])
       .setTitle(

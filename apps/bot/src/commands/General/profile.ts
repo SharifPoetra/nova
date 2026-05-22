@@ -11,6 +11,7 @@ import { getPlayerStats } from '../../lib/rpg/combat';
 import { SKILLS } from '../../lib/rpg/skills';
 import { localized } from '../../lib/i18n/localize';
 import { i18nMonster } from '../../lib/i18n/display';
+import { getItemDisplay } from '../../lib/rpg/item-registry';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',
@@ -126,6 +127,7 @@ export class ProfileCommand extends Command {
         userData.equipped?.armor,
         userData.equipped?.helmet,
         userData.equipped?.accessory,
+        userData.equipped?.tool,
       ].filter(Boolean) as string[];
 
       const equippedData = equippedIds.length
@@ -139,13 +141,21 @@ export class ProfileCommand extends Command {
       const accessory = userData.equipped?.accessory
         ? eqMap.get(userData.equipped.accessory)
         : null;
+      const tool = userData.equipped?.tool ? eqMap.get(userData.equipped.tool) : null;
+
+      const weaponName = weapon ? (await getItemDisplay(weapon.itemId, t))?.name : null;
+      const armorName = armor ? (await getItemDisplay(armor.itemId, t))?.name : null;
+      const helmetName = helmet ? (await getItemDisplay(helmet.itemId, t))?.name : null;
+      const accessoryName = accessory ? (await getItemDisplay(accessory.itemId, t))?.name : null;
+      const toolName = tool ? (await getItemDisplay(tool.itemId, t))?.name : null;
 
       const equipText =
         [
-          weapon ? `${weapon.emoji} ${weapon.name}` : null,
-          armor ? `${armor.emoji} ${armor.name}` : null,
-          helmet ? `${helmet.emoji} ${helmet.name}` : null,
-          accessory ? `${accessory.emoji} ${accessory.name}` : null,
+          weapon ? `${weapon.emoji} ${weaponName}` : null,
+          armor ? `${armor.emoji} ${armorName}` : null,
+          helmet ? `${helmet.emoji} ${helmetName}` : null,
+          accessory ? `${accessory.emoji} ${accessoryName}` : null,
+          tool ? `${tool.emoji} ${toolName}` : null,
         ]
           .filter(Boolean)
           .join(' • ') || t('commands/profile:no_equipment', { defaultValue: 'None' });

@@ -9,6 +9,8 @@ import {
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
+import { getItemDisplay } from '../../lib/rpg/item-registry';
+import { removeItemFromInventory } from '../../lib/rpg/inventory';
 
 import sellEn from '../../locales/en-US/commands/sell.json';
 import sellId from '../../locales/id/commands/sell.json';
@@ -84,15 +86,19 @@ export class SellCommand extends Command {
     const total = toSell.reduce((sum, i) => sum + i.qty * Number(i.data!.sellPrice), 0);
     const needConfirm = toSell.some((i) => ['Rare', 'Epic', 'Legendary'].includes(i.data!.rarity));
 
+    const displays = await Promise.all(toSell.map((i) => getItemDisplay(i.itemId, t)));
+    const displayMap = new Map(toSell.map((i, idx) => [i.itemId, displays[idx]]));
+
     const embed = new EmbedBuilder()
       .setColor(needConfirm ? 0xe67e22 : 0x2ecc71)
       .setTitle(t('commands/sell:title', { defaultValue: '💰 Sale' }))
       .setDescription(
         toSell
-          .map(
-            (i) =>
-              `${i.data!.emoji} **${i.data!.name}** x${i.qty} — ${(i.qty * i.data!.sellPrice).toLocaleString(interaction.locale)} ${t('commands/sell:coins', { defaultValue: 'coins' })}`,
-          )
+          .map((i) => {
+            const disp = displayMap.get(i.itemId);
+            const name = disp?.name ?? i.itemId;
+            return `${i.data!.emoji} **${name}** x${i.qty} — ${(i.qty * i.data!.sellPrice).toLocaleString(interaction.locale)} ${t('commands/sell:coins', { defaultValue: 'coins' })}`;
+          })
           .join('\n'),
       )
       .addFields({
@@ -101,12 +107,17 @@ export class SellCommand extends Command {
       });
 
     if (!needConfirm) {
+      // Use removeItemFromInventory for each item
+      for (const item of toSell) {
+        await removeItemFromInventory(user.discordId, item.itemId, item.qty);
+      }
       user.balance = Number(user.balance) + total;
-      user.items = user.items.filter((ui) => !toSell.some((ts) => ts.itemId === ui.itemId));
       await user.save();
+
+      const updatedUser = await this.container.db.user.findOne({ discordId: user.discordId });
       embed.addFields({
         name: t('commands/sell:balance', { defaultValue: '💰 Balance' }),
-        value: `${user.balance.toLocaleString(interaction.locale)} ${t('commands/sell:coins')}`,
+        value: `${(updatedUser?.balance ?? 0).toLocaleString(interaction.locale)} ${t('commands/sell:coins')}`,
       });
       return interaction.editReply({ embeds: [embed] });
     }
@@ -142,12 +153,16 @@ export class SellCommand extends Command {
         });
       }
 
+      for (const item of toSell) {
+        await removeItemFromInventory(user.discordId, item.itemId, item.qty);
+      }
       user.balance = Number(user.balance) + total;
-      user.items = user.items.filter((ui) => !toSell.some((ts) => ts.itemId === ui.itemId));
       await user.save();
+
+      const updatedUser = await this.container.db.user.findOne({ discordId: user.discordId });
       embed.addFields({
         name: t('commands/sell:balance'),
-        value: `${user.balance.toLocaleString(interaction.locale)} ${t('commands/sell:coins')}`,
+        value: `${(updatedUser?.balance ?? 0).toLocaleString(interaction.locale)} ${t('commands/sell:coins')}`,
       });
       await i.update({ embeds: [embed], components: [] });
     });
