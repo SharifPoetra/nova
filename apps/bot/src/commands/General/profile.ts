@@ -175,7 +175,8 @@ export class ProfileCommand extends Command {
         : t('commands/profile:footer_max', {
             defaultValue: '🏆 All monsters unlocked! You are a Nova legend',
           });
-
+          
+      console.log(interaction.locale)
       const embed = new EmbedBuilder()
         .setAuthor({
           name: t('commands/profile:author', {
@@ -194,12 +195,12 @@ export class ProfileCommand extends Command {
         .addFields(
           {
             name: t('commands/profile:wallet', { defaultValue: '💰 Wallet' }),
-            value: `**${balance.toLocaleString(t('common:locale', { defaultValue: 'en-US' }))}**`,
+            value: `**${balance.toLocaleString(interaction.locale)}**`,
             inline: true,
           },
           {
             name: t('commands/profile:bank', { defaultValue: '🏦 Bank' }),
-            value: `**${bank.toLocaleString(t('common:locale', { defaultValue: 'en-US' }))}**`,
+            value: `**${bank.toLocaleString(interaction.locale)}**`,
             inline: true,
           },
           {
