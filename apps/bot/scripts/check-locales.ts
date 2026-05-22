@@ -20,14 +20,18 @@ function walk(dir: string): string[] {
   return out;
 }
 
-function findKeys(): Map<string, string[]> {
+function getLineNumber(content: string, index: number): number {
+  return content.substring(0, index).split('\n').length;
+}
+
+function findKeys(): Map<string, { file: string; line: number }[]> {
   const files = walk(SRC);
-  const keys = new Map<string, string[]>();
+  const keys = new Map<string, { file: string; line: number }[]>();
 
   const patterns = [
     /localized\s*\(\s*['"`]([^'"`]+)['"`]/g,
-    /(?<!\.)\bt\s*\(\s*['"`]([^'"`]+)['"`]/g, // t('key'...) tapi bukan i18n.t
-    /\.t\s*\(\s*['"`]([^'"`]+)['"`]/g, //.t('key'...) untuk i18n.t, fetchT().t
+    /(?<!\.)\bt\s*\(\s*['"`]([^'"`]+)['"`]/g,
+    /\.t\s*\(\s*['"`]([^'"`]+)['"`]/g,
     /resolveKey\s*\([^,]+,\s*['"`]([^'"`]+)['"`]/g,
   ];
 
@@ -40,11 +44,11 @@ function findKeys(): Map<string, string[]> {
         if (key.includes('${') || key.includes('+')) continue;
         if (!key.includes(':')) continue;
 
-        // const root = key.split(':')[0].split('/')[0];
-        // if (!['commands','common','errors','listeners'].includes(root)) continue;
-
+        const line = getLineNumber(content, m.index);
+        const relFile = path.relative(SRC, file);
+        
         if (!keys.has(key)) keys.set(key, []);
-        keys.get(key)!.push(path.relative(SRC, file));
+        keys.get(key)!.push({ file: relFile, line });
       }
     }
   }
@@ -97,7 +101,12 @@ function main() {
       error = true;
       console.log(`❌ ${key}`);
       console.log(`   missing in: ${missing.join(', ')}`);
-      console.log(`   used in: ${[...new Set(keysMap.get(key))].slice(0, 3).join(', ')}`);
+      const usages = keysMap.get(key)!;
+      const unique = [...new Map(usages.map(u => [`${u.file}:${u.line}`, u])).values()]
+        .slice(0, 3)
+        .map(u => `${u.file}:${u.line}`)
+        .join(', ');
+      console.log(`   used in: ${unique}`);
     }
   }
 
