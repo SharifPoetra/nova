@@ -35,12 +35,10 @@ type RenderUser = Pick<IUser, 'discordId' | 'stamina' | 'maxStamina' | 'items'> 
 
 export interface ItemInput {
   itemId: string;
-  name: string;
   emoji: string;
   type: 'material' | 'equipment' | 'consumable';
   rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary' | 'Mythic';
   sellPrice: number;
-  description?: string;
   slot?: EquipmentSlot;
   stats?: IEquipmentStat;
   effects?: IItemEffect[];
@@ -56,12 +54,10 @@ export async function addItemToInventory(
     { itemId: itemData.itemId },
     {
       $set: {
-        name: itemData.name,
         emoji: itemData.emoji,
         type: itemData.type,
         rarity: itemData.rarity,
         sellPrice: itemData.sellPrice,
-        description: itemData.description ?? '',
         slot: itemData.slot ?? null,
         stats: itemData.stats ?? null,
         effects: itemData.effects ?? [],
@@ -135,8 +131,8 @@ export async function renderInventoryPage(
       if (!data) continue;
 
       const display = await getItemDisplay(inv.itemId, t);
-      const name = display?.name ?? data.name;
-      const desc = display?.description || data.description || '-';
+      const name = display?.name ?? inv.itemId;
+      const desc = display?.description || inv.itemId || '-';
 
       const value = (data.sellPrice ?? 0) * inv.qty;
       totalValue += value;
@@ -221,8 +217,8 @@ export async function renderInventoryPage(
     consumablesData.push({
       id: inv.itemId,
       qty: inv.qty,
-      name: display?.name ?? d.name,
-      desc: display?.description || d.description || '',
+      name: display?.name ?? inv.itemId,
+      desc: display?.description || inv.itemId || '',
       rarity: d.rarity || 'Common',
       emoji: sanitizeEmoji(d.emoji),
     });
