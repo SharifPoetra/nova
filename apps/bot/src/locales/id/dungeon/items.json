@@ -19,53 +19,13 @@
     "name": "Slime Boots",
     "desc": "Sepatu dari lendir. Licin tapi nambah HP."
   },
-  "boar_tusk_helm": {
-    "name": "Helm Taring Babi",
-    "desc": "Helm dari taring babi. +HP"
-  },
-  "goblin_dagger": {
-    "name": "Belati Karat",
-    "desc": "Belati curian, masih bisa dipakai"
-  },
-  "ice_club": {
-    "name": "Gada Es",
-    "desc": "Membekukan musuh"
-  },
   "iron_gauntlet": {
     "name": "Iron Gauntlet",
     "desc": "Sarung tangan besi. +ATK"
   },
-  "lizard_scale_armor": {
-    "name": "Armor Sisik Kadal",
-    "desc": "Armor ringan dari sisik kadal. +HP +DEF"
-  },
-  "rusted_sword": {
-    "name": "Pedang Karat",
-    "desc": "Masih bisa diasah"
-  },
-  "war_axe": {
-    "name": "Kapak Perang",
-    "desc": "Berat tapi mematikan"
-  },
-  "bear_paw_gauntlet": {
-    "name": "Gauntlet Cakar Beruang",
-    "desc": "Sarung tangan dari cakar beruang. +ATK +HP"
-  },
-  "bone_helm": {
-    "name": "Helm Tengkorak",
-    "desc": "Helm dari tengkorak. +DEF +HP"
-  },
   "drake_claw_dagger": {
     "name": "Drake Claw Dagger",
     "desc": "Belati dari cakar drake. +ATK +Crit"
-  },
-  "harpy_bow": {
-    "name": "Busur Harpy",
-    "desc": "Busur dari sayap harpy. +ATK +CritRate"
-  },
-  "lava_boots": {
-    "name": "Sepatu Lava",
-    "desc": "Sepatu tahan lava. +HP +DEF"
   },
   "slime_crown": {
     "name": "Slime Crown",
@@ -75,26 +35,6 @@
     "name": "Specter Hood",
     "desc": "Tudung hantu. +Crit Rate"
   },
-  "spider_fang_dagger": {
-    "name": "Belati Taring Laba-laba",
-    "desc": "Belati beracun. +ATK +CritDmg"
-  },
-  "wolf_fang_necklace": {
-    "name": "Kalung Taring Serigala",
-    "desc": "Kalung dari taring alpha. +ATK +Crit"
-  },
-  "berserker_armor": {
-    "name": "Armor Berserk",
-    "desc": "Armor orc berserk. +ATK +HP +DEF"
-  },
-  "desert_scale_armor": {
-    "name": "Armor Sisik Gurun",
-    "desc": "Armor sisik gurun"
-  },
-  "frost_cape": {
-    "name": "Jubah Beku",
-    "desc": "Jubah troll es. +HP +DEF +CritDmg"
-  },
   "obsidian_plate": {
     "name": "Obsidian Plate",
     "desc": "Pelat obsidian dari Heart of Crystal. DEF + HP tebel."
@@ -102,10 +42,6 @@
   "reaper_scythe": {
     "name": "Reaper Scythe",
     "desc": "Sabit Void Reaper. Crit monster. Drop dari Boss Floor 30."
-  },
-  "shadow_cloak": {
-    "name": "Jubah Bayangan",
-    "desc": "Jubah panther. +CritRate +ATK"
   },
   "star_blade": {
     "name": "Star Blade",
@@ -122,10 +58,6 @@
   "inferno_staff": {
     "name": "Inferno Staff",
     "desc": "Tongkat api naga. +ATK +CritDmg"
-  },
-  "orc_warchief_helm": {
-    "name": "Helm Warchief",
-    "desc": "Mahkota para orc"
   },
   "void_crown": {
     "name": "Void Crown",

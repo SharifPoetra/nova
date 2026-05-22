@@ -19,53 +19,13 @@
     "name": "Slime Boots",
     "desc": "Boots made of slime. Slippery but adds HP."
   },
-  "boar_tusk_helm": {
-    "name": "Boar Tusk Helm",
-    "desc": "Helm made from boar tusks. +HP"
-  },
-  "goblin_dagger": {
-    "name": "Rusted Dagger",
-    "desc": "Stolen dagger, still usable"
-  },
-  "ice_club": {
-    "name": "Ice Club",
-    "desc": "Freezes enemies"
-  },
   "iron_gauntlet": {
     "name": "Iron Gauntlet",
     "desc": "Iron gauntlet. +ATK"
   },
-  "lizard_scale_armor": {
-    "name": "Lizard Scale Armor",
-    "desc": "Light armor from lizard scales. +HP +DEF"
-  },
-  "rusted_sword": {
-    "name": "Rusted Sword",
-    "desc": "Can still be sharpened"
-  },
-  "war_axe": {
-    "name": "War Axe",
-    "desc": "Heavy but deadly"
-  },
-  "bear_paw_gauntlet": {
-    "name": "Bear Paw Gauntlet",
-    "desc": "Gauntlet from bear claws. +ATK +HP"
-  },
-  "bone_helm": {
-    "name": "Bone Helm",
-    "desc": "Helm made from skull. +DEF +HP"
-  },
   "drake_claw_dagger": {
     "name": "Drake Claw Dagger",
     "desc": "Dagger from drake claw. +ATK +Crit"
-  },
-  "harpy_bow": {
-    "name": "Harpy Bow",
-    "desc": "Bow made from harpy wings. +ATK +Crit Rate"
-  },
-  "lava_boots": {
-    "name": "Lava Boots",
-    "desc": "Lava-resistant boots. +HP +DEF"
   },
   "slime_crown": {
     "name": "Slime Crown",
@@ -75,26 +35,6 @@
     "name": "Specter Hood",
     "desc": "Specter hood. +Crit Rate"
   },
-  "spider_fang_dagger": {
-    "name": "Spider Fang Dagger",
-    "desc": "Poisonous dagger. +ATK +Crit Dmg"
-  },
-  "wolf_fang_necklace": {
-    "name": "Wolf Fang Necklace",
-    "desc": "Necklace from alpha fang. +ATK +Crit"
-  },
-  "berserker_armor": {
-    "name": "Berserker Armor",
-    "desc": "Berserk orc armor. +ATK +HP +DEF"
-  },
-  "desert_scale_armor": {
-    "name": "Desert Scale Armor",
-    "desc": "Desert scale armor"
-  },
-  "frost_cape": {
-    "name": "Frost Cape",
-    "desc": "Frost troll cloak. +HP +DEF +Crit Dmg"
-  },
   "obsidian_plate": {
     "name": "Obsidian Plate",
     "desc": "Obsidian plate from Heart of Crystal. High DEF + HP."
@@ -102,10 +42,6 @@
   "reaper_scythe": {
     "name": "Reaper Scythe",
     "desc": "Void Reaper's scythe. Monster crit. Drops from Floor 30 Boss."
-  },
-  "shadow_cloak": {
-    "name": "Shadow Cloak",
-    "desc": "Panther cloak. +Crit Rate +ATK"
   },
   "star_blade": {
     "name": "Star Blade",
@@ -122,10 +58,6 @@
   "inferno_staff": {
     "name": "Inferno Staff",
     "desc": "Dragon fire staff. +ATK +Crit Dmg"
-  },
-  "orc_warchief_helm": {
-    "name": "Orc Warchief Helm",
-    "desc": "Orc warchief crown"
   },
   "void_crown": {
     "name": "Void Crown",
