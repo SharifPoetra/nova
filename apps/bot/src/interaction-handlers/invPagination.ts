@@ -29,13 +29,11 @@ export class InvPaginationHandler extends InteractionHandler {
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (!user) return;
     applyPassiveRegen(user);
-    await user.save(); // ← penting, biar stamina update
+    await user.save();
 
     let page = Number.parseInt(pageStr, 10);
     page = dir === 'next' ? page + 1 : page - 1;
 
-    // JANGAN pakai message.id untuk cache kalau mau rebuild consumables dengan locale baru
-    // pass undefined biar renderInventoryPage query fresh
     const { embed, components, allItems, totalValue } = await renderInventoryPage(
       this.container,
       {
@@ -46,10 +44,9 @@ export class InvPaginationHandler extends InteractionHandler {
       },
       page,
       t,
-      undefined, // jangan pakai cache lama
+      undefined,
     );
 
-    // localize ulang embed
     embed
       .setAuthor({
         name: t('commands/inventory:author', {
@@ -69,13 +66,10 @@ export class InvPaginationHandler extends InteractionHandler {
 
     await interaction.editReply({ embeds: [embed], components });
 
-    // update cache dengan data baru
-    this.container.invCache?.set(interaction.message.id, {
-      allItems,
-      totalValue,
-      userId,
-      t: Date.now(),
-      locale: interaction.locale,
-    });
+    const cache = this.container.invCache?.get(interaction.message.id);
+    if (cache) {
+      cache.page = page;
+      cache.t = Date.now();
+    }
   }
 }

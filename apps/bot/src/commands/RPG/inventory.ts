@@ -1,8 +1,18 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  StringSelectMenuBuilder,
+  type AnyComponentBuilder,
+} from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { renderInventoryPage } from '../../lib/rpg/inventory';
+import {
+  renderInventoryPage,
+  renderConsumablePage,
+  renderEquipmentPage,
+} from '../../lib/rpg/inventory';
 
 @ApplyOptions<Command.Options>({
   name: 'inventory',
@@ -50,7 +60,6 @@ export class InventoryCommand extends Command {
       t,
     );
 
-    // localize embed (renderInventoryPage pakai EN default)
     embed
       .setAuthor({
         name: t('commands/inventory:author', {
@@ -81,6 +90,8 @@ export class InventoryCommand extends Command {
     this.container.invCache ??= new Map();
     this.container.invCache.set(msg.id, {
       allItems,
+      type: 'main',
+      page: 0,
       totalValue,
       userId: interaction.user.id,
       t: Date.now(),
@@ -90,14 +101,46 @@ export class InventoryCommand extends Command {
     setTimeout(
       async () => {
         try {
-          const expired = embed
+          const cache = this.container.invCache?.get(msg.id);
+          if (!cache) return;
+
+          let embed, components;
+          if (cache.type === 'consumable') {
+            const res = await renderConsumablePage(this.container, renderUser, cache.page, t);
+            embed = res.embed;
+            components = res.components;
+          } else if (cache.type === 'equipment') {
+            const res = await renderEquipmentPage(this.container, renderUser, cache.page, t);
+            embed = res.embed;
+            components = res.components;
+          } else {
+            const res = await renderInventoryPage(this.container, renderUser, cache.page, t);
+            embed = res.embed;
+            components = res.components;
+          }
+
+          const disabledComponents = components.map((row) => {
+            const disabledRow = new ActionRowBuilder<AnyComponentBuilder>();
+            for (const comp of row.components) {
+              if (comp instanceof ButtonBuilder) {
+                disabledRow.addComponents(ButtonBuilder.from(comp).setDisabled(true));
+              } else if (comp instanceof StringSelectMenuBuilder) {
+                disabledRow.addComponents(StringSelectMenuBuilder.from(comp).setDisabled(true));
+              } else {
+                disabledRow.addComponents(comp);
+              }
+            }
+            return disabledRow;
+          });
+
+          const expiredEmbed = embed
             .setFooter({
               text: t('commands/inventory:expired', {
                 defaultValue: '⏰ Expired — type /inventory again',
               }),
             })
             .setColor(0x808080);
-          await interaction.editReply({ embeds: [expired], components: [] });
+          await interaction.editReply({ embeds: [expiredEmbed], components: disabledComponents });
           this.container.invCache.delete(msg.id);
         } catch {
           /* ignore */
