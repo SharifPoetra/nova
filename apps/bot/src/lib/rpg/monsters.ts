@@ -276,7 +276,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
         chance: 15,
         sellPrice: 140,
         type: 'consumable',
-        effects: [{ type: 'buff', value: 15 }],
+        effects: [{ type: 'buff', value: 0.15 }],
       },
       { ...EQUIPMENTS.orc_warchief_helm, chance: 5 },
     ],
@@ -604,7 +604,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
         chance: 20,
         sellPrice: 950,
         type: 'consumable',
-        effects: [{ type: 'buff', value: 25 }],
+        effects: [{ type: 'buff', value: 0.25 }],
       },
       {
         id: 'hydra_heart',
