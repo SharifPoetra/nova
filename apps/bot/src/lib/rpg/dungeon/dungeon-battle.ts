@@ -11,7 +11,7 @@ import {
   tickSkillCooldowns,
   tickBuffs,
 } from '../combat';
-import { getSkill, SkillContext } from '../skills';
+import { getSkill, SkillContext, type SkillData } from '../skills';
 import type { TFunction } from 'i18next';
 import { i18nMonster } from '../../i18n/display';
 
@@ -44,9 +44,12 @@ export async function runInteractiveBattle(params: BattleParams) {
   let monsterHp = monsterMaxHp;
   let playerHp = stats.hp;
 
-  const playerSkillId = stats.availableSkills[0] ?? null;
-  const playerSkill = playerSkillId ? getSkill(playerSkillId) : null;
+  const playerSkills = stats.availableSkills
+    .map((id) => getSkill(id))
+    .filter(Boolean) as SkillData[];
+
   let isDefending = false;
+  let monsterStunned = 0;
 
   const battleLog: string[] = [];
   battleLog.push(
@@ -59,7 +62,12 @@ export async function runInteractiveBattle(params: BattleParams) {
   );
 
   const updateBattle = async (showButtons = true) => {
-    const skillCd = playerSkill ? getSkillCooldown(player, playerSkill.id) : 0;
+    const skillButtons = playerSkills.map((s) => ({
+      id: s.id,
+      name: s.name,
+      cd: getSkillCooldown(player, s.id),
+    }));
+
     const embed = buildBattleEmbed({
       monsterName,
       monsterEmoji: monster.emoji,
@@ -72,12 +80,11 @@ export async function runInteractiveBattle(params: BattleParams) {
       action: battleLog.slice(-5).join('\n'),
       isBoss,
       isElite,
-      skillCd,
       t,
     });
-    const components = showButtons
-      ? [getBattleButtons(playerSkill?.name ?? 'Skill', skillCd, t)]
-      : [];
+
+    const components = showButtons ? [getBattleButtons(skillButtons, t)] : [];
+
     await msg.edit({ embeds: [embed], components });
   };
 
@@ -89,7 +96,9 @@ export async function runInteractiveBattle(params: BattleParams) {
 
     const turn = await msg
       .awaitMessageComponent({
-        filter: (i) => i.user.id === player.discordId && ['atk', 'def', 'skl'].includes(i.customId),
+        filter: (i) =>
+          i.user.id === player.discordId &&
+          (i.customId === 'atk' || i.customId === 'def' || i.customId.startsWith('skl_')),
         time: 30_000,
         componentType: ComponentType.Button,
       })
@@ -116,7 +125,10 @@ export async function runInteractiveBattle(params: BattleParams) {
       } else if (turn.customId === 'def') {
         isDefending = true;
         battleLog.push(t('commands/dungeon:battle_defend'));
-      } else if (turn.customId === 'skl' && playerSkill) {
+      } else if (turn.customId.startsWith('skl_')) {
+        const skillId = turn.customId.replace('skl_', '');
+        const playerSkill = getSkill(skillId);
+        if (!playerSkill) return;
         const cdLeft = getSkillCooldown(player, playerSkill.id);
         if (cdLeft > 0) {
           battleLog.push(`⏳ ${playerSkill.name} cooldown ${cdLeft} turn lagi!`);
@@ -145,6 +157,9 @@ export async function runInteractiveBattle(params: BattleParams) {
           };
 
           const result = playerSkill.use(ctx);
+          if (ctx.stunTurns) {
+            monsterStunned = ctx.stunTurns;
+          }
           monsterHp -= result.damage;
           playerHp = Math.min(stats.maxHp, playerHp + result.heal);
           state.dealt += result.damage;
@@ -163,27 +178,41 @@ export async function runInteractiveBattle(params: BattleParams) {
 
     await updateBattle(false);
     await sleep(700);
-    if (monsterHp <= 0) break;
+    if (monsterHp <= 0) {
+      // Update skill cooldown
+      tickSkillCooldowns(player);
+      tickBuffs(player);
+      break;
+    }
 
     // Monster turn
-    await updateBattle(false);
-    let monsterDamage = Math.max(1, Math.floor(Math.random() * 5) + monsterAtk - stats.def);
-    if (isDefending) monsterDamage = Math.floor(monsterDamage * 0.4);
+    if (monsterStunned > 0) {
+      battleLog.push(
+        t('commands/dungeon:monster_stunned', {
+          defaultValue: `💫 ${monsterName} stunned, skip turn!`,
+        }),
+      );
+      monsterStunned--;
+    } else {
+      await updateBattle(false);
+      let monsterDamage = Math.max(1, Math.floor(Math.random() * 5) + monsterAtk - stats.def);
+      if (isDefending) monsterDamage = Math.floor(monsterDamage * 0.4);
 
-    playerHp -= monsterDamage;
-    state.taken += monsterDamage;
-    isDefending = false;
+      playerHp -= monsterDamage;
+      state.taken += monsterDamage;
+      isDefending = false;
 
-    battleLog.push(t('commands/dungeon:monster_hit', { monsterName, monsterDamage }));
-    await updateBattle(false);
-    await sleep(800);
+      battleLog.push(t('commands/dungeon:monster_hit', { monsterName, monsterDamage }));
+      await updateBattle(false);
+      await sleep(600);
 
-    // Akhir turn: kurangin cooldown + buff duration
-    tickSkillCooldowns(player);
-    tickBuffs(player);
+      // Update skill cooldown
+      tickSkillCooldowns(player);
+      tickBuffs(player);
 
-    stats = await getPlayerStats(player); // refresh stats kalo buff abis
-    playerHp = Math.min(playerHp, stats.maxHp); // clamp HP kalo maxHp turun
+      stats = await getPlayerStats(player); // refresh stats kalo buff abis
+      playerHp = Math.min(playerHp, stats.maxHp); // clamp HP kalo maxHp turun
+    }
   }
 
   player.hp = Math.max(0, playerHp);

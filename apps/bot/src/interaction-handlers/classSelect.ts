@@ -3,7 +3,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { ButtonInteraction, EmbedBuilder, MessageFlags } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
 import { getClass } from '../lib/rpg/classes';
-import { SKILLS } from '../lib/rpg/skills'; // <-- HAPUS PASSIVES
+import { SKILLS } from '../lib/rpg/skills';
 
 @ApplyOptions<InteractionHandler.Options>({
   interactionHandlerType: InteractionHandlerTypes.Button,
@@ -51,8 +51,14 @@ export class ClassSelectHandler extends InteractionHandler {
       });
     }
 
-    const skill = SKILLS[data.skillId];
-    const passive = data.passiveId ? SKILLS[data.passiveId] : null; // <-- AMBIL DARI SKILLS
+    const skillList = data.skills
+      .map((s) => {
+        const sk = SKILLS[s.id];
+        return `${sk?.emoji ?? ''} **${sk?.name ?? s.id}** (Lv.${s.unlock})`;
+      })
+      .join(' • ');
+
+    const passive = data.passiveId ? SKILLS[data.passiveId] : null;
     const BASE_STAMINA = 100;
 
     await this.container.db.user.findOneAndUpdate(
@@ -111,10 +117,10 @@ export class ClassSelectHandler extends InteractionHandler {
           value: `**${(data.baseCritRate * 100).toFixed(0)}%**`,
           inline: true,
         },
-        { name: '✨ Skill', value: `**${skill.name}**`, inline: true },
+        { name: '✨ Skills', value: skillList, inline: false },
         { name: '💰 Starting Capital', value: `**1,000** coins`, inline: true },
       )
-      .setColor(0xf1c40f)
+      .setColor(data.color)
       .setFooter({
         text: t('commands/start:tip', { defaultValue: 'Tip: /profile for status • /hunt to hunt' }),
       })
@@ -123,8 +129,8 @@ export class ClassSelectHandler extends InteractionHandler {
     if (passive) {
       embed.addFields({
         name: '🔮 Passive',
-        value: `**${passive.name}**`,
-        inline: true,
+        value: `${passive.emoji} **${passive.name}**\n*${passive.description}*`,
+        inline: false,
       });
     }
 

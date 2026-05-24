@@ -81,7 +81,6 @@ function applyPassives(baseStats: PlayerStats, user: IUser): PlayerStats {
 // === MAIN FUNCTION: Dipake semua command ===
 export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
   const classData = getClass(user.class);
-
   const baseAtk = (classData?.baseAtk ?? 10) + Math.floor(user.level * 1.5);
   const baseHp = (classData?.baseHp ?? 100) + Math.floor(user.level * 10);
   const baseCritRate = classData?.baseCritRate ?? 0.05;
@@ -120,8 +119,12 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
 
   stats = applyPassives(stats, user);
 
-  if (classData?.skillId) {
-    stats.availableSkills.push(classData.skillId);
+  if (classData?.skills) {
+    for (const s of classData.skills) {
+      if (user.level >= s.unlock) {
+        stats.availableSkills.push(s.id);
+      }
+    }
   }
 
   const equippedItems = await Item.find({ itemId: { $in: equipIds.filter(Boolean) } }).lean();

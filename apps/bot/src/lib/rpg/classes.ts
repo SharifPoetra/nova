@@ -5,7 +5,7 @@ export interface ClassData {
   baseHp: number;
   baseAtk: number;
   baseCritRate: number;
-  skillId: string;
+  skills: { id: string; unlock: number }[];
   passiveId?: string;
   description: string;
 }
@@ -18,7 +18,10 @@ export const CLASSES: Record<string, ClassData> = {
     baseHp: 120,
     baseAtk: 12,
     baseCritRate: 0.05,
-    skillId: 'rage',
+    skills: [
+      { id: 'rage', unlock: 1 },
+      { id: 'shield_bash', unlock: 10 },
+    ],
     passiveId: 'berserker_passive',
     description: 'Tanky. Skill Rage buat burst damage.',
   },
@@ -29,7 +32,7 @@ export const CLASSES: Record<string, ClassData> = {
     baseHp: 80,
     baseAtk: 15,
     baseCritRate: 0.03,
-    skillId: 'fireball',
+    skills: [{ id: 'fireball', unlock: 1 }],
     description: 'Glass cannon. Fireball damage gede.',
   },
   rogue: {
@@ -39,7 +42,7 @@ export const CLASSES: Record<string, ClassData> = {
     baseHp: 90,
     baseAtk: 14,
     baseCritRate: 0.15,
-    skillId: 'backstab',
+    skills: [{ id: 'backstab', unlock: 1 }],
     description: 'Crit master. Backstab sakit banget.',
   },
 };
@@ -47,10 +50,6 @@ export const CLASSES: Record<string, ClassData> = {
 export function getClass(className: 'warrior' | 'mage' | 'rogue' | null): ClassData | null {
   if (!className) return null;
   return CLASSES[className] ?? null;
-}
-
-export function getClassSkillId(className: 'warrior' | 'mage' | 'rogue'): string {
-  return CLASSES[className].skillId;
 }
 
 export function getClassPassiveId(className: 'warrior' | 'mage' | 'rogue'): string | undefined {
