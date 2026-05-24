@@ -1,6 +1,12 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
-import { ButtonInteraction, MessageFlags } from 'discord.js';
+import {
+  ButtonInteraction,
+  MessageFlags,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { renderConsumablePage } from '../lib/rpg/inventory';
 import { fetchT } from '@sapphire/plugin-i18next';
@@ -36,6 +42,11 @@ export class InvConsumableHandler extends InteractionHandler {
     applyPassiveRegen(user);
     await user.save();
 
+    const isDungeon = interaction.message.components?.some(
+      (row: any) =>
+        'components' in row && row.components?.some((c: any) => c.customId === 'closebag'),
+    );
+
     const renderUser = {
       ...user.toObject(),
       discordId: userId,
@@ -43,7 +54,31 @@ export class InvConsumableHandler extends InteractionHandler {
       avatar: interaction.user.displayAvatarURL(),
     };
 
-    const { embed, components } = await renderConsumablePage(this.container, renderUser, page, t);
+    let { embed, components } = await renderConsumablePage(this.container, renderUser, page, t);
+
+    if (isDungeon) {
+      components = components
+        .map((row) => {
+          const r = ActionRowBuilder.from(row as any);
+          r.setComponents(
+            r.components.filter((b: any) => {
+              const id = b.data?.custom_id ?? b.data?.customId ?? '';
+              return !id.startsWith('inv_back_');
+            }),
+          );
+          return r;
+        })
+        .filter((r) => r.components.length > 0);
+
+      const closeRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId('closebag')
+          .setLabel(t('commands/dungeon:close_bag', { defaultValue: '🎒 Close Bag' }))
+          .setStyle(ButtonStyle.Secondary),
+      );
+      components = [...components, closeRow] as any;
+      embed.setColor(0x2ecc71);
+    }
 
     this.container.invCache?.set(interaction.message.id, {
       type: 'consumable',

@@ -19,6 +19,8 @@ export interface SkillContext {
   t: (key: string, opts?: any) => string;
   addBuff: (type: string, value: number, durationTurns: number) => void;
   addLog: (text: string) => void;
+  // dipakai internal untuk efek battle-only
+  stunTurns?: number;
 }
 
 export interface SkillData {
@@ -42,6 +44,54 @@ function parseValue(value: string | number, atk: number): number {
   return parseFloat(value);
 }
 
+// === EXECUTOR GENERIC ===
+function executeEffects(ctx: SkillContext, skill: SkillData) {
+  let totalDamage = 0;
+  let totalHeal = 0;
+  let isCrit = false;
+  let tempStats = { ...ctx.stats };
+
+  for (const eff of skill.effects) {
+    // chance check
+    if (eff.chance && Math.random() > eff.chance) continue;
+
+    if (eff.type === 'damage') {
+      const mult = parseValue(eff.value, tempStats.atk) / tempStats.atk;
+      const res = calculateDamage(tempStats, ctx.enemy, mult);
+      totalDamage += res.damage;
+      isCrit = isCrit || res.isCrit;
+    }
+
+    if (eff.type === 'heal') {
+      const heal = parseValue(eff.value, tempStats.atk);
+      totalHeal += Math.floor(heal);
+    }
+
+    if (eff.type === 'buff') {
+      // format: "buff:atk:0.3" atau "buff:critRate:0.2"
+      const parts = String(eff.value).split(':');
+      if (parts[0] === 'buff' && parts.length === 3) {
+        const [, stat, val] = parts;
+        const numVal = parseFloat(val);
+        if (eff.duration && eff.duration > 0) {
+          // buff bertahan → simpan ke DB
+          ctx.addBuff(stat, numVal, eff.duration);
+        } else {
+          // buff instant untuk hit ini aja (kayak backstab)
+          (tempStats as any)[stat] = (tempStats as any)[stat] + numVal;
+        }
+      }
+    }
+
+    if (eff.type === 'debuff' && eff.value === 'stun') {
+      ctx.stunTurns = eff.duration ?? 1;
+    }
+  }
+
+  return { damage: totalDamage, heal: totalHeal, isCrit };
+}
+
+// === SKILL DEFINITIONS ===
 export const SKILLS: Record<string, SkillData> = {
   rage: {
     id: 'rage',
@@ -52,12 +102,35 @@ export const SKILLS: Record<string, SkillData> = {
     staminaCost: 20,
     target: 'self',
     classLock: ['warrior'],
-    effects: [{ type: 'buff', value: 'buff:atk:0.3', duration: 3 }],
+    effects: [
+      { type: 'buff', value: 'buff:atk:0.3', duration: 3 },
+      { type: 'damage', value: '0.8*atk' },
+    ],
     use: (ctx) => {
-      ctx.addBuff('atk', 0.3, 3); // 0.3 = 30% multiplier
-      const { damage } = calculateDamage(ctx.stats, ctx.enemy, 0.8);
-      ctx.addLog(`✨ 😡 Rage! 🗡 ${damage} • +30% ATK (3 turns)`);
-      return { damage, heal: 0, isCrit: false };
+      const res = executeEffects(ctx, SKILLS.rage);
+      ctx.addLog(`✨ 😡 Rage! 🗡 ${res.damage} • +30% ATK (3 turns)`);
+      return res;
+    },
+  },
+
+  shield_bash: {
+    id: 'shield_bash',
+    name: 'Shield Bash',
+    emoji: '🛡️',
+    description: 'Gebuk pake tameng. Damage 120% ATK + stun 1 turn. Cooldown 4 turn.',
+    cooldownTurns: 4,
+    staminaCost: 15,
+    target: 'enemy',
+    classLock: ['warrior'],
+    requiredLevel: 10,
+    effects: [
+      { type: 'damage', value: '1.2*atk', element: 'phys' },
+      { type: 'debuff', value: 'stun', duration: 1 },
+    ],
+    use: (ctx) => {
+      const res = executeEffects(ctx, SKILLS.shield_bash);
+      ctx.addLog(`✨ 🛡️ Shield Bash! **${res.damage}**${res.isCrit ? ' 💥CRIT!' : ''} • Stun 1t`);
+      return res;
     },
   },
 
@@ -72,10 +145,9 @@ export const SKILLS: Record<string, SkillData> = {
     classLock: ['mage'],
     effects: [{ type: 'damage', value: '1.5*atk', element: 'fire' }],
     use: (ctx) => {
-      const mult = parseValue('1.5*atk', ctx.stats.atk) / ctx.stats.atk;
-      const { damage, isCrit } = calculateDamage(ctx.stats, ctx.enemy, mult);
-      ctx.addLog(`✨ 🔥 Fireball! **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
-      return { damage, heal: 0, isCrit };
+      const res = executeEffects(ctx, SKILLS.fireball);
+      ctx.addLog(`✨ 🔥 Fireball! **${res.damage}**${res.isCrit ? ' 💥CRIT!' : ''}`);
+      return res;
     },
   },
 
@@ -89,14 +161,13 @@ export const SKILLS: Record<string, SkillData> = {
     target: 'enemy',
     classLock: ['rogue'],
     effects: [
+      { type: 'buff', value: 'buff:critRate:0.2', duration: 0 }, // instant
       { type: 'damage', value: '2.0*atk', element: 'phys' },
-      { type: 'buff', value: 'buff:critRate:0.2', duration: 0 },
     ],
     use: (ctx) => {
-      const boostedStats = { ...ctx.stats, critRate: ctx.stats.critRate + 0.2 };
-      const { damage, isCrit } = calculateDamage(boostedStats, ctx.enemy, 2.0);
-      ctx.addLog(`✨ 🗡️ Backstab! **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
-      return { damage, heal: 0, isCrit };
+      const res = executeEffects(ctx, SKILLS.backstab);
+      ctx.addLog(`✨ 🗡️ Backstab! **${res.damage}**${res.isCrit ? ' 💥CRIT!' : ''}`);
+      return res;
     },
   },
 

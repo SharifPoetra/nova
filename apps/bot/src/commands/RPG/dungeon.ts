@@ -40,7 +40,7 @@ import {
 } from '../../lib/rpg/dungeon/dungeon-ui';
 import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle';
 import { getPlayerStats } from '../../lib/rpg/combat';
-import { addItemToInventory, renderInventoryPage } from '../../lib/rpg/inventory';
+import { addItemToInventory, renderConsumablePage } from '../../lib/rpg/inventory';
 import { i18nMonster, i18nItem, i18nEvent } from '../../lib/i18n/display';
 
 @ApplyOptions({
@@ -236,7 +236,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         });
       }
       if (button.customId === 'inventory') {
-        const inv = await renderInventoryPage(
+        const inv = await renderConsumablePage(
           this.container,
           {
             ...player.toObject(),
@@ -246,16 +246,30 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
           0,
           t,
         );
-        const useMenu = inv.components.find((c) => JSON.stringify(c).includes('inv_use_'));
+
+        const filteredRows = inv.components
+          .map((row) => {
+            const newRow = ActionRowBuilder.from(row as any);
+            newRow.setComponents(
+              newRow.components.filter((btn) => {
+                const id = (btn as any).data?.custom_id ?? (btn as any).data?.customId ?? '';
+                return !id.startsWith('inv_back_');
+              }),
+            );
+            return newRow;
+          })
+          .filter((row) => row.components.length > 0);
+
         const closeRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
             .setCustomId('closebag')
             .setLabel(t('commands/dungeon:close_bag', { defaultValue: '🎒 Close Bag' }))
             .setStyle(ButtonStyle.Secondary),
         );
+
         return button.editReply({
           embeds: [inv.embed.setColor(0x2ecc71)],
-          components: useMenu ? [useMenu, closeRow] : [closeRow],
+          components: [...filteredRows, closeRow] as any,
         });
       }
       if (button.customId === 'closebag') {
@@ -373,7 +387,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         });
         player = (await userModel.findOne({ discordId: player.discordId }))!;
 
-        if (!battleResult.victory) {
+        if (!battleResult?.victory) {
           runState.log.push(
             t('commands/dungeon:defeated', { name: i18nMonster('dungeon', currentMonster.id, t) }),
           );

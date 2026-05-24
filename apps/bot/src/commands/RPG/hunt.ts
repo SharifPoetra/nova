@@ -23,7 +23,7 @@ import {
   tickSkillCooldowns,
   type PlayerStats,
 } from '../../lib/rpg/combat';
-import { getSkill, SkillContext } from '../../lib/rpg/skills';
+import { getSkill, SkillContext, type SkillData } from '../../lib/rpg/skills';
 import { addItemToInventory } from '../../lib/rpg/inventory';
 import { i18nMonster } from '../../lib/i18n/display';
 import { getItemDisplay } from '../../lib/rpg/item-registry';
@@ -40,30 +40,30 @@ export class HuntCommand extends Command {
     await interaction.deferReply();
     const t = await fetchT(interaction);
     const db = this.container.db;
-    const user = await db.user.findOne({ discordId: interaction.user.id });
-    if (!user) return interaction.editReply(t('common:need_start'));
-    applyPassiveRegen(user);
+    const battleUser = await db.user.findOne({ discordId: interaction.user.id });
+    if (!battleUser) return interaction.editReply(t('common:need_start'));
+    applyPassiveRegen(battleUser);
     const now = Date.now();
-    if (now - (user.lastHunt?.getTime() ?? 0) < 45000) {
-      await user.save();
-      const s = Math.ceil((45000 - (now - user.lastHunt!.getTime())) / 1000);
+    if (now - (battleUser.lastHunt?.getTime() ?? 0) < 45000) {
+      await battleUser.save();
+      const s = Math.ceil((45000 - (now - battleUser.lastHunt!.getTime())) / 1000);
       return interaction.editReply(t('common:error.cooldown', { s }));
     }
-    if ((user.stamina ?? 0) < ACTION_COST.hunt) {
-      await user.save();
+    if ((battleUser.stamina ?? 0) < ACTION_COST.hunt) {
+      await battleUser.save();
       return interaction.editReply(
-        t('common:error.low_stamina', { current: user.stamina, need: ACTION_COST.hunt }),
+        t('common:error.low_stamina', { current: battleUser.stamina, need: ACTION_COST.hunt }),
       );
     }
-    const initialStats = await getPlayerStats(user);
+    const initialStats = await getPlayerStats(battleUser);
     if (initialStats.hp < 20) {
-      await user.save();
+      await battleUser.save();
       return interaction.editReply(t('commands/hunt:low_hp', { hp: initialStats.hp }));
     }
-    user.stamina -= ACTION_COST.hunt;
-    user.lastHunt = new Date();
-    resetSkillCooldowns(user);
-    const baseMonster = getScaledMonster(user.level ?? 1);
+    battleUser.stamina -= ACTION_COST.hunt;
+    battleUser.lastHunt = new Date();
+    resetSkillCooldowns(battleUser);
+    const baseMonster = getScaledMonster(battleUser.level ?? 1);
     const isElite = Math.random() < 0.05;
     const monsterName = i18nMonster('hunt', baseMonster.id, t);
     const monster = {
@@ -94,7 +94,7 @@ export class HuntCommand extends Command {
         }),
       );
     }
-    const playerClass = user.class ?? 'warrior';
+    const playerClass = battleUser.class ?? 'warrior';
     const isWarrior = playerClass === 'warrior';
     const isMage = playerClass === 'mage';
     const classIcon = isWarrior ? '🛡️' : isMage ? '🪄' : '🏹';
@@ -111,14 +111,22 @@ export class HuntCommand extends Command {
           elite: isElite ? t('commands/dungeon:elite_tag', { defaultValue: ' **ELITE!**' }) : '',
         }),
       );
-    let playerStats: PlayerStats = await getPlayerStats(user);
+    let playerStats: PlayerStats = await getPlayerStats(battleUser);
+    const playerSkills = playerStats.availableSkills
+      .map((id) => getSkill(id))
+      .filter(Boolean) as SkillData[];
+
     const updateBattleEmbed = async (showButtons = true) => {
-      playerStats = await getPlayerStats(user);
+      playerStats = await getPlayerStats(battleUser);
+
+      const freshSkills = playerStats.availableSkills
+        .map((id) => getSkill(id))
+        .filter(Boolean) as SkillData[];
+      playerSkills.splice(0, playerSkills.length, ...freshSkills);
+
       const atkBuff = playerStats.activeBuffs.find((b) => b.type === 'atk');
       const buffInfo = atkBuff ? ` • 🔥 ATK +${Math.floor(atkBuff.value * 100)}%` : '';
-      const playerSkillId = playerStats.availableSkills[0] ?? null;
-      const playerSkill = playerSkillId ? getSkill(playerSkillId) : null;
-      const skillCooldown = playerSkill ? getSkillCooldown(user, playerSkill.id) : 0;
+
       embed
         .setDescription(
           battleLog.slice(-4).join('\n') ||
@@ -136,10 +144,11 @@ export class HuntCommand extends Command {
           },
           {
             name: t('commands/hunt:field_you'),
-            value: `${ratioBar(playerStats.hp, playerStats.maxHp)} \`${playerStats.hp}/${playerStats.maxHp}\` • ⚡${user.stamina}/${user.maxStamina ?? 100}`,
+            value: `${ratioBar(playerStats.hp, playerStats.maxHp)} \`${playerStats.hp}/${playerStats.maxHp}\` • ⚡${battleUser.stamina}/${battleUser.maxStamina ?? 100}`,
             inline: false,
           },
         );
+
       const components: ActionRowBuilder<ButtonBuilder>[] = [];
       if (showButtons && monsterCurrentHp > 0 && playerStats.hp > 0) {
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -148,19 +157,19 @@ export class HuntCommand extends Command {
             .setLabel(t('commands/dungeon:btn_attack', { defaultValue: 'Attack' }))
             .setEmoji('🗡️')
             .setStyle(ButtonStyle.Danger),
-          new ButtonBuilder()
-            .setCustomId('hunt_skl')
-            .setLabel(
-              playerSkill
-                ? `${playerSkill.name}${skillCooldown > 0 ? ` (${skillCooldown})` : ''}`
-                : 'Skill',
-            )
-            .setEmoji(playerSkill?.emoji ?? '✨')
-            .setStyle(ButtonStyle.Primary)
-            .setDisabled(
-              !playerSkill || skillCooldown > 0 || user.stamina < (playerSkill?.staminaCost ?? 999),
-            ),
         );
+
+        for (const skill of playerSkills.slice(0, 4)) {
+          const cd = getSkillCooldown(battleUser, skill.id);
+          row.addComponents(
+            new ButtonBuilder()
+              .setCustomId(`hunt_skl_${skill.id}`)
+              .setLabel(`${skill.name ?? 'Skill'}${cd > 0 ? ` (${cd})` : ''}`)
+              .setEmoji(skill.emoji ?? '✨')
+              .setStyle(ButtonStyle.Primary)
+              .setDisabled(cd > 0 || battleUser.stamina < skill.staminaCost),
+          );
+        }
         components.push(row);
       }
       await interaction.editReply({ embeds: [embed], components });
@@ -172,7 +181,8 @@ export class HuntCommand extends Command {
       const turn = await interaction.channel
         ?.awaitMessageComponent({
           filter: (i) =>
-            i.user.id === user.discordId && ['hunt_atk', 'hunt_skl'].includes(i.customId),
+            i.user.id === battleUser.discordId &&
+            (i.customId === 'hunt_atk' || i.customId.startsWith('hunt_skl_')),
           time: 30_000,
           componentType: ComponentType.Button,
         })
@@ -199,21 +209,27 @@ export class HuntCommand extends Command {
           monsterCurrentHp = Math.max(0, monsterCurrentHp - damage);
           totalDamageDealt += damage;
           battleLog.push(`🗡️ You hit **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
-        } else if (turn.customId === 'hunt_skl' && getSkill(playerStats.availableSkills[0])) {
-          const playerSkill = getSkill(playerStats.availableSkills[0])!;
-          const cdLeft = getSkillCooldown(user, playerSkill.id);
+        } else if (turn.customId.startsWith('hunt_skl_')) {
+          const skillId = turn.customId.replace('hunt_skl_', '');
+          const playerSkill = getSkill(skillId);
+          if (!playerSkill) {
+            await updateBattleEmbed(false);
+            continue;
+          }
+
+          const cdLeft = getSkillCooldown(battleUser, playerSkill.id);
           if (cdLeft > 0) {
             battleLog.push(`⏳ ${playerSkill.name} cooldown ${cdLeft} turn lagi!`);
-          } else if (user.stamina < playerSkill.staminaCost) {
+          } else if (battleUser.stamina < playerSkill.staminaCost) {
             battleLog.push(`😩 Stamina kurang! Butuh ${playerSkill.staminaCost} ⚡`);
           } else {
             const ctx: SkillContext = {
-              user,
+              user: battleUser,
               stats: playerStats,
               enemy: { hp: monsterCurrentHp, def: Math.floor(monster.level * 0.5) },
               t,
               addBuff: (type, value, durationTurns) => {
-                user.buffs.push({
+                battleUser.buffs.push({
                   type: type as any,
                   value,
                   turnsLeft: durationTurns,
@@ -224,10 +240,12 @@ export class HuntCommand extends Command {
             };
             const result = playerSkill.use(ctx);
             monsterCurrentHp = Math.max(0, monsterCurrentHp - result.damage);
-            user.hp = Math.min(playerStats.maxHp, user.hp + result.heal);
+            battleUser.hp = Math.min(playerStats.maxHp, battleUser.hp + result.heal);
             totalDamageDealt += result.damage;
-            user.stamina = Math.max(0, user.stamina - playerSkill.staminaCost);
-            setSkillCooldown(user, playerSkill);
+            battleUser.stamina = Math.max(0, battleUser.stamina - playerSkill.staminaCost);
+            setSkillCooldown(battleUser, playerSkill);
+            battleUser.markModified('skillCooldowns');
+            playerStats = await getPlayerStats(battleUser);
           }
         }
         await updateBattleEmbed(false);
@@ -242,7 +260,7 @@ export class HuntCommand extends Command {
         monsterDamage -= blockedDamage;
       }
       monsterDamage = Math.max(1, monsterDamage - playerStats.def);
-      user.hp = Math.max(0, user.hp - monsterDamage);
+      battleUser.hp = Math.max(0, battleUser.hp - monsterDamage);
       totalDamageTaken += monsterDamage;
       battleLog.push(
         t('commands/hunt:monster_hit', {
@@ -251,18 +269,20 @@ export class HuntCommand extends Command {
           block: blockedDamage ? t('commands/hunt:block_suffix', { blocked: blockedDamage }) : '',
         }),
       );
-      user.hp = Math.min(user.hp, playerStats.maxHp);
-      tickBuffs(user);
-      tickSkillCooldowns(user);
+      battleUser.hp = Math.min(battleUser.hp, playerStats.maxHp);
+      tickBuffs(battleUser);
+      tickSkillCooldowns(battleUser);
       await updateBattleEmbed(false);
       await sleep(850);
     }
     const battleSummary = battleLog.slice(-15).join('\n');
-    if (user.hp <= 0) {
-      const loseExp = Math.floor(getScaledExp(monster.xp, user.level, 'hunt') / 3);
-      user.exp += loseExp;
-      await user.save();
-      const finalStats = await getPlayerStats(user);
+    if (battleUser.hp <= 0) {
+      const loseExp = Math.floor(getScaledExp(monster.xp, battleUser.level, 'hunt') / 3);
+      battleUser.exp += loseExp;
+      battleUser.markModified('skillCooldowns');
+      battleUser.markModified('buffs');
+      await battleUser.save();
+      const finalStats = await getPlayerStats(battleUser);
       const atkBuff = finalStats.activeBuffs.find((b) => b.type === 'atk');
       const finalBuffInfo = atkBuff ? ` • 🔥 ATK +${Math.floor(atkBuff.value * 100)}%` : '';
       embed
@@ -292,7 +312,7 @@ export class HuntCommand extends Command {
     if (!selectedDrop) selectedDrop = monster.drops[0];
 
     await addItemToInventory(
-      user.discordId,
+      battleUser.discordId,
       {
         itemId: selectedDrop.id,
         emoji: selectedDrop.emoji,
@@ -305,6 +325,16 @@ export class HuntCommand extends Command {
       },
       1,
     );
+
+    const user = await db.user.findOne({ discordId: interaction.user.id });
+    if (!user) return;
+    user.hp = battleUser.hp;
+    user.stamina = battleUser.stamina;
+    user.lastHunt = battleUser.lastHunt;
+    user.lastPassive = battleUser.lastPassive;
+    user.buffs = battleUser.buffs;
+    user.markModified('buffs');
+
     const expGain = getScaledExp(monster.xp, user.level, 'hunt', monster.isElite);
     user.balance += expGain * 2;
     user.exp += expGain;
@@ -321,6 +351,8 @@ export class HuntCommand extends Command {
     }
     resetSkillCooldowns(user);
     user.buffs = user.buffs.filter((b) => !b.battle);
+    user.markModified('skillCooldowns');
+    user.markModified('buffs');
     await user.save();
     const finalPlayerStats = await getPlayerStats(user);
     const finalAtkBuff = finalPlayerStats.activeBuffs.find((b) => b.type === 'atk');

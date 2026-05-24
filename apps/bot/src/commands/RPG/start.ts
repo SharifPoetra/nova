@@ -62,7 +62,13 @@ export class StartCommand extends Command {
       )
       .addFields(
         classList.map(([, c]) => {
-          const skill = SKILLS[c.skillId];
+          const skillList = c.skills
+            .map((s) => {
+              const sk = SKILLS[s.id];
+              return `• ${sk?.emoji ?? ''} **${sk?.name ?? s.id}** — Lv.${s.unlock}`;
+            })
+            .join('\n');
+
           const passive = c.passiveId ? SKILLS[c.passiveId] : null;
           const critPercent = (c.baseCritRate * 100).toFixed(0);
 
@@ -74,9 +80,14 @@ export class StartCommand extends Command {
               atk: c.baseAtk,
               crit: critPercent,
               stamina: BASE_STAMINA,
-              skill: skill.name,
-              passive: passive?.name ?? 'None',
-              defaultValue: `**${c.description}**\n❤️ ${c.baseHp + 10} HP | 🗡️ ${c.baseAtk} ATK | ⚡ ${BASE_STAMINA} Stamina | 🎯 ${critPercent}% Crit\n*Skill: ${skill.name}*${passive ? `\n*Passive: ${passive.name}*` : ''}`,
+              skills: skillList,
+              passive: passive ? `${passive.emoji} ${passive.name}` : 'None',
+              defaultValue:
+                `**${c.description}**` +
+                `❤️ ${c.baseHp + 10} HP | 🗡️ ${c.baseAtk} ATK | ⚡ ${BASE_STAMINA} Stamina | 🎯 ${critPercent}% Crit` +
+                `**Skills:**` +
+                `${skillList}` +
+                `${passive ? `*Passive: ${passive.emoji} ${passive.name}*` : ''}`,
             }),
             inline: false,
           };

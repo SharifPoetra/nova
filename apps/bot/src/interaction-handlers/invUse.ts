@@ -1,6 +1,12 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
-import { StringSelectMenuInteraction, MessageFlags } from 'discord.js';
+import {
+  StringSelectMenuInteraction,
+  MessageFlags,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { getPlayerStats } from '../lib/rpg/combat';
 import { getItemDisplay } from '../lib/rpg/item-registry';
@@ -40,19 +46,56 @@ export class InvUseHandler extends InteractionHandler {
     const item = await this.container.db.item.findOne({ itemId }).lean();
     const invItem = user.items.find((i) => i.itemId === itemId);
 
-    if (!item || !invItem || item.type !== 'consumable') {
-      await interaction.followUp({
-        content: t('commands/inventory:item_not_found', { defaultValue: 'Item not found' }),
-        flags: MessageFlags.Ephemeral,
-      });
+    // DETECT DUNGEON MODE
+    const isDungeon = interaction.message.components?.some(
+      (row: any) =>
+        'components' in row && row.components?.some((c: any) => c.customId === 'closebag'),
+    );
+
+    const refreshBag = async () => {
+      const freshUser = await this.container.db.user.findOne({ discordId: userId });
+      if (!freshUser) throw new Error('User not found');
+
       const renderUser = {
-        ...user.toObject(),
+        ...freshUser.toObject(),
         discordId: userId,
         username: interaction.user.username,
         avatar: interaction.user.displayAvatarURL(),
       };
       const { embed, components } = await renderConsumablePage(this.container, renderUser, page, t);
-      return interaction.editReply({ embeds: [embed], components });
+
+      if (!isDungeon) return { embed, components };
+
+      const filtered = components
+        .map((row) => {
+          const r = ActionRowBuilder.from(row as any);
+          r.setComponents(
+            r.components.filter((b: any) => {
+              const id = b.data?.custom_id ?? b.data?.customId ?? '';
+              return !id.startsWith('inv_back_');
+            }),
+          );
+          return r;
+        })
+        .filter((r) => r.components.length > 0);
+
+      const closeRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId('closebag')
+          .setLabel(t('commands/dungeon:close_bag', { defaultValue: '🎒 Close Bag' }))
+          .setStyle(ButtonStyle.Secondary),
+      );
+
+      return { embed: embed.setColor(0x2ecc71), components: [...filtered, closeRow] as any };
+    };
+
+    if (!item || !invItem || item.type !== 'consumable') {
+      await interaction.followUp({
+        content: t('commands/inventory:item_not_found', { defaultValue: 'Item not found' }),
+        flags: MessageFlags.Ephemeral,
+      });
+      const bag = await refreshBag();
+      return interaction.editReply({ embeds: [bag.embed], components: bag.components });
     }
 
     const display = await getItemDisplay(itemId, t);
@@ -100,27 +143,15 @@ export class InvUseHandler extends InteractionHandler {
         }),
         flags: MessageFlags.Ephemeral,
       });
-      const renderUser = {
-        ...user.toObject(),
-        discordId: userId,
-        username: interaction.user.username,
-        avatar: interaction.user.displayAvatarURL(),
-      };
-      const { embed, components } = await renderConsumablePage(this.container, renderUser, page, t);
-      return interaction.editReply({ embeds: [embed], components });
+      const bag = await refreshBag();
+      return interaction.editReply({ embeds: [bag.embed], components: bag.components });
     }
 
     invItem.qty -= 1;
     if (invItem.qty <= 0) user.items = user.items.filter((i) => i.itemId !== itemId);
     await user.save();
 
-    const renderUser = {
-      ...user.toObject(),
-      discordId: userId,
-      username: interaction.user.username,
-      avatar: interaction.user.displayAvatarURL(),
-    };
-    const { embed, components } = await renderConsumablePage(this.container, renderUser, page, t);
+    const bag = await refreshBag();
 
     const cache = this.container.invCache?.get(interaction.message.id);
     if (cache) {
@@ -133,6 +164,6 @@ export class InvUseHandler extends InteractionHandler {
       flags: MessageFlags.Ephemeral,
     });
 
-    return interaction.editReply({ embeds: [embed], components });
+    return interaction.editReply({ embeds: [bag.embed], components: bag.components });
   }
 }
