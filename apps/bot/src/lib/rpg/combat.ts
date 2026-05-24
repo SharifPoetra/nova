@@ -96,7 +96,7 @@ function applyBuffs(base: number, buffs: IUser['buffs'], buffType: string): numb
 // 'passive:atk_pct:hp_loss:0.005*level' -> +0.5% ATK per level per 10% HP hilang
 // 'passive:flag:always:poison_blades' -> set flag untuk poison
 // 'passive:flag:always:mana_shield' -> set flag untuk mana shield
-function applyPassives(baseStats: PlayerStats, user: IUser): PlayerStats {
+export function applyPassives(baseStats: PlayerStats, user: IUser): PlayerStats {
   const passives = getPassiveSkills(user) ?? [];
   const newStats = { ...baseStats };
   if (!newStats.availableSkills) newStats.availableSkills = [];
@@ -141,7 +141,7 @@ function applyPassives(baseStats: PlayerStats, user: IUser): PlayerStats {
       if (condition === 'hp_loss') {
         // valueRaw bisa '0.01' (1% per 10%) atau '0.02*level' (2% per 10% per level)
         const hpLostPercent = 1 - hpPct;
-        const steps = Math.floor(hpLostPercent * 10); // 0-10 step
+        const steps = Math.floor(hpLostPercent * 10 + 1e-6); // 0-10 step, tambah epsilon biar 0.9999 jadi 1
 
         let baseValue = 0;
         if (valueRaw.includes('*level')) {
