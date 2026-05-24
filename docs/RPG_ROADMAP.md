@@ -58,10 +58,10 @@ Checklist buat refactor total sistem Class + Skill + Equipment. Centang kalau ud
 - [ ] **5.5** Commit: `content(rpg): add 20 equips and 6 skills`
 
 ## Phase 6: Polish - 1 hari
-- [ ] **6.1** Locale: tambah `commands/inventory:equip_success`, `skills.json`
+- [x] **6.1** Locale: baru selesai ~90% bisa dilanjut kapan aja
 - [ ] **6.2** Help command: `/help equipment` jelasin stat
 - [x] **6.3** Migrate item existing: script kasih `stats` ke item lama
-- [ ] **6.4** Commit: `chore: migrate old items to new equipment system`
+- [x] **6.4** Commit: `chore: migrate old items to new equipment system`
 
 ## Bug Fixes - 2026-05-17
 - [x] **B1** Fix `maxHp` ga ngitung equipment: ganti `user.maxHp` → `getPlayerStats().maxHp` di hunt, cook, shop, invUse
