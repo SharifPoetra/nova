@@ -6,7 +6,7 @@
   "already_footer": "Gunakan /profile untuk melihat status",
   "title": "🛡️ Nova Chronicles — Pilih Takdirmu",
   "welcome": "Selamat datang, **{{username}}**!\nDunia Nova lagi kacau, pilih class-mu sekarang dan langsung dapat **1.000 koin** buat modal awal.",
-  "class_field": "**{{desc}}**\n❤️ {{hp}} HP | 🗡️ {{atk}} ATK | ⚡ {{stamina}} Stamina | 🎯 {{crit}}% Crit\n**Skills:**\n{{skills}}\n*Passive: {{passive}}*",
+  "class_field": "**{{desc}}**\n❤️ {{hp}} HP | 🗡️ {{atk}} ATK | ⚡ {{stamina}} Stamina | 🎯 {{crit}}% Crit\n\n**Skills:**\n{{skills}}\n\n*Passive: {{passive}}*",
   "footer": "Pilih dengan bijak — class tidak bisa diganti!",
   "class_warrior": "Warrior",
   "class_mage": "Mage",

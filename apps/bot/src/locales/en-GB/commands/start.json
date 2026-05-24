@@ -6,7 +6,7 @@
   "already_footer": "Use /profile to view status",
   "title": "🛡️ Nova Chronicles — Choose Your Destiny",
   "welcome": "Welcome, **{{username}}**!\nThe world of Nova is in chaos, choose your class now and get **1,000 coins** as starting capital.",
-  "class_field": "**{{desc}}**\n❤️ {{hp}} HP | 🗡️ {{atk}} ATK | ⚡ {{stamina}} Stamina | 🎯 {{crit}}% Crit\n**Skills:**\n{{skills}}\n*Passive: {{passive}}*",
+  "class_field": "**{{desc}}**\n❤️ {{hp}} HP | 🗡️ {{atk}} ATK | ⚡ {{stamina}} Stamina | 🎯 {{crit}}% Crit\n\n**Skills:**\n{{skills}}\n\n*Passive: {{passive}}*",
   "footer": "Choose wisely — class cannot be changed!",
   "class_warrior": "Warrior",
   "class_mage": "Mage",

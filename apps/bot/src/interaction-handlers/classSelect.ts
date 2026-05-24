@@ -3,7 +3,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { ButtonInteraction, EmbedBuilder, MessageFlags } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
 import { getClass } from '../lib/rpg/classes';
-import { SKILLS } from '../lib/rpg/skills';
+import { SKILLS, getPassiveSkills } from '../lib/rpg/skills';
 
 @ApplyOptions<InteractionHandler.Options>({
   interactionHandlerType: InteractionHandlerTypes.Button,
@@ -30,10 +30,7 @@ export class ClassSelectHandler extends InteractionHandler {
     if (exists?.class) {
       const existingClass = getClass(exists.class);
       const embed = new EmbedBuilder()
-        .setAuthor({
-          name: i.user.username,
-          iconURL: i.user.displayAvatarURL(),
-        })
+        .setAuthor({ name: i.user.username, iconURL: i.user.displayAvatarURL() })
         .setTitle(t('commands/start:already_title'))
         .setDescription(
           t('commands/start:already_desc', { class: existingClass?.name ?? exists.class }),
@@ -58,7 +55,8 @@ export class ClassSelectHandler extends InteractionHandler {
       })
       .join(' • ');
 
-    const passive = data.passiveId ? SKILLS[data.passiveId] : null;
+    const dummyUser = { class: key, level: 99 } as any;
+    const passives = getPassiveSkills(dummyUser);
     const BASE_STAMINA = 100;
 
     await this.container.db.user.findOneAndUpdate(
@@ -119,20 +117,26 @@ export class ClassSelectHandler extends InteractionHandler {
         },
         { name: '✨ Skills', value: skillList, inline: false },
         { name: '💰 Starting Capital', value: `**1,000** coins`, inline: true },
+        ...(passives.length
+          ? [
+              {
+                name: '🔮 Passive',
+                value: passives
+                  .map(
+                    (p) =>
+                      `${p.emoji} **${p.name}** — Lv.${p.requiredLevel ?? 1}\n*${p.description}*`,
+                  )
+                  .join('\n\n'),
+                inline: false,
+              },
+            ]
+          : []),
       )
       .setColor(data.color)
       .setFooter({
         text: t('commands/start:tip', { defaultValue: 'Tip: /profile for status • /hunt to hunt' }),
       })
       .setTimestamp();
-
-    if (passive) {
-      embed.addFields({
-        name: '🔮 Passive',
-        value: `${passive.emoji} **${passive.name}**\n*${passive.description}*`,
-        inline: false,
-      });
-    }
 
     return i.update({ embeds: [embed], components: [] });
   }

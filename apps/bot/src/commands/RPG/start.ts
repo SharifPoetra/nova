@@ -3,7 +3,7 @@ import { Command } from '@sapphire/framework';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { CLASSES, getClass } from '../../lib/rpg/classes';
-import { SKILLS } from '../../lib/rpg/skills';
+import { SKILLS, getPassiveSkills } from '../../lib/rpg/skills';
 
 @ApplyOptions<Command.Options>({
   name: 'start',
@@ -43,7 +43,6 @@ export class StartCommand extends Command {
         .setFooter({
           text: t('commands/start:already_footer', { defaultValue: 'Use /profile to view status' }),
         });
-
       return interaction.editReply({ embeds: [embed] });
     }
 
@@ -61,7 +60,7 @@ export class StartCommand extends Command {
         }),
       )
       .addFields(
-        classList.map(([, c]) => {
+        classList.map(([key, c]) => {
           const skillList = c.skills
             .map((s) => {
               const sk = SKILLS[s.id];
@@ -69,9 +68,14 @@ export class StartCommand extends Command {
             })
             .join('\n');
 
-          const passive = c.passiveId ? SKILLS[c.passiveId] : null;
-          const critPercent = (c.baseCritRate * 100).toFixed(0);
+          const dummyUser = { class: key, level: 99 } as any;
+          const passives = getPassiveSkills(dummyUser);
+          const passiveText =
+            passives
+              .map((p) => `• ${p.emoji} **${p.name}** — Lv.${p.requiredLevel ?? 1}`)
+              .join('\n') || 'None';
 
+          const critPercent = (c.baseCritRate * 100).toFixed(0);
           return {
             name: `${c.emoji} ${c.name}`,
             value: t('commands/start:class_field', {
@@ -81,13 +85,12 @@ export class StartCommand extends Command {
               crit: critPercent,
               stamina: BASE_STAMINA,
               skills: skillList,
-              passive: passive ? `${passive.emoji} ${passive.name}` : 'None',
+              passive: passiveText,
               defaultValue:
-                `**${c.description}**` +
-                `❤️ ${c.baseHp + 10} HP | 🗡️ ${c.baseAtk} ATK | ⚡ ${BASE_STAMINA} Stamina | 🎯 ${critPercent}% Crit` +
-                `**Skills:**` +
-                `${skillList}` +
-                `${passive ? `*Passive: ${passive.emoji} ${passive.name}*` : ''}`,
+                `**${c.description}**\n` +
+                `❤️ ${c.baseHp + 10} HP | 🗡️ ${c.baseAtk} ATK | ⚡ ${BASE_STAMINA} Stamina | 🎯 ${critPercent}% Crit\n\n` +
+                `**Skills:**\n${skillList}\n\n` +
+                `${passives.length ? `**Passive:**\n${passiveText}` : ''}`,
             }),
             inline: false,
           };
