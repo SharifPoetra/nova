@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getPlayerStats } from '../../../src/lib/rpg/combat';
+import { getPlayerStats, applyPassives } from '../../../src/lib/rpg/combat';
 import type { IUser } from '@nova/db';
 
 // Mock Item.find biar return equipment palsu
@@ -100,5 +100,74 @@ describe('getPlayerStats()', () => {
     const stats = await getPlayerStats(user);
     expect(stats.atk).toBe(16); // floor(13 * 1.3) = 16
     expect(stats.activeBuffs).toHaveLength(1);
+  });
+});
+
+describe('applyPassives() - Berserker Blood', () => {
+  const user = {
+    class: 'warrior',
+    level: 10,
+    discordId: '1',
+    username: 'berserker',
+  } as unknown as IUser;
+
+  const makeBase = (hp: number, maxHp = 100) => ({
+    hp,
+    maxHp,
+    atk: 100,
+    def: 0,
+    critRate: 0.05,
+    critDmg: 2,
+    element: 'phys' as const,
+    activeBuffs: [],
+    availableSkills: [],
+    flags: {},
+  });
+
+  it('0% bonus at 100% HP', () => {
+    const res = applyPassives(makeBase(100), user);
+    expect(res.atk).toBe(100);
+  });
+
+  it('+1% at 90% HP (1 step)', () => {
+    const res = applyPassives(makeBase(90), user);
+    expect(res.atk).toBe(101); // sekarang pass setelah +1e-6
+  });
+
+  it('+5% at 50% HP (5 steps)', () => {
+    const res = applyPassives(makeBase(50), user);
+    expect(res.atk).toBe(105);
+  });
+
+  it('+9% at 10% HP (9 steps)', () => {
+    const res = applyPassives(makeBase(10), user);
+    expect(res.atk).toBe(109);
+  });
+
+  it('+10% at 0% HP (10 steps max)', () => {
+    const res = applyPassives(makeBase(0), user);
+    expect(res.atk).toBe(110);
+  });
+});
+
+describe('applyPassives() - Integration with getPlayerStats', () => {
+  it('berserker passive applied in getPlayerStats', async () => {
+    const testUser = {
+      ...baseUser,
+      level: 10,
+      class: 'warrior' as const,
+      hp: 110, // 50% dari maxHp 220
+      maxHp: 220,
+      equipped: { ...baseUser.equipped, weapon: 'iron_sword' },
+    };
+
+    const stats = await getPlayerStats(testUser);
+    // base warrior lvl10: atk = 12 + floor(15) = 27, + iron 12 = 39
+    // HP 50% → 5 step → +5% → 39 * 1.05 = 40.95 → floor 40
+    expect(stats.atk).toBe(40);
+
+    // passive TIDAK masuk availableSkills
+    expect(stats.availableSkills).not.toContain('berserker_passive');
+    expect(stats.availableSkills).toContain('rage');
   });
 });
