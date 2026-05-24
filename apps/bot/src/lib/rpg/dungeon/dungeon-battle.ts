@@ -43,13 +43,11 @@ export async function runInteractiveBattle(params: BattleParams) {
 
   let monsterHp = monsterMaxHp;
   let playerHp = stats.hp;
+  let monsterStunned = 0;
 
   const playerSkills = stats.availableSkills
     .map((id) => getSkill(id))
     .filter(Boolean) as SkillData[];
-
-  let isDefending = false;
-  let monsterStunned = 0;
 
   const battleLog: string[] = [];
   battleLog.push(
@@ -97,8 +95,7 @@ export async function runInteractiveBattle(params: BattleParams) {
     const turn = await msg
       .awaitMessageComponent({
         filter: (i) =>
-          i.user.id === player.discordId &&
-          (i.customId === 'atk' || i.customId === 'def' || i.customId.startsWith('skl_')),
+          i.user.id === player.discordId && (i.customId === 'atk' || i.customId.startsWith('skl_')),
         time: 30_000,
         componentType: ComponentType.Button,
       })
@@ -122,9 +119,6 @@ export async function runInteractiveBattle(params: BattleParams) {
         battleLog.push(
           t('commands/dungeon:player_hit', { damage, crit: `${isCrit ? '💥CRIT' : ''}` }),
         );
-      } else if (turn.customId === 'def') {
-        isDefending = true;
-        battleLog.push(t('commands/dungeon:battle_defend'));
       } else if (turn.customId.startsWith('skl_')) {
         const skillId = turn.customId.replace('skl_', '');
         const playerSkill = getSkill(skillId);
@@ -196,13 +190,10 @@ export async function runInteractiveBattle(params: BattleParams) {
     } else {
       await updateBattle(false);
       let monsterDamage = Math.max(1, Math.floor(Math.random() * 5) + monsterAtk - stats.def);
-      if (isDefending) monsterDamage = Math.floor(monsterDamage * 0.4);
-
       playerHp -= monsterDamage;
       state.taken += monsterDamage;
-      isDefending = false;
-
       battleLog.push(t('commands/dungeon:monster_hit', { monsterName, monsterDamage }));
+
       await updateBattle(false);
       await sleep(600);
 

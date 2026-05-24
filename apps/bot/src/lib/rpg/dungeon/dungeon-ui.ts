@@ -288,13 +288,9 @@ export function getBattleButtons(skills: { id: string; name: string; cd: number 
       .setCustomId('atk')
       .setLabel(t('commands/dungeon:btn_attack', { defaultValue: '🗡️ Attack' }))
       .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId('def')
-      .setLabel(t('commands/dungeon:btn_defend', { defaultValue: '🛡️ Defend' }))
-      .setStyle(ButtonStyle.Secondary),
   );
 
-  for (const s of skills.slice(0, 3)) {
+  for (const s of skills.slice(0, 4)) {
     row.addComponents(
       new ButtonBuilder()
         .setCustomId(`skl_${s.id}`)
