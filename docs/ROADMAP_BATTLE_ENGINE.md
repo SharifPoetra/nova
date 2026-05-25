@@ -178,9 +178,9 @@ if (this.state.player.flags?.warrior_block && Math.random() < 0.2) {
 ```
 
 Checklist:
-- [ ] Hunt normal & elite jalan
-- [ ] Warrior block tetap 20%
-- [ ] File hunt.ts turun dari 573 ke ~380 baris
+- [x] Hunt normal & elite jalan
+- [x] Warrior block tetap 20%
+- [x] File hunt.ts turun dari 398 ke ~328 baris
 
 ---
 
