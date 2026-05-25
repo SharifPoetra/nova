@@ -190,6 +190,7 @@ Karena engine sudah siap:
 - `passive:dodge:hp>0.7:0.10` → cek di `playerAttack()` sebelum hit
 - `passive:flag:always:poison_blades` → cek di `playerAttack()` setelah hit
 
+Fase 4 selesai ✅ 
 ---
 
 ## 7. Testing Plan

@@ -197,6 +197,13 @@ export class BattleEngine {
       blocked = Math.floor(damage * 0.3);
       damage -= blocked;
     }
+    if (this.playerStats.flags?.mana_shield && this.user.stamina > 0) {
+      const absorb = Math.floor(damage * 0.2);
+      const staminaCost = Math.min(absorb, this.user.stamina);
+      damage -= staminaCost;
+      this.user.stamina -= staminaCost;
+      if (staminaCost > 0) this.logPush(`🔮 Mana Shield absorbed ${staminaCost}!`);
+    }
 
     damage = Math.max(1, damage);
     this.user.hp = Math.max(0, this.user.hp - damage);
