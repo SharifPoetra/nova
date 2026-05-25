@@ -67,7 +67,7 @@ export class BattleEngine {
     this.logPush(`${this.enemy.emoji} **${this.enemy.name}**${tag} appeared!`);
   }
 
-  private logPush(msg: string) {
+  public logPush(msg: string) {
     this.log.push(msg);
     this.options.onLog?.(msg);
   }
