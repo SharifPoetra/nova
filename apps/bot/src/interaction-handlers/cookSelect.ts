@@ -10,20 +10,66 @@ import {
   ButtonStyle,
 } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { getRecipe, RECIPES } from '../lib/rpg/recipes';
+import { getRecipe, RECIPES, COOKED_ITEMS } from '../lib/rpg/cooking-recipes';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { ACTION_COST } from '../lib/rpg/actions';
+import { getPlayerStats } from '../lib/rpg/combat';
+import { addItemToInventory, removeItemFromInventory } from '../lib/rpg/inventory';
+import { getItemDisplay } from '../lib/rpg/item-registry';
 
-const TIER_FILTERS: Record<string, (recipe: any) => boolean> = {
-  basic: (r) => r.heal <= 35,
-  mid: (r) => r.heal > 35 && r.heal <= 70,
-  late: (r) => r.heal > 70 && r.heal <= 150,
-  end: (r) => r.heal > 150,
-  dungeon: (r) => ['slime_jelly', 'void_soup', 'drake_flame_grill'].includes(r.id),
+const TIER_FILTERS: Record<string, (r: any) => boolean> = {
+  basic: (r) =>
+    [
+      'cooked_sardine',
+      'cooked_mackerel',
+      'cooked_tilapia',
+      'cooked_meat',
+      'hide_soup',
+      'cooked_wolf',
+      'cooked_lizard',
+      'warm_honey',
+      'bark_tea',
+      'mushroom_soup',
+    ].includes(r.resultItemId),
+  mid: (r) =>
+    [
+      'cooked_salmon',
+      'cooked_tuna',
+      'spicy_stew',
+      'herbal_tea',
+      'silk_pie',
+      'crispy_harpy',
+      'slime_jelly',
+    ].includes(r.resultItemId),
+  late: (r) =>
+    [
+      'cooked_bear',
+      'ginseng_brew',
+      'mana_potion',
+      'venom_soup',
+      'berserk_stew',
+      'shadow_curry',
+      'lava_jelly',
+      'troll_ragout',
+      'worm_sushi',
+    ].includes(r.resultItemId),
+  end: (r) =>
+    [
+      'moon_elixir',
+      'golden_omelette',
+      'knight_feast',
+      'storm_broth',
+      'crystal_soup',
+      'hydra_gumbo',
+      'phoenix_rebirth',
+      'void_soup',
+      'drake_grill',
+    ].includes(r.resultItemId),
+  dungeon: (r) => ['slime_jelly', 'void_soup', 'drake_grill'].includes(r.resultItemId),
   all: () => true,
 };
 
-@ApplyOptions<InteractionHandler.Options>({
+@ApplyOptions({
   name: 'cookSelect',
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
@@ -41,85 +87,82 @@ export class CookSelectHandler extends InteractionHandler {
     const isPrevButton = interaction.customId.startsWith('cookprev');
     const isNextButton = interaction.customId.startsWith('cooknext');
 
-    if (interaction.user.id !== userId) {
+    if (interaction.user.id !== userId)
       return interaction.reply({
         content: t('commands/cook:not_yours', { defaultValue: 'This is not your stove 😅' }),
         ephemeral: true,
       });
-    }
 
     await interaction.deferUpdate();
-
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (!user) return;
     applyPassiveRegen(user);
+    const stats = await getPlayerStats(user);
 
-    // ===== PAGINATION =====
+    // PAGINATION
     if (isPrevButton || isNextButton) {
       const currentPage = parseInt(pageStr, 10);
       const newPage = isPrevButton ? currentPage - 1 : currentPage + 1;
-
       let availableRecipes = RECIPES.filter((recipe) =>
         recipe.ingredients.every(
           (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
         ),
       );
       availableRecipes = availableRecipes.filter(TIER_FILTERS[tier] || TIER_FILTERS.all);
-
       const startIndex = newPage * 25;
       const pageRecipes = availableRecipes.slice(startIndex, startIndex + 25);
       const totalPages = Math.ceil(availableRecipes.length / 25);
+
+      const options = await Promise.all(
+        pageRecipes.map(async (recipe) => {
+          const item = COOKED_ITEMS.find((i) => i.itemId === recipe.resultItemId);
+          const heal = item?.effects?.find((e) => e.type === 'heal')?.value || 0;
+          const buff = item?.effects?.find((e) => e.type === 'buff');
+          const recipeName = t(`cook/recipes:${recipe.id}.name`, { defaultValue: recipe.id });
+          const ingNames = await Promise.all(
+            recipe.ingredients.map(async (i) => {
+              const disp = await getItemDisplay(i.id, t);
+              return `${i.qty}x ${disp?.name ?? i.id}`;
+            }),
+          );
+          return {
+            label: `${recipeName} (+${heal} HP)${buff ? ` [+${buff.value}]` : ''}`.slice(0, 100),
+            value: recipe.id,
+            emoji: recipe.emoji,
+            description: ingNames.join(', ').slice(0, 100),
+          };
+        }),
+      );
 
       const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(`cook_${userId}_${newPage}_${tier}`)
         .setPlaceholder(
           t('commands/cook:select_placeholder', { page: newPage + 1, total: totalPages }),
         )
-        .addOptions(
-          pageRecipes.map((recipe) => ({
-            label:
-              `${recipe.name} (+${recipe.heal} HP)${recipe.buff ? ` [${recipe.buff.type.toUpperCase()}+${recipe.buff.value}]` : ''}`.slice(
-                0,
-                100,
-              ),
-            value: recipe.id,
-            emoji: recipe.emoji,
-            description: recipe.ingredients
-              .map((i) => `${i.qty}x ${i.id}`)
-              .join(', ')
-              .slice(0, 100),
-          })),
-        );
+        .addOptions(options);
 
       const components: ActionRowBuilder<any>[] = [
         new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu),
       ];
-
       if (availableRecipes.length > 25) {
         const prevButton = new ButtonBuilder()
           .setCustomId(`cookprev_${userId}_${newPage}_${tier}`)
-          .setLabel(t('commands/cook:prev'))
+          .setLabel(t('common:ui.prev', { defaultValue: '◀ Previous' }))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(newPage === 0);
-
         const nextButton = new ButtonBuilder()
           .setCustomId(`cooknext_${userId}_${newPage}_${tier}`)
-          .setLabel(t('commands/cook:next'))
+          .setLabel(t('common:ui.next', { defaultValue: 'Next ▶' }))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(startIndex + 25 >= availableRecipes.length);
-
-        components.push(
-          new ActionRowBuilder<ButtonBuilder>().addComponents(prevButton, nextButton),
-        );
+        components.push(new ActionRowBuilder().addComponents(prevButton, nextButton));
       }
 
       const embed = new EmbedBuilder()
         .setColor(0xf39c12)
         .setTitle(t('commands/cook:title', { defaultValue: '🍳 Nova Kitchen' }))
         .setDescription(
-          `${t('commands/cook:hp', { defaultValue: '❤️ HP' })}: ${user.hp}/${user.maxHp}\n` +
-            `${t('commands/cook:stamina', { defaultValue: '⚡ Stamina' })}: ${user.stamina}/${user.maxStamina}\n` +
-            `${t('commands/cook:cost', { cost: ACTION_COST.cook, defaultValue: `💰 Cost: -${ACTION_COST.cook} stamina` })}`,
+          `${t('commands/cook:hp', { defaultValue: '❤️ HP' })}: ${stats.hp}/${stats.maxHp}\n${t('commands/cook:stamina', { defaultValue: '⚡ Stamina' })}: ${user.stamina}/${user.maxStamina}\n${t('commands/cook:cost', { cost: ACTION_COST.cook, defaultValue: `Cost: -${ACTION_COST.cook}` })}`,
         )
         .setFooter({
           text:
@@ -130,11 +173,10 @@ export class CookSelectHandler extends InteractionHandler {
                 })
               : t('commands/cook:all', { defaultValue: 'All cookable recipes' }),
         });
-
       return interaction.editReply({ embeds: [embed], components });
     }
 
-    // ===== COOKING =====
+    // COOKING
     const selectedRecipeId = (interaction as StringSelectMenuInteraction).values[0];
     const recipe = getRecipe(selectedRecipeId);
     if (!recipe) return;
@@ -142,11 +184,13 @@ export class CookSelectHandler extends InteractionHandler {
     if ((user.stamina ?? 0) < ACTION_COST.cook) {
       return interaction.editReply({
         embeds: [
-          new EmbedBuilder()
-            .setColor(0xe74c3c)
-            .setDescription(
-              t('commands/cook:low_stamina', { current: user.stamina, need: ACTION_COST.cook }),
-            ),
+          new EmbedBuilder().setColor(0xe74c3c).setDescription(
+            t('common:error.low_stamina', {
+              current: user.stamina,
+              need: ACTION_COST.cook,
+              defaultValue: `Not enough stamina (${user.stamina}/${ACTION_COST.cook})`,
+            }),
+          ),
         ],
         components: [],
       });
@@ -155,58 +199,72 @@ export class CookSelectHandler extends InteractionHandler {
     const hasIngredients = recipe.ingredients.every(
       (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
     );
-    if (!hasIngredients) {
+    if (!hasIngredients)
       return interaction.editReply({
-        embeds: [new EmbedBuilder().setColor(0xe74c3c).setDescription(t('commands/cook:missing'))],
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0xe74c3c)
+            .setDescription(t('commands/cook:missing', { defaultValue: 'Missing ingredients' })),
+        ],
         components: [],
       });
-    }
 
+    // Hapus bahan
     for (const ing of recipe.ingredients) {
-      const item = user.items.find((i) => i.itemId === ing.id)!;
-      item.qty -= ing.qty;
+      await removeItemFromInventory(userId, ing.id, ing.qty);
     }
-    user.items = user.items.filter((i) => i.qty > 0);
+
     user.stamina -= ACTION_COST.cook;
+    user.exp += recipe.exp || 0;
 
-    const hpBefore = user.hp;
-    user.hp = Math.min(user.maxHp ?? 100, hpBefore + recipe.heal);
-    const hpHealed = user.hp - hpBefore;
+    // Tambah hasil masak
+    const cookedData = COOKED_ITEMS.find((i) => i.itemId === recipe.resultItemId)!;
 
-    let buffText = '';
-    if (recipe.buff) {
-      user.buffs = (user.buffs || []).filter(
-        (b) => new Date(b.expires) > new Date() && b.type !== recipe.buff!.type,
-      );
-      user.buffs.push({
-        type: recipe.buff.type,
-        value: recipe.buff.value,
-        expires: new Date(Date.now() + recipe.buff.duration),
-      });
-      const minutes = Math.floor(recipe.buff.duration / 60000);
-      const durationText =
-        minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes}m`;
-      buffText = `\n✨ **${recipe.buff.type.toUpperCase()} +${recipe.buff.value}** (${durationText})`;
-    }
+    await addItemToInventory(
+      userId,
+      {
+        itemId: cookedData.itemId,
+        emoji: cookedData.emoji,
+        type: cookedData.type as any,
+        rarity: cookedData.rarity,
+        sellPrice: cookedData.sellPrice,
+        effects: cookedData.effects,
+      },
+      1,
+    );
 
     await user.save();
 
+    const heal = cookedData.effects?.find((e) => e.type === 'heal')?.value || 0;
+    const buff = cookedData.effects?.find((e) => e.type === 'buff');
+    const recipeName = t(`cook/recipes:${recipe.id}.name`, { defaultValue: recipe.id });
+    const cookedName = (await getItemDisplay(cookedData.itemId, t))?.name ?? cookedData.itemId;
+
     const resultEmbed = new EmbedBuilder()
       .setColor(0x2ecc71)
-      .setTitle(t('commands/cook:success_title', { name: recipe.name }))
+      .setTitle(
+        t('commands/cook:success_title', {
+          name: recipeName,
+          defaultValue: `${recipeName} cooked!`,
+        }),
+      )
       .setDescription(
-        `${recipe.emoji} **${recipe.name}** ${t('commands/cook:success_desc', { defaultValue: 'cooked successfully!' })}${buffText}`,
+        `${recipe.emoji} **${recipeName}** ${t('commands/cook:success_desc', { defaultValue: 'cooked successfully!' })}\n\n📦 ${t('commands/cook:added', { defaultValue: 'Added to inventory' })}: ${cookedData.emoji} ${cookedName}${buff ? `\n✨ Buff: +${buff.value}` : ''}`,
       )
       .addFields(
         {
-          name: t('commands/cook:hp'),
-          value:
-            hpHealed > 0 ? `${hpBefore} → ${user.hp} (+${hpHealed})` : `${user.hp}/${user.maxHp}`,
+          name: t('commands/cook:hp', { defaultValue: '❤️ HP' }),
+          value: `${stats.hp}/${stats.maxHp} (+${heal} ${t('commands/cook:when_used', { defaultValue: 'when used' })})`,
           inline: true,
         },
         {
-          name: t('commands/cook:stamina'),
+          name: t('commands/cook:stamina', { defaultValue: '⚡ Stamina' }),
           value: `${user.stamina + ACTION_COST.cook} → ${user.stamina}`,
+          inline: true,
+        },
+        {
+          name: '✨ EXP',
+          value: `+${recipe.exp || 0}`,
           inline: true,
         },
       );

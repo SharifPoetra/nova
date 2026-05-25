@@ -2,11 +2,15 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { checkLevelUp } from '../../lib/rpg/leveling';
+import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { rollExplore } from '../../lib/rpg/explorations';
 import { ACTION_COST } from '../../lib/rpg/actions';
+import { getPlayerStats } from '../../lib/rpg/combat';
+import { addItemToInventory } from '../../lib/rpg/inventory';
+import { i18nEvent } from '../../lib/i18n/display';
+import { getItemDisplay } from '../../lib/rpg/item-registry';
 
 @ApplyOptions<Command.Options>({
   name: 'explore',
@@ -45,12 +49,12 @@ export class ExploreCommand extends Command {
     }
 
     const now = Date.now();
-    const cd = 30_000;
+    const cd = 5_000;
     if (user.lastExplore && now - user.lastExplore.getTime() < cd) {
       const s = Math.ceil((cd - (now - user.lastExplore.getTime())) / 1000);
       await user.save();
       return interaction.editReply(
-        t('commands/explore:cooldown', { s, defaultValue: `⏳ Wait ${s}s more.` }),
+        t('common:error.cooldown', { s, defaultValue: `⏳ Wait ${s}s more.` }),
       );
     }
 
@@ -58,39 +62,37 @@ export class ExploreCommand extends Command {
     user.lastExplore = new Date();
 
     const outcome = rollExplore();
+    const expGain = getScaledExp(outcome.exp, user.level, 'explore'); // outcome.exp jadi base (8-12)
     user.balance += outcome.coins;
-    user.exp += outcome.exp;
+    user.exp += expGain;
+    outcome.exp = expGain;
 
     if (outcome.item) {
-      const inv = user.items.find((i) => i.itemId === outcome.item!.id);
-      if (inv) inv.qty += outcome.item.qty;
-      else user.items.push({ itemId: outcome.item.id, qty: outcome.item.qty });
-
-      await db.item.updateOne(
-        { itemId: outcome.item.id },
-        {
-          $set: {
-            name: outcome.item.name,
-            emoji: outcome.item.emoji,
-            type: outcome.item.type,
-            rarity: outcome.item.rarity,
-            sellPrice: outcome.item.sellPrice,
-            description: outcome.item.description,
-          },
-        },
-        { upsert: true },
-      );
+      await addItemToInventory(user.discordId, {
+        itemId: outcome.item.id,
+        emoji: outcome.item.emoji,
+        type: outcome.item.type,
+        rarity: outcome.item.rarity,
+        sellPrice: outcome.item.sellPrice,
+        effects: outcome.item.effects,
+      });
     }
 
     let levelUpText = '';
-    const lvl = checkLevelUp(user);
-    if (lvl) {
-      Object.assign(user, lvl);
-      levelUpText = `\n\n${t('commands/explore:levelup', { level: lvl.level, defaultValue: `🎉 **LEVEL UP → Lv.${lvl.level}**` })}`;
+    const levelUp = checkLevelUp(user);
+    if (levelUp) {
+      const stats = await getPlayerStats(user);
+      user.hp = stats.maxHp;
+      user.stamina = user.maxStamina;
+      levelUpText = `\n\n${t('common:levelup', { level: user.level, defaultValue: `🎉 **LEVEL UP → Lv.${user.level}**` })}`;
     }
 
     await user.save();
 
+    const eventText = i18nEvent('explore', outcome.id, t);
+    const itemName = outcome.item
+      ? ((await getItemDisplay(outcome.item.id, t))?.name ?? outcome.item.id)
+      : '';
     const embed = new EmbedBuilder()
       .setColor(RARITY_COLOR[outcome.rarity as keyof typeof RARITY_COLOR])
       .setTitle(
@@ -100,11 +102,11 @@ export class ExploreCommand extends Command {
         }),
       )
       .setDescription(
-        `*${outcome.text}*\n\n` +
+        `*${eventText}*\n\n` +
           `> **${t('commands/explore:coins', { coins: outcome.coins, defaultValue: `+${outcome.coins} coins` })}**\n` +
           `> **${t('commands/explore:exp', { exp: outcome.exp, defaultValue: `+${outcome.exp} EXP` })}**` +
           (outcome.item
-            ? `\n> **${t('commands/explore:item', { qty: outcome.item.qty, emoji: outcome.item.emoji, name: outcome.item.name, defaultValue: `+${outcome.item.qty}x ${outcome.item.emoji} ${outcome.item.name}` })}** ${RARITY_EMOJI[outcome.item.rarity as keyof typeof RARITY_EMOJI]}`
+            ? `\n> **${t('commands/explore:item', { qty: outcome.item.qty, emoji: outcome.item.emoji, name: itemName, defaultValue: `+${outcome.item.qty}x ${outcome.item.emoji} ${itemName}` })}** ${RARITY_EMOJI[outcome.item.rarity as keyof typeof RARITY_EMOJI]}`
             : '') +
           levelUpText,
       )

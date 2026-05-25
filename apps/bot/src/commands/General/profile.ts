@@ -1,12 +1,17 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
-import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
+import { fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
 import { getClass } from '../../lib/rpg/classes';
 import { BASE_MONSTERS } from '../../lib/rpg/monsters';
 import { getExpNeeded } from '../../lib/rpg/leveling';
 import { colorBar } from '../../lib/utils';
+import { getPlayerStats } from '../../lib/rpg/combat';
+import { SKILLS } from '../../lib/rpg/skills';
+import { localized } from '../../lib/i18n/localize';
+import { i18nMonster } from '../../lib/i18n/display';
+import { getItemDisplay } from '../../lib/rpg/item-registry';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',
@@ -15,22 +20,23 @@ import { colorBar } from '../../lib/utils';
 })
 export class ProfileCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
+    const name = localized('commands/names:profile');
+    const description = localized('commands/descriptions:profile');
+    const optDesc = localized('commands/descriptions:profile_option_user');
+
     registry.registerChatInputCommand((builder) =>
-      applyLocalizedBuilder(
-        builder,
-        'commands/names:profile',
-        'commands/descriptions:profile',
-      ).addUserOption((o) =>
-        o
-          .setName('user')
-          .setDescription('User to view')
-          .setDescriptionLocalizations({
-            'en-US': 'User to view',
-            'en-GB': 'User to view',
-            id: 'User yang ingin dilihat',
-          })
-          .setRequired(false),
-      ),
+      builder
+        .setName(name.default)
+        .setNameLocalizations(name.localizations)
+        .setDescription(description.default)
+        .setDescriptionLocalizations(description.localizations)
+        .addStringOption((option) =>
+          option
+            .setName('user')
+            .setDescription(optDesc.default)
+            .setDescriptionLocalizations(optDesc.localizations)
+            .setRequired(false),
+        ),
     );
   }
 
@@ -63,12 +69,15 @@ export class ProfileCommand extends Command {
         applyPassiveRegen(userData);
         await userData.save();
       } else {
-        userData.buffs = (userData.buffs || []).filter((b) => new Date(b.expires) > new Date());
+        userData.buffs = (userData.buffs || []).filter(
+          (b) => new Date(b.expires ?? 0) > new Date(),
+        );
       }
 
+      const stats = await getPlayerStats(userData);
       const now = Date.now();
-      const hp = userData.hp ?? 100;
-      const maxHp = userData.maxHp ?? 100;
+      const hp = stats.hp;
+      const maxHp = stats.maxHp;
       const stamina = userData.stamina ?? 100;
       const maxStamina = userData.maxStamina ?? 100;
       const level = userData.level ?? 1;
@@ -85,35 +94,93 @@ export class ProfileCommand extends Command {
         defaultValue: classData?.name ?? 'Adventurer',
       });
 
-      const bonusAtk = getAtkBuff(userData);
-      const activeBuffs = (userData.buffs || []).filter((b) => new Date(b.expires) > new Date());
+      const bonusAtk = getAtkBuff(userData); // desimal 0.3
+      const activeBuffs = (userData.buffs || []).filter(
+        (b) => new Date(b.expires ?? 0) > new Date(),
+      );
 
       const buffText = activeBuffs.length
         ? activeBuffs
             .map((b) => {
-              const mins = Math.max(0, Math.ceil((new Date(b.expires).getTime() - now) / 60000));
+              const mins = Math.max(
+                0,
+                Math.ceil((new Date(b.expires ?? 0).getTime() - now) / 60000),
+              );
               const icon = b.type === 'atk' ? '⚔️' : b.type === 'stamina_regen' ? '⚡' : '✨';
               const label = t(`commands/profile:buff_${b.type}`, { defaultValue: b.type });
-              return `${icon} ${label} +${b.value} (${mins}m)`;
+              // Ubah value jadi persen untuk display
+              const displayValue =
+                b.type === 'atk' || b.type === 'hp' || b.type === 'def'
+                  ? `${Math.round(b.value * 100)}%`
+                  : `+${b.value}`;
+              return `${icon} ${label} ${displayValue} (${mins}m)`;
             })
             .join('\n')
         : t('commands/profile:no_buffs', { defaultValue: 'None' });
 
+      const bonusAtkPercent = Math.round(bonusAtk * 100);
       const atkDisplay =
-        bonusAtk > 0
-          ? `**${userData.attack ?? 10}** (+${bonusAtk}) 🔥`
-          : `**${userData.attack ?? 10}**`;
+        bonusAtk > 0 ? `**${stats.atk}** (+${bonusAtkPercent}%) 🔥` : `**${stats.atk}**`;
+
+      const equippedIds = [
+        userData.equipped?.weapon,
+        userData.equipped?.armor,
+        userData.equipped?.helmet,
+        userData.equipped?.accessory,
+        userData.equipped?.tool,
+      ].filter(Boolean) as string[];
+
+      const equippedData = equippedIds.length
+        ? await this.container.db.item.find({ itemId: { $in: equippedIds } }).lean()
+        : [];
+      const eqMap = new Map(equippedData.map((i) => [i.itemId, i]));
+
+      const weapon = userData.equipped?.weapon ? eqMap.get(userData.equipped.weapon) : null;
+      const armor = userData.equipped?.armor ? eqMap.get(userData.equipped.armor) : null;
+      const helmet = userData.equipped?.helmet ? eqMap.get(userData.equipped.helmet) : null;
+      const accessory = userData.equipped?.accessory
+        ? eqMap.get(userData.equipped.accessory)
+        : null;
+      const tool = userData.equipped?.tool ? eqMap.get(userData.equipped.tool) : null;
+
+      const weaponName = weapon ? (await getItemDisplay(weapon.itemId, t))?.name : null;
+      const armorName = armor ? (await getItemDisplay(armor.itemId, t))?.name : null;
+      const helmetName = helmet ? (await getItemDisplay(helmet.itemId, t))?.name : null;
+      const accessoryName = accessory ? (await getItemDisplay(accessory.itemId, t))?.name : null;
+      const toolName = tool ? (await getItemDisplay(tool.itemId, t))?.name : null;
+
+      const equipText =
+        [
+          weapon ? `${weapon.emoji} ${weaponName}` : null,
+          armor ? `${armor.emoji} ${armorName}` : null,
+          helmet ? `${helmet.emoji} ${helmetName}` : null,
+          accessory ? `${accessory.emoji} ${accessoryName}` : null,
+          tool ? `${tool.emoji} ${toolName}` : null,
+        ]
+          .filter(Boolean)
+          .join(' • ') || t('commands/profile:no_equipment', { defaultValue: 'None' });
+
+      const skillText = stats.availableSkills.length
+        ? stats.availableSkills
+            .map((id) => {
+              const s = SKILLS[id];
+              return s ? `${s.emoji ?? '✨'} **${s.name}**` : null;
+            })
+            .filter(Boolean)
+            .join(' • ')
+        : t('commands/profile:no_skills', { defaultValue: 'None' });
 
       const nextUnlock = BASE_MONSTERS.filter((m) => m.minLevel > level).sort(
         (a, b) => a.minLevel - b.minLevel,
       )[0];
+      const nextUnlockName = nextUnlock ? i18nMonster('hunt', nextUnlock.id, t) : '';
 
       const footerText = nextUnlock
         ? t('commands/profile:footer_next', {
-            name: nextUnlock.name,
+            name: nextUnlockName,
             level: nextUnlock.minLevel,
             exp: expNext,
-            defaultValue: `🎯 ${nextUnlock.name} unlocks at Lv.${nextUnlock.minLevel} • ${expNext} EXP left`,
+            defaultValue: `🎯 ${nextUnlockName} unlocks at Lv.${nextUnlock.minLevel} • ${expNext} EXP left`,
           })
         : t('commands/profile:footer_max', {
             defaultValue: '🏆 All monsters unlocked! You are a Nova legend',
@@ -137,12 +204,12 @@ export class ProfileCommand extends Command {
         .addFields(
           {
             name: t('commands/profile:wallet', { defaultValue: '💰 Wallet' }),
-            value: `**${balance.toLocaleString(t('common:locale', { defaultValue: 'en-US' }))}**`,
+            value: `**${balance.toLocaleString(interaction.locale)}**`,
             inline: true,
           },
           {
             name: t('commands/profile:bank', { defaultValue: '🏦 Bank' }),
-            value: `**${bank.toLocaleString(t('common:locale', { defaultValue: 'en-US' }))}**`,
+            value: `**${bank.toLocaleString(interaction.locale)}**`,
             inline: true,
           },
           {
@@ -172,6 +239,31 @@ export class ProfileCommand extends Command {
             name: t('commands/profile:attack', { defaultValue: '🗡️ Attack' }),
             value: atkDisplay,
             inline: true,
+          },
+          {
+            name: '🛡️ DEF',
+            value: `**${stats.def}**`,
+            inline: true,
+          },
+          {
+            name: '💥 Crit',
+            value: `**${(stats.critRate * 100).toFixed(0)}%** / **${(stats.critDmg * 100).toFixed(0)}%**`,
+            inline: true,
+          },
+          {
+            name: '\u200b',
+            value: '\u200b',
+            inline: true,
+          },
+          {
+            name: t('commands/profile:equipment', { defaultValue: '⚔️ Equipment' }),
+            value: equipText,
+            inline: false,
+          },
+          {
+            name: '✨ Skills',
+            value: skillText,
+            inline: false,
           },
           {
             name: t('commands/profile:buffs', { defaultValue: '✨ Active Buffs' }),

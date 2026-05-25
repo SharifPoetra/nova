@@ -2,84 +2,102 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { checkLevelUp } from '../../lib/rpg/leveling';
+import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RARITY_COLOR } from '../../lib/utils';
 import { catchFish } from '../../lib/rpg/fishes';
 import { ACTION_COST } from '../../lib/rpg/actions';
+import { getPlayerStats } from '../../lib/rpg/combat';
+import { addItemToInventory } from '../../lib/rpg/inventory';
+import { Item } from '@nova/db';
+import { i18nFish } from '../../lib/i18n/display';
+import { getItemDisplay } from '../../lib/rpg/item-registry';
 
-@ApplyOptions<Command.Options>({
+@ApplyOptions({
   name: 'fish',
   description: 'Go fishing for fish to sell or cook',
   fullCategory: ['RPG'],
 })
 export class FishCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((b) =>
-      applyLocalizedBuilder(b, 'commands/names:fish', 'commands/descriptions:fish'),
+    registry.registerChatInputCommand((builder) =>
+      applyLocalizedBuilder(builder, 'commands/names:fish', 'commands/descriptions:fish'),
     );
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     const t = await fetchT(interaction);
     await interaction.deferReply();
+
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user)
       return interaction.editReply(
-        t('common:need_start', { defaultValue: '❌  Use /start first.' }),
+        t('common:need_start', { defaultValue: '❌ Use /start first.' }),
       );
 
     applyPassiveRegen(user);
     const now = Date.now();
-    const cd = 30_000;
+    const cd = 20_000;
     if (now - (user.lastFish?.getTime() ?? 0) < cd) {
       const wait = Math.ceil((cd - (now - (user.lastFish?.getTime() ?? 0))) / 1000);
       await user.save();
       return interaction.editReply(
-        t('commands/fish:cooldown', { wait, defaultValue: `🎣 Rod is still wet! Wait ${wait}s` }),
+        t('common:error.cooldown', { wait, defaultValue: `🎣 Rod is still wet! Wait ${wait}s` }),
       );
     }
+
     if (user.stamina < ACTION_COST.fish) {
       await user.save();
       return interaction.editReply(
-        t('commands/fish:low_stamina', {
+        t('common:error.low_stamina', {
           current: user.stamina,
-          cost: ACTION_COST.fish,
+          need: ACTION_COST.fish,
           defaultValue: `⚡ Not enough stamina (${user.stamina}/${ACTION_COST.fish})`,
         }),
       );
     }
 
-    const fish = catchFish();
+    const toolId = user.equipped?.tool ?? null;
+    let fishBonus = 0;
+    let rodName = t('commands/fish:no_rod', { defaultValue: 'Bare Hands' });
 
+    if (toolId) {
+      const rod = await Item.findOne({ itemId: toolId }).lean();
+      if (rod?.stats?.fishBonus) {
+        fishBonus = rod.stats.fishBonus;
+        const rodDisplayName = (await getItemDisplay(toolId, t))?.name ?? toolId;
+        rodName = `${rod.emoji} ${rodDisplayName}`;
+      }
+    }
+
+    const fish = catchFish(fishBonus);
     user.stamina -= ACTION_COST.fish;
     user.lastFish = new Date();
-    user.exp = (user.exp ?? 0) + fish.xp;
 
-    const inv = user.items.find((i) => i.itemId === fish.id);
-    if (inv) inv.qty += 1;
-    else user.items.push({ itemId: fish.id, qty: 1 });
+    const expGain = getScaledExp(fish.xp, user.level, 'fish');
+    user.exp += expGain;
 
-    await this.container.db.item.updateOne(
-      { itemId: fish.id },
+    const fishName = i18nFish(fish.id, t);
+
+    await addItemToInventory(
+      user.discordId,
       {
-        $set: {
-          name: fish.name,
-          emoji: fish.emoji,
-          type: fish.type,
-          rarity: fish.rarity,
-          sellPrice: fish.sellPrice,
-          description: fish.description,
-        },
+        itemId: fish.id,
+        emoji: fish.emoji,
+        type: fish.type,
+        rarity: fish.rarity,
+        sellPrice: fish.sellPrice,
       },
-      { upsert: true },
+      1,
     );
 
     let levelUpText = '';
-    const levelData = checkLevelUp(user);
-    if (levelData) {
-      Object.assign(user, levelData);
-      levelUpText = `\n${t('commands/fish:levelup', { level: levelData.level, defaultValue: `🎉 **LEVEL UP! → Lv.${levelData.level}**` })}`;
+    const levelUp = checkLevelUp(user);
+    if (levelUp) {
+      const stats = await getPlayerStats(user);
+      user.hp = stats.maxHp;
+      user.stamina = user.maxStamina;
+      levelUpText = `${t('common:levelup', { level: user.level })}`;
     }
 
     await user.save();
@@ -96,12 +114,17 @@ export class FishCommand extends Command {
       .setDescription(
         t('commands/fish:caught', {
           emoji: fish.emoji,
-          name: fish.name,
-          rarity: fish.rarity,
-          defaultValue: `**${fish.emoji} ${fish.name}** caught!\n*${fish.rarity}*`,
+          name: fishName,
+          rarity: t(`common:rarity.${fish.rarity.toLowerCase()}`, { defaultValue: fish.rarity }),
+          defaultValue: `**${fish.emoji} ${fishName}** caught!\n*${fish.rarity}*`,
         }) + levelUpText,
       )
       .addFields(
+        {
+          name: t('commands/fish:rod', { defaultValue: '🎣 Rod' }),
+          value: rodName + (fishBonus > 0 ? ` (+${Math.round(fishBonus * 100)}% rare)` : ''),
+          inline: true,
+        },
         {
           name: t('commands/fish:sell', { defaultValue: '💰 Sell' }),
           value: t('commands/fish:sell_value', {
@@ -111,27 +134,15 @@ export class FishCommand extends Command {
           inline: true,
         },
         {
-          name: t('commands/fish:cook', { defaultValue: '🍳 Cook' }),
-          value: t('commands/fish:cook_value', { defaultValue: 'Can be used for Fish Soup' }),
-          inline: true,
-        },
-        {
           name: t('commands/fish:exp', { defaultValue: '✨ EXP' }),
-          value: `+${fish.xp}`,
-          inline: true,
-        },
-        {
-          name: t('commands/fish:stamina', { defaultValue: '⚡ Stamina' }),
-          value: t('commands/fish:stamina_value', {
-            before: user.stamina + ACTION_COST.fish,
-            after: user.stamina,
-            defaultValue: `${user.stamina + ACTION_COST.fish} → ${user.stamina}`,
-          }),
+          value: `+${expGain}`,
           inline: true,
         },
       )
       .setFooter({
-        text: t('commands/fish:footer', { defaultValue: 'Use /cook to heal before hunt' }),
+        text: t('commands/fish:footer', {
+          defaultValue: 'Equip a fishing rod in /inventory for better catches!',
+        }),
       });
 
     return interaction.editReply({ embeds: [embed] });

@@ -22,9 +22,10 @@
   "cancel": "Cancel",
   "cancelled": "❌ Purchase cancelled.",
   "success_title": "✅ Purchase Successful",
-  "success_desc": "{{emoji}} **{{name}}** has been used!",
+  "success_desc": "{{emoji}} **{{name}}** added to inventory!",
   "field_balance": "💰 Balance",
   "field_stamina": "⚡ Stamina",
   "field_hp": "❤️ HP",
-  "coins": "coins"
+  "coins": "coins",
+  "use_hint": "Use /inventory to consume"
 }

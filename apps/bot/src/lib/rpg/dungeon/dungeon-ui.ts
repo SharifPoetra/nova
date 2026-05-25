@@ -192,7 +192,6 @@ export function buildBattleEmbed(params: {
   action: string;
   isBoss: boolean;
   isElite: boolean;
-  skillCd: number;
   t: TFunction;
 }) {
   const { t } = params;
@@ -206,16 +205,14 @@ export function buildBattleEmbed(params: {
         inline: true,
       },
       {
-        name: `${params.monsterEmoji} HP`,
+        name: `${params.monsterEmoji} ${params.monsterName}`,
         value: `${ratioBar(Math.max(0, params.monsterHp), params.monsterMaxHp)} ${Math.max(0, params.monsterHp)}/${params.monsterMaxHp}`,
         inline: true,
       },
     )
     .setColor(params.isElite ? 0xf1c40f : params.isBoss ? 0xe74c3c : 0xe67e22)
     .setFooter({
-      text: params.skillCd
-        ? t('commands/dungeon:skill_cd', { cd: params.skillCd })
-        : t('commands/dungeon:choose_action'),
+      text: t('commands/dungeon:choose_action'),
     });
 }
 
@@ -271,6 +268,10 @@ export function getMainButtons(t: TFunction) {
       .setLabel(t('commands/dungeon:btn_next', { defaultValue: '➡️ Next Room' }))
       .setStyle(ButtonStyle.Primary),
     new ButtonBuilder()
+      .setCustomId('inventory')
+      .setLabel(t('commands/dungeon:btn_bag', { defaultValue: '🎒 Bag' }))
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
       .setCustomId('map')
       .setLabel(t('commands/dungeon:btn_map', { defaultValue: '🗺️ Map' }))
       .setStyle(ButtonStyle.Secondary),
@@ -281,28 +282,30 @@ export function getMainButtons(t: TFunction) {
   );
 }
 
-export function getBattleButtons(skillName: string, skillCd: number, t: TFunction) {
-  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+export function getBattleButtons(skills: { id: string; name: string; cd: number }[], t: TFunction) {
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId('atk')
       .setLabel(t('commands/dungeon:btn_attack', { defaultValue: '🗡️ Attack' }))
       .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId('def')
-      .setLabel(t('commands/dungeon:btn_defend', { defaultValue: '🛡️ Defend' }))
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('skl')
-      .setLabel(
-        t('commands/dungeon:btn_skill', {
-          skill: skillName,
-          cd: skillCd ? ` (${skillCd})` : '',
-          defaultValue: `✨ ${skillName}${skillCd ? ` (${skillCd})` : ''}`,
-        }),
-      )
-      .setStyle(ButtonStyle.Success)
-      .setDisabled(skillCd > 0),
   );
+
+  for (const s of skills.slice(0, 4)) {
+    row.addComponents(
+      new ButtonBuilder()
+        .setCustomId(`skl_${s.id}`)
+        .setLabel(
+          t('commands/dungeon:btn_skill', {
+            skill: s.name,
+            cd: s.cd ? ` (${s.cd})` : '',
+            defaultValue: `✨ ${s.name}${s.cd ? ` (${s.cd})` : ''}`,
+          }),
+        )
+        .setStyle(ButtonStyle.Success)
+        .setDisabled(s.cd > 0),
+    );
+  }
+  return row;
 }
 
 export function getContinueButtons(nextFloor: number, t: TFunction) {

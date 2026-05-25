@@ -1,0 +1,17 @@
+{
+  "mushroom": { "name": "Jamur Hutan", "desc": "Jamur liar, bahan dasar sup jamur" },
+  "chili": { "name": "Cabai Liar", "desc": "Pedas menyengat, untuk spicy stew" },
+  "wood": { "name": "Kayu", "desc": "Kayu dasar untuk crafting" },
+  "stone": { "name": "Batu", "desc": "Batu dasar untuk perkakas" },
+  "string": { "name": "Tali Serat", "desc": "Tali dari serat tumbuhan" },
+  "honey": { "name": "Madu Liar", "desc": "Madu hutan manis, +15 HP" },
+  "herb": { "name": "Daun Herbal", "desc": "Daun obat, bahan herbal tea" },
+  "bark": { "name": "Kulit Kayu", "desc": "Kulit pohon tua untuk ramuan mana" },
+  "iron_ore": { "name": "Bijih Besi", "desc": "Bijih besi mentah untuk ditempa" },
+  "mythril_ore": { "name": "Bijih Mythril", "desc": "Logam langka berkilau ungu" },
+  "mana_crystal": { "name": "Kristal Mana", "desc": "Kristal biru berisi energi sihir" },
+  "moonflower": { "name": "Moonflower", "desc": "Bunga yang mekar hanya saat bulan purnama" },
+  "monster_egg": { "name": "Telur Monster", "desc": "Telur langka untuk golden omelette" },
+  "gold_nugget": { "name": "Bongkah Emas", "desc": "Emas murni untuk craft tingkat tinggi" },
+  "ancient_relic": { "name": "Relik Kuno", "desc": "Artefak dewa yang hilang" }
+}

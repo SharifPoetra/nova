@@ -1,19 +1,6 @@
-import type { HydratedDocument } from 'mongoose';
+import type { IUser } from '@nova/db';
 
-interface Buff {
-  type: 'atk' | 'stamina_regen' | string;
-  value: number;
-  expires: Date;
-}
-
-interface RPGUser {
-  buffs?: Buff[];
-  stamina: number;
-  maxStamina: number;
-  lastPassive?: Date | null;
-}
-
-export function applyPassiveRegen(user: HydratedDocument<RPGUser> | RPGUser) {
+export function applyPassiveRegen(user: IUser) {
   const now = new Date();
   const last = user.lastPassive ?? now;
 
@@ -24,7 +11,7 @@ export function applyPassiveRegen(user: HydratedDocument<RPGUser> | RPGUser) {
 
   // 1. Ambil semua buff regen yang pernah aktif sejak last
   const regenBuffs = (user.buffs || []).filter(
-    (b) => b.type === 'stamina_regen' && new Date(b.expires) > last,
+    (b) => b.type === 'stamina_regen' && new Date(b.expires ?? 0) > last,
   );
 
   let totalRegen = 0;
@@ -32,7 +19,7 @@ export function applyPassiveRegen(user: HydratedDocument<RPGUser> | RPGUser) {
 
   // 2. Perfect stack: hitung per-buff sampai waktu expired masing-masing
   for (const buff of regenBuffs) {
-    const buffEnd = new Date(Math.min(new Date(buff.expires).getTime(), now.getTime()));
+    const buffEnd = new Date(Math.min(new Date(buff.expires ?? 0).getTime(), now.getTime()));
     const effectiveMs = buffEnd.getTime() - last.getTime();
 
     if (effectiveMs > 0) {
@@ -51,7 +38,7 @@ export function applyPassiveRegen(user: HydratedDocument<RPGUser> | RPGUser) {
   }
 
   // 4. Bersihkan buff expired
-  user.buffs = (user.buffs || []).filter((b) => new Date(b.expires) > now);
+  user.buffs = (user.buffs || []).filter((b) => new Date(b.expires ?? 0) > now);
 
   const totalMinsProcessed = Math.floor((furthestProcessed.getTime() - last.getTime()) / 60000);
   if (totalMinsProcessed > 0) {
@@ -59,8 +46,12 @@ export function applyPassiveRegen(user: HydratedDocument<RPGUser> | RPGUser) {
   }
 }
 
-export function getAtkBuff(user: HydratedDocument<RPGUser> | RPGUser): number {
+export function getAtkBuff(user: IUser): number {
   const now = new Date();
-  user.buffs = (user.buffs || []).filter((b) => new Date(b.expires) > now);
-  return user.buffs.filter((b) => b.type === 'atk').reduce((s, b) => s + b.value, 0);
+  // Clean expired
+  user.buffs = (user.buffs || []).filter((b) => new Date(b.expires ?? 0) > now);
+  // Sum buff yang punya turnsLeft > 0 atau expires > now
+  return user.buffs
+    .filter((b) => b.type === 'atk' && ((b.turnsLeft ?? 0) > 0 || new Date(b.expires ?? 0) > now))
+    .reduce((s, b) => s + b.value, 0);
 }

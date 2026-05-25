@@ -1,0 +1,9 @@
+{
+  "choose": "Choose recipe — Page {{page}}/{{total}}",
+  "none": "📦 No craftable items! Get materials from /explore or /hunt",
+  "need_stamina": "⚡ Need {{cost}} stamina",
+  "missing": "📦 Missing materials",
+  "success_title": "✅ Crafted!",
+  "success_desc": "crafted successfully!",
+  "added": "Added to inventory"
+}

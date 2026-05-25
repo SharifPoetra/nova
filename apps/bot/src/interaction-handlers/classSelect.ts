@@ -3,6 +3,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { ButtonInteraction, EmbedBuilder, MessageFlags } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
 import { getClass } from '../lib/rpg/classes';
+import { SKILLS, getPassiveSkills } from '../lib/rpg/skills';
 
 @ApplyOptions<InteractionHandler.Options>({
   interactionHandlerType: InteractionHandlerTypes.Button,
@@ -29,20 +30,17 @@ export class ClassSelectHandler extends InteractionHandler {
     if (exists?.class) {
       const existingClass = getClass(exists.class);
       const embed = new EmbedBuilder()
-        .setAuthor({
-          name: i.user.username,
-          iconURL: i.user.displayAvatarURL(),
-        })
+        .setAuthor({ name: i.user.username, iconURL: i.user.displayAvatarURL() })
         .setTitle(t('commands/start:already_title'))
         .setDescription(
           t('commands/start:already_desc', { class: existingClass?.name ?? exists.class }),
         )
-        .setColor(existingClass?.color ?? 0x95a5a6)
+        .setColor(0x95a5a6)
         .setFooter({ text: t('commands/start:already_footer') });
       return i.update({ embeds: [embed], components: [] });
     }
 
-    const data = getClass(key);
+    const data = getClass(key as 'warrior' | 'mage' | 'rogue');
     if (!data) {
       return i.reply({
         content: t('commands/start:not_found', { defaultValue: 'Class not found.' }),
@@ -50,22 +48,36 @@ export class ClassSelectHandler extends InteractionHandler {
       });
     }
 
+    const skillList = data.skills
+      .map((s) => {
+        const sk = SKILLS[s.id];
+        return `${sk?.emoji ?? ''} **${sk?.name ?? s.id}** (Lv.${s.unlock})`;
+      })
+      .join(' • ');
+
+    const dummyUser = { class: key, level: 99 } as any;
+    const passives = getPassiveSkills(dummyUser);
+    const BASE_STAMINA = 100;
+
     await this.container.db.user.findOneAndUpdate(
       { discordId: ownerId },
       {
         $set: {
-          class: data.key,
+          class: key,
           username: i.user.username,
-          hp: data.hp,
-          maxHp: data.hp,
-          attack: data.atk,
-          maxStamina: data.stamina,
-          stamina: data.stamina,
+          hp: data.baseHp + 10,
+          maxHp: data.baseHp,
+          attack: data.baseAtk,
+          critRate: data.baseCritRate,
+          critDamage: 2.0,
+          maxStamina: BASE_STAMINA,
+          stamina: BASE_STAMINA,
           level: 1,
           exp: 0,
           balance: 1000,
           bank: 0,
           items: [],
+          equipped: { weapon: null, helmet: null, armor: null, accessory: null, tool: null },
           createdAt: new Date(),
         },
       },
@@ -90,31 +102,35 @@ export class ClassSelectHandler extends InteractionHandler {
       )
       .setDescription(
         t('commands/start:awakened_desc', {
-          desc: data.desc,
-          defaultValue: `*${data.desc}*\n\nWelcome to Nova Chronicles. Your journey begins.`,
+          desc: data.description,
+          defaultValue: `*${data.description}*\n\nWelcome to Nova Chronicles. Your journey begins.`,
         }),
       )
       .addFields(
+        { name: '❤️ HP', value: `**${data.baseHp + 10}**`, inline: true },
+        { name: '🗡️ ATK', value: `**${data.baseAtk}**`, inline: true },
+        { name: '⚡ Stamina', value: `**${BASE_STAMINA}**`, inline: true },
         {
-          name: t('commands/start:hp', { defaultValue: '❤️ HP' }),
-          value: `**${data.hp}**`,
+          name: '🎯 Crit Rate',
+          value: `**${(data.baseCritRate * 100).toFixed(0)}%**`,
           inline: true,
         },
-        {
-          name: t('commands/start:atk', { defaultValue: '🗡️ ATK' }),
-          value: `**${data.atk}**`,
-          inline: true,
-        },
-        {
-          name: t('commands/start:stamina', { defaultValue: '⚡ Stamina' }),
-          value: `**${data.stamina}**`,
-          inline: true,
-        },
-        {
-          name: t('commands/start:starting', { defaultValue: '💰 Starting Capital' }),
-          value: `**1,000** ${t('commands/sell:coins', { defaultValue: 'coins' })}`,
-          inline: true,
-        },
+        { name: '✨ Skills', value: skillList, inline: false },
+        { name: '💰 Starting Capital', value: `**1,000** coins`, inline: true },
+        ...(passives.length
+          ? [
+              {
+                name: '🔮 Passive',
+                value: passives
+                  .map(
+                    (p) =>
+                      `${p.emoji} **${p.name}** — Lv.${p.requiredLevel ?? 1}\n*${p.description}*`,
+                  )
+                  .join('\n\n'),
+                inline: false,
+              },
+            ]
+          : []),
       )
       .setColor(data.color)
       .setFooter({

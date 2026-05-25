@@ -1,0 +1,22 @@
+{
+  "mist": { "text": "Thick fog, you only gain experience." },
+  "gold_coins": { "text": "Gold coins by the tree roots." },
+  "mushroom_found": { "text": "You pick forest mushrooms." },
+  "chili_found": { "text": "Wild chili bush discovered!" },
+  "wood_found": { "text": "You find a fallen log." },
+  "stone_found": { "text": "You gather small stones." },
+  "string_found": { "text": "Plant fibers for rope." },
+  "forest_slime": { "text": "You slash a forest slime!" },
+  "beehive": { "text": "Small beehive falls from tree." },
+  "herb_found": { "text": "Glowing herbal leaf in swamp." },
+  "bark_found": { "text": "Ancient bark for potions." },
+  "iron_vein": { "text": "You discover an iron vein!" },
+  "mythril_vein": { "text": "Purple gleam of mythril ore!" },
+  "ancient_chest": { "text": "Dusty ancient chest opens!" },
+  "mana_crystal_found": { "text": "Small mana crystal shines." },
+  "moonflower_found": { "text": "You find a rare moonlight flower!" },
+  "monster_egg_found": { "text": "Small monster egg still warm." },
+  "honey_altar": { "text": "DUNGEON! Sacred honey altar." },
+  "buried_treasure": { "text": "TREASURE! Buried gold chest!" },
+  "ancient_ruins": { "text": "You discover ancient god ruins!" }
+}

@@ -1,0 +1,17 @@
+{
+  "mushroom": { "name": "Forest Mushroom", "desc": "Wild mushroom, base for mushroom soup" },
+  "chili": { "name": "Wild Chili", "desc": "Fiery hot, for spicy stew" },
+  "wood": { "name": "Wood", "desc": "Basic wood for crafting" },
+  "stone": { "name": "Stone", "desc": "Basic stone for tools" },
+  "string": { "name": "Fiber String", "desc": "String made from plant fibers" },
+  "honey": { "name": "Wild Honey", "desc": "Sweet forest honey, +15 HP" },
+  "herb": { "name": "Herbal Leaf", "desc": "Medicinal leaf for herbal tea" },
+  "bark": { "name": "Tree Bark", "desc": "Ancient bark for mana potions" },
+  "iron_ore": { "name": "Iron Ore", "desc": "Raw iron ore for smithing" },
+  "mythril_ore": { "name": "Mythril Ore", "desc": "Rare purple-shimmering metal" },
+  "mana_crystal": { "name": "Mana Crystal", "desc": "Blue crystal filled with magic" },
+  "moonflower": { "name": "Moonflower", "desc": "Blooms only under full moon" },
+  "monster_egg": { "name": "Monster Egg", "desc": "Rare egg for golden omelette" },
+  "gold_nugget": { "name": "Gold Nugget", "desc": "Pure gold for high-tier crafting" },
+  "ancient_relic": { "name": "Ancient Relic", "desc": "Lost artifact of the gods" }
+}
