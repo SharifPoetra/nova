@@ -3,15 +3,9 @@ import { IUser } from '@nova/db';
 import { sleep } from '../../utils';
 import { RunState } from './dungeon-state';
 import { buildBattleEmbed, getBattleButtons } from './dungeon-ui';
-import {
-  getPlayerStats,
-  calculateDamage,
-  getSkillCooldown,
-  setSkillCooldown,
-  tickSkillCooldowns,
-  tickBuffs,
-} from '../combat';
-import { getSkill, SkillContext, type SkillData } from '../skills';
+import { getSkillCooldown } from '../combat';
+import { getSkill, type SkillData } from '../skills';
+import { BattleEngine } from '../battle-engine';
 import type { TFunction } from 'i18next';
 import { i18nMonster } from '../../i18n/display';
 
@@ -31,7 +25,6 @@ interface BattleParams {
 export async function runInteractiveBattle(params: BattleParams) {
   const { player, monster, floor, lore, isBoss, isElite, state, msg, username, t } = params;
   const monsterName = i18nMonster('dungeon', monster.id, t);
-  let stats = await getPlayerStats(player);
 
   const baseHp = 50 + floor * 8;
   const baseAtk = 8 + floor * 1.5;
@@ -41,26 +34,32 @@ export async function runInteractiveBattle(params: BattleParams) {
   const monsterAtk = Math.floor(isBoss ? baseAtk * 2.2 : baseAtk);
   const monsterDef = Math.floor(floor * 0.5);
 
-  let monsterHp = monsterMaxHp;
-  let playerHp = stats.hp;
-  let monsterStunned = 0;
-
-  const playerSkills = stats.availableSkills
-    .map((id) => getSkill(id))
-    .filter(Boolean) as SkillData[];
-
   const battleLog: string[] = [];
-  battleLog.push(
-    t('commands/dungeon:battle_spawn', {
-      emoji: monster.emoji,
+
+  const engine = new BattleEngine(
+    player,
+    {
+      id: monster.id,
       name: monsterName,
-      elite: isElite ? t('commands/dungeon:elite_tag', { defaultValue: ' **ELITE!**' }) : '',
-      defaultValue: `**${monster.emoji} ${monsterName}** appeared!${isElite ? ' **ELITE!**' : ''}`,
-    }),
+      emoji: monster.emoji,
+      hp: monsterMaxHp,
+      maxHp: monsterMaxHp,
+      atk: monsterAtk,
+      def: monsterDef,
+      element: 'phys',
+      isBoss,
+      isElite,
+    },
+    {
+      onLog: (m) => battleLog.push(m),
+    },
   );
 
+  await engine.init();
+  let stats = engine.playerStats;
+
   const updateBattle = async (showButtons = true) => {
-    const skillButtons = playerSkills.map((s) => ({
+    const skillButtons = engine.getPlayerSkills().map((s) => ({
       id: s.id,
       name: s.name,
       cd: getSkillCooldown(player, s.id),
@@ -69,10 +68,10 @@ export async function runInteractiveBattle(params: BattleParams) {
     const embed = buildBattleEmbed({
       monsterName,
       monsterEmoji: monster.emoji,
-      monsterHp,
+      monsterHp: engine.enemyHp,
       monsterMaxHp,
       playerName: username,
-      playerHp,
+      playerHp: player.hp,
       playerMaxHp: stats.maxHp,
       lore,
       action: battleLog.slice(-5).join('\n'),
@@ -82,14 +81,13 @@ export async function runInteractiveBattle(params: BattleParams) {
     });
 
     const components = showButtons ? [getBattleButtons(skillButtons, t)] : [];
-
     await msg.edit({ embeds: [embed], components });
   };
 
   await updateBattle(true);
   await sleep(600);
 
-  while (monsterHp > 0 && playerHp > 0) {
+  while (!engine.isBattleOver()) {
     await updateBattle(true);
 
     const turn = await msg
@@ -103,8 +101,7 @@ export async function runInteractiveBattle(params: BattleParams) {
 
     if (!turn) {
       await updateBattle(false);
-      const { damage } = calculateDamage(stats, { def: monsterDef }, 1.0);
-      monsterHp -= damage;
+      const { damage } = await engine.playerAttack('basic');
       state.dealt += damage;
       battleLog.push(t('commands/dungeon:battle_auto', { damage }));
       await sleep(700);
@@ -113,100 +110,37 @@ export async function runInteractiveBattle(params: BattleParams) {
       await updateBattle(false);
 
       if (turn.customId === 'atk') {
-        const { damage, isCrit } = calculateDamage(stats, { def: monsterDef }, 1.0);
-        monsterHp -= damage;
+        const { damage } = await engine.playerAttack('basic');
         state.dealt += damage;
-        battleLog.push(
-          t('commands/dungeon:player_hit', { damage, crit: `${isCrit ? '💥CRIT' : ''}` }),
-        );
       } else if (turn.customId.startsWith('skl_')) {
         const skillId = turn.customId.replace('skl_', '');
-        const playerSkill = getSkill(skillId);
-        if (!playerSkill) return;
-        const cdLeft = getSkillCooldown(player, playerSkill.id);
-        if (cdLeft > 0) {
-          battleLog.push(`⏳ ${playerSkill.name} cooldown ${cdLeft} turn lagi!`);
-        } else if (player.stamina < playerSkill.staminaCost) {
-          battleLog.push(
-            t('common:error.low_stamina', {
-              current: player.stamina,
-              need: playerSkill.staminaCost,
-            }),
-          );
-        } else {
-          const ctx: SkillContext = {
-            user: player,
-            stats,
-            enemy: { hp: monsterHp, def: monsterDef },
-            t,
-            addBuff: (type, value, durationTurns) => {
-              player.buffs.push({
-                type: type as any,
-                value,
-                turnsLeft: durationTurns,
-                battle: true,
-              });
-            },
-            addLog: (text) => battleLog.push(text),
-          };
-
-          const result = playerSkill.use(ctx);
-          if (ctx.stunTurns) {
-            monsterStunned = ctx.stunTurns;
-          }
-          monsterHp -= result.damage;
-          playerHp = Math.min(stats.maxHp, playerHp + result.heal);
-          state.dealt += result.damage;
-
-          // Stamina cost
-          player.stamina = Math.max(0, player.stamina - playerSkill.staminaCost);
-
-          // Set cooldown
-          setSkillCooldown(player, playerSkill);
-
-          // Recalc stats kalo ada buff baru
-          stats = await getPlayerStats(player);
-        }
+        const beforeHp = engine.enemyHp;
+        await engine.playerAttack(skillId);
+        state.dealt += Math.max(0, beforeHp - engine.enemyHp);
       }
     }
 
     await updateBattle(false);
     await sleep(700);
-    if (monsterHp <= 0) {
-      // Update skill cooldown
-      tickSkillCooldowns(player);
-      tickBuffs(player);
+
+    if (engine.enemyHp <= 0) {
+      await engine.endTurn();
       break;
     }
 
     // Monster turn
-    if (monsterStunned > 0) {
-      battleLog.push(
-        t('commands/dungeon:monster_stunned', {
-          defaultValue: `💫 ${monsterName} stunned, skip turn!`,
-        }),
-      );
-      monsterStunned--;
-    } else {
-      await updateBattle(false);
-      let monsterDamage = Math.max(1, Math.floor(Math.random() * 5) + monsterAtk - stats.def);
-      playerHp -= monsterDamage;
-      state.taken += monsterDamage;
-      battleLog.push(t('commands/dungeon:monster_hit', { monsterName, monsterDamage }));
+    await updateBattle(false);
+    const { damage: monsterDamage } = engine.enemyAttack();
+    state.taken += monsterDamage;
 
-      await updateBattle(false);
-      await sleep(600);
+    await updateBattle(false);
+    await sleep(600);
+    await engine.endTurn();
 
-      // Update skill cooldown
-      tickSkillCooldowns(player);
-      tickBuffs(player);
-
-      stats = await getPlayerStats(player); // refresh stats kalo buff abis
-      playerHp = Math.min(playerHp, stats.maxHp); // clamp HP kalo maxHp turun
-    }
+    stats = engine.playerStats;
+    player.hp = Math.max(0, player.hp);
   }
 
-  player.hp = Math.max(0, playerHp);
   await player.updateOne({
     $set: {
       hp: player.hp,
@@ -215,5 +149,6 @@ export async function runInteractiveBattle(params: BattleParams) {
       skillCooldowns: player.skillCooldowns,
     },
   });
-  return { victory: monsterHp <= 0, playerHp, monsterHp };
+
+  return { victory: engine.enemyHp <= 0, playerHp: player.hp, monsterHp: engine.enemyHp };
 }
