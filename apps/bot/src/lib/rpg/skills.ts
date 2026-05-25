@@ -38,60 +38,7 @@ export interface SkillData {
   use: (ctx: SkillContext) => { damage: number; heal: number; isCrit: boolean };
 }
 
-function parseValue(value: string | number, atk: number): number {
-  if (typeof value === 'number') return value;
-  if (value.includes('*atk')) return parseFloat(value.replace('*atk', '')) * atk;
-  return parseFloat(value);
-}
-
-// === EXECUTOR GENERIC ===
-function executeEffects(ctx: SkillContext, skill: SkillData) {
-  let totalDamage = 0;
-  let totalHeal = 0;
-  let isCrit = false;
-  let tempStats = { ...ctx.stats };
-
-  for (const eff of skill.effects) {
-    // chance check
-    if (eff.chance && Math.random() > eff.chance) continue;
-
-    if (eff.type === 'damage') {
-      const mult = parseValue(eff.value, tempStats.atk) / tempStats.atk;
-      const res = calculateDamage(tempStats, ctx.enemy, mult);
-      totalDamage += res.damage;
-      isCrit = isCrit || res.isCrit;
-    }
-
-    if (eff.type === 'heal') {
-      const heal = parseValue(eff.value, tempStats.atk);
-      totalHeal += Math.floor(heal);
-    }
-
-    if (eff.type === 'buff') {
-      // format: "buff:atk:0.3" atau "buff:critRate:0.2"
-      const parts = String(eff.value).split(':');
-      if (parts[0] === 'buff' && parts.length === 3) {
-        const [, stat, val] = parts;
-        const numVal = parseFloat(val);
-        if (eff.duration && eff.duration > 0) {
-          // buff bertahan → simpan ke DB
-          ctx.addBuff(stat, numVal, eff.duration);
-        } else {
-          // buff instant untuk hit ini aja (kayak backstab)
-          (tempStats as any)[stat] = (tempStats as any)[stat] + numVal;
-        }
-      }
-    }
-
-    if (eff.type === 'debuff' && eff.value === 'stun') {
-      ctx.stunTurns = eff.duration ?? 1;
-    }
-  }
-
-  return { damage: totalDamage, heal: totalHeal, isCrit };
-}
-
-// === SKILL DEFINITIONS ===
+// === SKILL & PASSIVE DEFINITIONS ===
 export const SKILLS: Record<string, SkillData> = {
   // === SKILLS ===
   rage: {
@@ -202,6 +149,21 @@ export const SKILLS: Record<string, SkillData> = {
     use: () => ({ damage: 0, heal: 0, isCrit: false }),
   },
 
+  // rogue
+  evasion: {
+    id: 'evasion',
+    name: 'Evasion',
+    emoji: '💨',
+    description: '+10% dodge when HP >70%',
+    cooldownTurns: 0,
+    staminaCost: 0,
+    target: 'self',
+    classLock: ['rogue'],
+    passive: true,
+    requiredLevel: 5,
+    effects: [{ type: 'buff', value: 'passive:dodge:hp>0.7:0.10' }],
+    use: () => ({ damage: 0, heal: 0, isCrit: false }),
+  },
   shadow_dance: {
     id: 'shadow_dance',
     name: 'Shadow Dance',
@@ -217,6 +179,21 @@ export const SKILLS: Record<string, SkillData> = {
     use: () => ({ damage: 0, heal: 0, isCrit: false }),
   },
 
+  // mage
+  mana_shield: {
+    id: 'mana_shield',
+    name: 'Mana Shield',
+    emoji: '🔮',
+    description: 'Convert 20% damage taken to stamina loss',
+    cooldownTurns: 0,
+    staminaCost: 0,
+    target: 'self',
+    classLock: ['mage'],
+    passive: true,
+    requiredLevel: 5,
+    effects: [{ type: 'buff', value: 'passive:flag:always:mana_shield' }],
+    use: () => ({ damage: 0, heal: 0, isCrit: false }),
+  },
   arcane_intellect: {
     id: 'arcane_intellect',
     name: 'Arcane Intellect',
@@ -251,4 +228,57 @@ export function getPassiveSkills(user: IUser): SkillData[] {
       s.classLock?.includes(user.class!) &&
       (!s.requiredLevel || user.level >= s.requiredLevel),
   );
+}
+
+function parseValue(value: string | number, atk: number): number {
+  if (typeof value === 'number') return value;
+  if (value.includes('*atk')) return parseFloat(value.replace('*atk', '')) * atk;
+  return parseFloat(value);
+}
+
+// === EXECUTOR GENERIC ===
+function executeEffects(ctx: SkillContext, skill: SkillData) {
+  let totalDamage = 0;
+  let totalHeal = 0;
+  let isCrit = false;
+  let tempStats = { ...ctx.stats };
+
+  for (const eff of skill.effects) {
+    // chance check
+    if (eff.chance && Math.random() > eff.chance) continue;
+
+    if (eff.type === 'damage') {
+      const mult = parseValue(eff.value, tempStats.atk) / tempStats.atk;
+      const res = calculateDamage(tempStats, ctx.enemy, mult);
+      totalDamage += res.damage;
+      isCrit = isCrit || res.isCrit;
+    }
+
+    if (eff.type === 'heal') {
+      const heal = parseValue(eff.value, tempStats.atk);
+      totalHeal += Math.floor(heal);
+    }
+
+    if (eff.type === 'buff') {
+      // format: "buff:atk:0.3" atau "buff:critRate:0.2"
+      const parts = String(eff.value).split(':');
+      if (parts[0] === 'buff' && parts.length === 3) {
+        const [, stat, val] = parts;
+        const numVal = parseFloat(val);
+        if (eff.duration && eff.duration > 0) {
+          // buff bertahan → simpan ke DB
+          ctx.addBuff(stat, numVal, eff.duration);
+        } else {
+          // buff instant untuk hit ini aja (kayak backstab)
+          (tempStats as any)[stat] = (tempStats as any)[stat] + numVal;
+        }
+      }
+    }
+
+    if (eff.type === 'debuff' && eff.value === 'stun') {
+      ctx.stunTurns = eff.duration ?? 1;
+    }
+  }
+
+  return { damage: totalDamage, heal: totalHeal, isCrit };
 }
