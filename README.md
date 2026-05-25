@@ -10,14 +10,21 @@
 
 Nova adalah Discord bot RPG berbasis monorepo. Dibangun dengan Sapphire Framework v5 dan Mongoose, fokus ke grinding, dungeon 100 lantai, class system, dan economy yang scalable.
 
+**🆕 Battle Engine v2**
+
 ## ✨ Fitur
 
-- **RPG**: EXP, level, class dengan stat unik
-- **Dungeon**: turn-based battle, event random, state management
-- **Exploration**: `/explore`, `/hunt`, `/fish` dengan drop table
-- **Crafting**: `/cook` dengan recipe dan select menu
-- **Economy**: `/daily`, `/shop`, `/sell`
-- **Infra**: interaction handlers, error listeners, preconditions OwnerOnly, package `@nova/db` terpisah
+- **RPG Core**: EXP, level, 3 class (Warrior/Mage/Rogue) dengan stat unik
+- **Battle Engine v2**: turn-based, skill system, cooldown, buff/debuff
+- **Class Passives**:
+  - 🛡️ Warrior: Shield Wall (20% block) + Berserker Blood (+1% ATK per 10% HP lost)
+  - 💨 Rogue: Evasion (10% dodge) + Shadow Dance (+15% crit)
+  - 🔮 Mage: Mana Shield (20% dmg → stamina) + Arcane Intellect (+25% crit dmg)
+- **Dungeon**: 100 lantai, boss setiap 10 lantai, state management
+- **Hunt & Explore**: /hunt, /explore, /fish dengan drop table
+- **Crafting**: /cook dan /craft dengan recipe dan select menu
+- **Economy**: /daily, /shop, /sell, stamina system
+- **Infra**: interaction handlers, error listeners, OwnerOnly, package @nova/db terpisah
 
 ## 🛠️ Stack
 
@@ -27,6 +34,7 @@ Nova adalah Discord bot RPG berbasis monorepo. Dibangun dengan Sapphire Framewor
 | Language | TypeScript 6 |
 | Framework | Sapphire v5 |
 | Database | MongoDB + Mongoose |
+| Testing | Vitest |
 | Monorepo | npm workspaces |
 | Dev | tsx, ESLint v10, Prettier |
 
@@ -38,10 +46,13 @@ nova/
 │   ├── commands/General/  # ping, help, profile
 │   ├── commands/Economy/  # daily, shop, sell
 │   ├── commands/RPG/      # start, explore, hunt, fish, cook, dungeon
-│   ├── commands/Owner/    # reset
 │   ├── interaction-handlers/
 │   ├── listeners/
 │   └── lib/rpg/
+│       ├── combat.ts       # stat calculation & buffs
+│       ├── skills.ts       # skills & passives
+│       ├── battle-engine.ts # turn-based engine
+│       └── ...
 ├── packages/database/     # @nova/db schemas
 ├── Dockerfile
 └── package.json
@@ -49,9 +60,9 @@ nova/
 
 ## 📜 Commands
 
-**General**: `/ping`, `/help`, `/profile`  
-**Economy**: `/daily`, `/shop`, `/sell`  
-**RPG**: `/start`, `/explore`, `/hunt`, `/fish`, `/cook`, `/dungeon`, `/inventory`, `/droprate`
+**General**: /ping, /help, /profile  
+**Economy**: /daily, /shop, /sell  
+**RPG**: /start, /explore, /hunt, /fish, /cook, /craft, /dungeon, /inventory, /droprate
 
 ## 🐳 Deploy
 
@@ -78,7 +89,7 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env`, lalu:
+Edit .env, lalu:
 
 ```bash
 npm run bot:dev   # dev
@@ -86,14 +97,15 @@ npm run build && npm run start   # prod
 ```
 
 **Railway / Render / Fly.io**
-- Image: `ghcr.io/sharifpoetra/nova:latest`
-- Env: `DISCORD_TOKEN`, `MONGODB_URI`, `OWNER_ID`
+- Image: ghcr.io/sharifpoetra/nova:latest
+- Env: DISCORD_TOKEN, MONGODB_URI, OWNER_ID
 
 ## 🧹 Scripts
 
-- `npm run lint` — cek ESLint
-- `npm run format` — Prettier
-- `npm run clean` — hapus node_modules & dist
+- npm run lint — cek ESLint
+- npm run format — Prettier
+- npm test — run Vitest unit tests
+- npm run clean — hapus node_modules & dist
 
 ## 🤝 Kontribusi
 
