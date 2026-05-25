@@ -78,8 +78,12 @@ describe('Skills', () => {
             expect(['always', 'hp>0.7', 'hp>0.5', 'hp<0.5', 'hp<0.3', 'hp_loss']).toContain(
               parts[2],
             );
-            // value harus parseable
-            expect(parseFloat(parts[3])).not.toBeNaN();
+            // value harus parseable KECUALI untuk flag
+            if (parts[1] !== 'flag') {
+              expect(parseFloat(parts[3])).not.toBeNaN();
+            } else {
+              expect(parts[3]).toMatch(/^[a-z_]+$/); // flag harus snake_case
+            }
           }
         });
       });

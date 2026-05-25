@@ -93,6 +93,7 @@ function executeEffects(ctx: SkillContext, skill: SkillData) {
 
 // === SKILL DEFINITIONS ===
 export const SKILLS: Record<string, SkillData> = {
+  // === SKILLS ===
   rage: {
     id: 'rage',
     name: 'Rage',
@@ -171,6 +172,21 @@ export const SKILLS: Record<string, SkillData> = {
     },
   },
 
+  // === PASSIVES ===
+  shield_wall: {
+    id: 'shield_wall',
+    name: 'Shield Wall',
+    emoji: '🛡️',
+    description: '20% chance to block 30% damage',
+    cooldownTurns: 0,
+    staminaCost: 0,
+    target: 'self',
+    classLock: ['warrior'],
+    passive: true,
+    requiredLevel: 5,
+    effects: [{ type: 'buff', value: 'passive:flag:always:warrior_block' }],
+    use: () => ({ damage: 0, heal: 0, isCrit: false }),
+  },
   berserker_passive: {
     id: 'berserker_passive',
     name: 'Berserker Blood',
