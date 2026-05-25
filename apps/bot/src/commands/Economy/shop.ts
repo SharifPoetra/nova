@@ -8,15 +8,45 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
+import type { TFunction } from 'i18next';
+import type { IUser } from '@nova/db';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
+import { getPlayerStats, type PlayerStats } from '../../lib/rpg/combat';
+import { addItemToInventory } from '../../lib/rpg/inventory';
 
 import shopEn from '../../locales/en-US/commands/shop.json';
 import shopId from '../../locales/id/commands/shop.json';
 import shopEnGb from '../../locales/en-GB/commands/shop.json';
 
 const SHOP_ITEMS = [
-  { id: 'potion_stamina', key: 'stamina', emoji: '🧪', price: 150, effect: { stamina: 30 } },
-  { id: 'potion_hp', key: 'hp', emoji: '🍖', price: 100, effect: { hp: 50 } },
+  {
+    id: 'potion_stamina',
+    key: 'stamina',
+    emoji: '🧪',
+    price: 150,
+    data: {
+      name: 'Stamina Potion',
+      type: 'consumable' as const,
+      rarity: 'Common' as const,
+      sellPrice: 75,
+      description: 'Restore 30 stamina',
+      effects: [{ type: 'stamina' as const, value: 30 }],
+    },
+  },
+  {
+    id: 'potion_hp',
+    key: 'hp',
+    emoji: '🍖',
+    price: 100,
+    data: {
+      name: 'Health Potion',
+      type: 'consumable' as const,
+      rarity: 'Common' as const,
+      sellPrice: 50,
+      description: 'Restore 50 HP',
+      effects: [{ type: 'heal' as const, value: 50 }],
+    },
+  },
 ];
 
 @ApplyOptions<Command.Options>({
@@ -62,8 +92,9 @@ export class ShopCommand extends Command {
     applyPassiveRegen(user);
     await user.save();
 
+    const stats = await getPlayerStats(user);
     const choice = interaction.options.getString('item');
-    if (choice) return this.handlePurchase(interaction, user, choice, t);
+    if (choice) return this.handlePurchase(interaction, user, choice, stats, t);
 
     const embed = new EmbedBuilder()
       .setColor(0xf1c40f)
@@ -124,16 +155,17 @@ export class ShopCommand extends Command {
       const itemId = btn.customId.replace('shop_', '');
       collector.stop();
       await btn.deferUpdate();
-      await this.handlePurchase(interaction, user, itemId, t, true);
+      await this.handlePurchase(interaction, user, itemId, stats, t, true);
     });
     collector.on('end', () => interaction.editReply({ components: [] }).catch(() => {}));
   }
 
   private async handlePurchase(
     interaction: Command.ChatInputCommandInteraction,
-    user: any,
+    user: IUser,
     itemId: string,
-    t: any,
+    stats: PlayerStats,
+    t: TFunction,
     fromButton = false,
   ) {
     const item = SHOP_ITEMS.find((i) => i.id === itemId)!;
@@ -147,7 +179,7 @@ export class ShopCommand extends Command {
         ? interaction.editReply({ content: msg, embeds: [], components: [] })
         : interaction.editReply(msg);
     }
-    //... sisanya sama seperti file kamu (confirm, success) — tidak diubah
+
     const confirmEmbed = new EmbedBuilder()
       .setColor(0xe67e22)
       .setTitle(t('commands/shop:confirm_title', { defaultValue: 'Purchase Confirmation' }))
@@ -185,11 +217,20 @@ export class ShopCommand extends Command {
           embeds: [],
           components: [],
         });
+
       user.balance = Number(user.balance) - item.price;
-      if (item.effect.stamina)
-        user.stamina = Math.min(user.maxStamina ?? 100, (user.stamina ?? 0) + item.effect.stamina);
-      if (item.effect.hp) user.hp = Math.min(user.maxHp ?? 100, (user.hp ?? 0) + item.effect.hp);
       await user.save();
+
+      await addItemToInventory(
+        user.discordId,
+        {
+          itemId: item.id,
+          emoji: item.emoji,
+          ...item.data,
+        },
+        1,
+      );
+
       const successEmbed = new EmbedBuilder()
         .setColor(0x2ecc71)
         .setTitle(t('commands/shop:success_title', { defaultValue: '✅ Purchase Successful' }))
@@ -197,7 +238,7 @@ export class ShopCommand extends Command {
           t('commands/shop:success_desc', {
             emoji: item.emoji,
             name: t(`commands/shop:item_${item.key}_name`),
-            defaultValue: `${item.emoji} **name** used!`,
+            defaultValue: `${item.emoji} **${t(`commands/shop:item_${item.key}_name`)}** added to inventory!`,
           }),
         )
         .addFields(
@@ -207,13 +248,8 @@ export class ShopCommand extends Command {
             inline: true,
           },
           {
-            name: t('commands/shop:field_stamina', { defaultValue: '⚡ Stamina' }),
-            value: `${user.stamina}/${user.maxStamina}`,
-            inline: true,
-          },
-          {
-            name: t('commands/shop:field_hp', { defaultValue: '❤️ HP' }),
-            value: `${user.hp}/${user.maxHp}`,
+            name: t('commands/shop:field_inventory', { defaultValue: '📦 Inventory' }),
+            value: t('commands/shop:use_hint', { defaultValue: 'Use /inventory to consume' }),
             inline: true,
           },
         );

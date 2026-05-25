@@ -13,8 +13,10 @@ declare module '@sapphire/pieces' {
     invCache: Map<
       string,
       {
-        allItems: Array<{ id: string; text: string; sub: string; value: number; rarity: string }>;
-        totalValue: number;
+        allItems?: Array<{ id: string; text: string; sub: string; value: number; rarity: string }>;
+        type: 'main' | 'consumable' | 'equipment';
+        page: number;
+        totalValue?: number;
         userId: string;
         t: number;
         locale?: string;

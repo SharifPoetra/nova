@@ -1,0 +1,158 @@
+{
+  "crystal_shard": {
+    "name": "Crystal Shard",
+    "desc": "A shard from the Crystal Mines"
+  },
+  "arcane_page": {
+    "name": "Arcane Page",
+    "desc": "A forbidden tome page"
+  },
+  "sky_feather": {
+    "name": "Sky Feather",
+    "desc": "Feather from the temple guardian"
+  },
+  "star_fragment": {
+    "name": "Star Fragment",
+    "desc": "A fragment of a fallen star"
+  },
+  "slime_boots": {
+    "name": "Slime Boots",
+    "desc": "Boots made of slime. Slippery but adds HP."
+  },
+  "iron_gauntlet": {
+    "name": "Iron Gauntlet",
+    "desc": "Iron gauntlet. +ATK"
+  },
+  "drake_claw_dagger": {
+    "name": "Drake Claw Dagger",
+    "desc": "Dagger from drake claw. +ATK +Crit"
+  },
+  "slime_crown": {
+    "name": "Slime Crown",
+    "desc": "Authentic Slime King crown. Sticky but lucky + HP."
+  },
+  "specter_hood": {
+    "name": "Specter Hood",
+    "desc": "Specter hood. +Crit Rate"
+  },
+  "obsidian_plate": {
+    "name": "Obsidian Plate",
+    "desc": "Obsidian plate from Heart of Crystal. High DEF + HP."
+  },
+  "reaper_scythe": {
+    "name": "Reaper Scythe",
+    "desc": "Void Reaper's scythe. Monster crit. Drops from Floor 30 Boss."
+  },
+  "star_blade": {
+    "name": "Star Blade",
+    "desc": "Blade forged from stars. +ATK +Crit Dmg"
+  },
+  "warden_cape": {
+    "name": "Warden Cape",
+    "desc": "Warden's cape. +HP +DEF"
+  },
+  "warden_chain": {
+    "name": "Warden Chain",
+    "desc": "Unbreakable warden chain"
+  },
+  "inferno_staff": {
+    "name": "Inferno Staff",
+    "desc": "Dragon fire staff. +ATK +Crit Dmg"
+  },
+  "void_crown": {
+    "name": "Void Crown",
+    "desc": "Crown of the void"
+  },
+  "nova_blade": {
+    "name": "Nova Blade",
+    "desc": "Blade forged from nova core. +ATK +Crit +HP"
+  },
+  "star_dust": {
+    "name": "Star Dust",
+    "desc": "Stardust left behind by slimes"
+  },
+  "slime_core": {
+    "name": "Slime Core",
+    "desc": "Gooey core, source of slime life"
+  },
+  "gooey_jelly": {
+    "name": "Gooey Jelly",
+    "desc": "Sticky jelly, restores 15 HP"
+  },
+  "stone_fragment": {
+    "name": "Stone Fragment",
+    "desc": "Common stone fragment"
+  },
+  "golem_heart": {
+    "name": "Golem Heart",
+    "desc": "Stone heart still beating"
+  },
+  "void_essence": {
+    "name": "Void Essence",
+    "desc": "Void essence from specters"
+  },
+  "ectoplasm": {
+    "name": "Ectoplasm",
+    "desc": "Ghostly ectoplasm"
+  },
+  "drake_scale": {
+    "name": "Drake Scale",
+    "desc": "Fire-resistant drake scale"
+  },
+  "charred_bone": {
+    "name": "Charred Bone",
+    "desc": "Charred bone"
+  },
+  "frost_crystal": {
+    "name": "Frost Crystal",
+    "desc": "Eternal frost crystal"
+  },
+  "ice_shard": {
+    "name": "Ice Shard",
+    "desc": "Ice shard"
+  },
+  "astral_fragment": {
+    "name": "Astral Fragment",
+    "desc": "Fragment of a fallen star"
+  },
+  "stardust": {
+    "name": "Stardust",
+    "desc": "Pure stardust"
+  },
+  "royal_jelly": {
+    "name": "Royal Jelly",
+    "desc": "Royal jelly, heals 100 HP"
+  },
+  "heart_of_crystal": {
+    "name": "Heart of Crystal",
+    "desc": "Pure crystal heart"
+  },
+  "inferno_fang": {
+    "name": "Inferno Fang",
+    "desc": "Fang still burning"
+  },
+  "dragon_heart": {
+    "name": "Dragon Heart",
+    "desc": "Dragon heart, restores 80 stamina"
+  },
+  "absolute_shard": {
+    "name": "Absolute Shard",
+    "desc": "Shard of absolute zero"
+  },
+  "star_core": {
+    "name": "Star Core",
+    "desc": "Pure star core"
+  },
+  "nebula_silk": {
+    "name": "Nebula Silk",
+    "desc": "Silk from nebula clouds"
+  },
+  "quantum_orb": {
+    "name": "Quantum Orb",
+    "desc": "Quantum energy orb, heals 250 HP"
+  },
+  "nova_essence": {
+    "name": "Nova Essence",
+    "desc": "Nova explosion essence, heals 500 HP + 50 stamina"
+  }
+}

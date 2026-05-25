@@ -6,7 +6,17 @@ export type BuffType = (typeof BUFF_TYPES)[number] | (string & {});
 export interface IBuff {
   type: BuffType;
   value: number;
-  expires: Date;
+  expires?: Date;
+  turnsLeft?: number;
+  battle?: boolean;
+}
+
+export interface IEquipped {
+  weapon: string | null;
+  helmet: string | null;
+  armor: string | null;
+  accessory: string | null;
+  tool: string | null;
 }
 
 export interface IUser extends Document {
@@ -30,6 +40,8 @@ export interface IUser extends Document {
   maxStamina: number;
   items: { itemId: string; qty: number }[];
   buffs: IBuff[];
+  equipped: IEquipped;
+  skillCooldowns: Map<string, number>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -56,10 +68,7 @@ const UserSchema = new Schema<IUser>(
     maxStamina: { type: Number, default: 100 },
     items: {
       type: [
-        {
-          itemId: { type: String, required: true },
-          qty: { type: Number, default: 0, min: 0 },
-        },
+        { itemId: { type: String, required: true }, qty: { type: Number, default: 0, min: 0 } },
       ],
       default: [],
     },
@@ -68,11 +77,24 @@ const UserSchema = new Schema<IUser>(
         {
           type: { type: String, enum: BUFF_TYPES, required: true },
           value: { type: Number, required: true },
-          expires: { type: Date, required: true },
+          expires: { type: Date, required: false },
+          turnsLeft: { type: Number, required: false },
+          battle: { type: Boolean, required: false },
         },
       ],
       default: [],
     },
+    equipped: {
+      type: {
+        weapon: { type: String, default: null },
+        helmet: { type: String, default: null },
+        armor: { type: String, default: null },
+        accessory: { type: String, default: null },
+        tool: { type: String, default: null },
+      },
+      default: { weapon: null, helmet: null, armor: null, accessory: null, tool: null },
+    },
+    skillCooldowns: { type: Map, of: Number, default: {} },
   },
   { timestamps: true },
 );

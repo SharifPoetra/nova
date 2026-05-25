@@ -1,13 +1,9 @@
 import mongoose from 'mongoose';
 
-export { User } from './models/User.js';
-export { Item } from './models/Item.js';
-export { Dungeon } from './models/Dungeon.js';
-export { Guild } from './models/Guild.js';
-export type { IUser } from './models/User.js';
-export type { IItem } from './models/Item.js';
-export type { IDungeon, FloorState } from './models/Dungeon.js';
-export type { IGuild } from './models/Guild';
+export * from './models/User.js';
+export * from './models/Item.js';
+export * from './models/Dungeon.js';
+export * from './models/Guild.js';
 
 export const createDatabase = async (connectionString: string) => {
   try {

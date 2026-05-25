@@ -1,0 +1,21 @@
+{
+  "slot.weapon": "⚔️ Weapon",
+  "slot.armor": "🛡️ Armor",
+  "slot.helmet": "🪖 Helmet",
+  "slot.accessory": "💍 Accessory",
+  "slot.tool": "🔧 Tool",
+  "title": "{{username}}'s Equipment",
+  "none": "❌ None",
+  "crit_rate": "💥 Crit Rate",
+  "crit_dmg": "💢 Crit DMG",
+  "equip_placeholder": "Equip ({{start}}-{{end}}/{{total}})",
+  "unequip_placeholder": "Unequip...",
+  "back": "Back to Inventory",
+  "equipped": "✅ Equipped {{emoji}} **{{name}}** → {{slot}}",
+  "unequipped": "📤 Unequipped {{slot}}",
+  "invalid": "Invalid",
+  "empty": "Empty",
+  "not_equip": "This item is not equipment",
+  "wrong_slot": "This item is for {{slot}} slot, not {{need}}",
+  "class_lock": "Only {{classes}} can equip this"
+}

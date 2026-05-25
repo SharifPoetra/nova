@@ -1,0 +1,20 @@
+{
+  "wild_boar": { "name": "Wild Boar" },
+  "goblin_scout": { "name": "Goblin Scout" },
+  "swamp_lizard": { "name": "Swamp Lizard" },
+  "forest_wolf": { "name": "Forest Wolf" },
+  "cave_bear": { "name": "Cave Bear" },
+  "skeleton_warrior": { "name": "Skeleton Warrior" },
+  "venom_spider": { "name": "Venom Spider" },
+  "harpy": { "name": "Harpy" },
+  "orc_berserker": { "name": "Orc Berserker" },
+  "shadow_panther": { "name": "Shadow Panther" },
+  "lava_slime": { "name": "Lava Slime" },
+  "frost_troll": { "name": "Frost Troll" },
+  "sand_worm": { "name": "Sand Worm" },
+  "dark_knight": { "name": "Dark Knight" },
+  "thunder_eagle": { "name": "Thunder Eagle" },
+  "crystal_golem": { "name": "Crystal Golem" },
+  "hydra": { "name": "Hydra" },
+  "phoenix": { "name": "Phoenix" }
+}

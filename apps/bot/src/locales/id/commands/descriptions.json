@@ -15,5 +15,8 @@
   "ping": "Cek respon bot Nova",
   "help": "Lihat semua command Nova",
   "hunt": "Berburu monster",
-  "lang": "Ubah bahasa bot untuk kamu atau server"
+  "lang": "Ubah bahasa bot untuk kamu atau server",
+  
+  "help_option_command": "Lihat detail command",
+  "profile_option_user": "User yang ingin dilihat"
 }

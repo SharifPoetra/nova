@@ -1,0 +1,54 @@
+{
+  "fish_sardine": {
+    "name": "Sarden",
+    "desc": "Ikan kecil berminyak, cepat matang"
+  },
+  "fish_mackerel": {
+    "name": "Kembung",
+    "desc": "Kembung segar dari laut dangkal"
+  },
+  "fish_tilapia": {
+    "name": "Nila",
+    "desc": "Nila air tawar, daging lembut"
+  },
+  "fish_catfish": {
+    "name": "Lele Jumbo",
+    "desc": "Lele berlumpur ukuran besar"
+  },
+  "fish_tuna": {
+    "name": "Tuna Kecil",
+    "desc": "Tuna muda kaya protein"
+  },
+  "fish_salmon": {
+    "name": "Salmon",
+    "desc": "Salmon oranye, favorit koki"
+  },
+  "fish_goldfish": {
+    "name": "Ikan Mas Koki",
+    "desc": "Ikan hias pembawa keberuntungan"
+  },
+  "fish_puffer": {
+    "name": "Buntal Berduri",
+    "desc": "Berduri, hati-hati racunnya"
+  },
+  "fish_eel": {
+    "name": "Belut Listrik",
+    "desc": "Belut yang bisa menyetrum"
+  },
+  "fish_koi": {
+    "name": "Koi Legendaris",
+    "desc": "Koi sisik berkilau seperti emas"
+  },
+  "fish_sword": {
+    "name": "Todak Pedang",
+    "desc": "Paruh tajam seperti pedang"
+  },
+  "fish_dragon": {
+    "name": "Ikan Naga",
+    "desc": "Sisiknya berkilat seperti api"
+  },
+  "fish_kraken": {
+    "name": "Baby Kraken",
+    "desc": "Bayi kraken bertentakel kecil"
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "crystal_shard": {
+    "name": "Pecahan Kristal",
+    "desc": "Pecahan kristal dari Tambang Kristal"
+  },
+  "arcane_page": {
+    "name": "Halaman Arcane",
+    "desc": "Halaman kitab terlarang"
+  },
+  "sky_feather": {
+    "name": "Bulu Langit",
+    "desc": "Bulu dari penjaga kuil"
+  },
+  "star_fragment": {
+    "name": "Fragmen Bintang",
+    "desc": "Pecahan bintang dari puncak"
+  },
+  "slime_boots": {
+    "name": "Slime Boots",
+    "desc": "Sepatu dari lendir. Licin tapi nambah HP."
+  },
+  "iron_gauntlet": {
+    "name": "Iron Gauntlet",
+    "desc": "Sarung tangan besi. +ATK"
+  },
+  "drake_claw_dagger": {
+    "name": "Drake Claw Dagger",
+    "desc": "Belati dari cakar drake. +ATK +Crit"
+  },
+  "slime_crown": {
+    "name": "Slime Crown",
+    "desc": "Mahkota asli Raja Slime. Lengket tapi bawa hoki + HP."
+  },
+  "specter_hood": {
+    "name": "Specter Hood",
+    "desc": "Tudung hantu. +Crit Rate"
+  },
+  "obsidian_plate": {
+    "name": "Obsidian Plate",
+    "desc": "Pelat obsidian dari Heart of Crystal. DEF + HP tebel."
+  },
+  "reaper_scythe": {
+    "name": "Reaper Scythe",
+    "desc": "Sabit Void Reaper. Crit monster. Drop dari Boss Floor 30."
+  },
+  "star_blade": {
+    "name": "Star Blade",
+    "desc": "Pedang dari bintang. +ATK +CritDmg"
+  },
+  "warden_cape": {
+    "name": "Warden Cape",
+    "desc": "Jubah warden. +HP +DEF"
+  },
+  "warden_chain": {
+    "name": "Warden Chain",
+    "desc": "Rantai penjaga yang tak terpatahkan"
+  },
+  "inferno_staff": {
+    "name": "Inferno Staff",
+    "desc": "Tongkat api naga. +ATK +CritDmg"
+  },
+  "void_crown": {
+    "name": "Void Crown",
+    "desc": "Mahkota kehampaan"
+  },
+  "nova_blade": {
+    "name": "Nova Blade",
+    "desc": "Pedang dari inti nova. +ATK +Crit +HP"
+  },
+  "star_dust": {
+    "name": "Star Dust",
+    "desc": "Debu bintang yang ditinggalkan slime"
+  },
+  "slime_core": {
+    "name": "Slime Core",
+    "desc": "Inti berlendir sumber kehidupan slime"
+  },
+  "gooey_jelly": {
+    "name": "Gooey Jelly",
+    "desc": "Jeli lengket, pulihkan 15 HP"
+  },
+  "stone_fragment": {
+    "name": "Stone Fragment",
+    "desc": "Pecahan batu biasa"
+  },
+  "golem_heart": {
+    "name": "Golem Heart",
+    "desc": "Jantung batu yang masih berdenyut"
+  },
+  "void_essence": {
+    "name": "Void Essence",
+    "desc": "Esensi kehampaan dari specter"
+  },
+  "ectoplasm": {
+    "name": "Ectoplasm",
+    "desc": "Lendir hantu"
+  },
+  "drake_scale": {
+    "name": "Drake Scale",
+    "desc": "Sisik drake tahan api"
+  },
+  "charred_bone": {
+    "name": "Charred Bone",
+    "desc": "Tulang hangus"
+  },
+  "frost_crystal": {
+    "name": "Frost Crystal",
+    "desc": "Kristal es abadi"
+  },
+  "ice_shard": {
+    "name": "Ice Shard",
+    "desc": "Pecahan es"
+  },
+  "astral_fragment": {
+    "name": "Astral Fragment",
+    "desc": "Fragmen dari bintang jatuh"
+  },
+  "stardust": {
+    "name": "Stardust",
+    "desc": "Debu bintang murni"
+  },
+  "royal_jelly": {
+    "name": "Royal Jelly",
+    "desc": "Jeli kerajaan, heal 100 HP"
+  },
+  "heart_of_crystal": {
+    "name": "Heart of Crystal",
+    "desc": "Jantung kristal murni"
+  },
+  "inferno_fang": {
+    "name": "Inferno Fang",
+    "desc": "Taring yang masih membara"
+  },
+  "dragon_heart": {
+    "name": "Dragon Heart",
+    "desc": "Jantung naga, pulihkan 80 stamina"
+  },
+  "absolute_shard": {
+    "name": "Absolute Shard",
+    "desc": "Pecahan nol mutlak"
+  },
+  "star_core": {
+    "name": "Star Core",
+    "desc": "Inti bintang murni"
+  },
+  "nebula_silk": {
+    "name": "Nebula Silk",
+    "desc": "Sutra dari awan nebula"
+  },
+  "quantum_orb": {
+    "name": "Quantum Orb",
+    "desc": "Bola energi kuantum, heal 250 HP"
+  },
+  "nova_essence": {
+    "name": "Nova Essence",
+    "desc": "Esensi ledakan nova, heal 500 HP + 50 stamina"
+  }
+}

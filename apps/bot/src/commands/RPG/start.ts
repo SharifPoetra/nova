@@ -1,14 +1,9 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-  MessageFlags,
-} from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { CLASSES, getClass } from '../../lib/rpg/classes';
+import { SKILLS, getPassiveSkills } from '../../lib/rpg/skills';
 
 @ApplyOptions<Command.Options>({
   name: 'start',
@@ -23,6 +18,7 @@ export class StartCommand extends Command {
   }
 
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    await interaction.deferReply();
     const t = await fetchT(interaction);
     const userId = interaction.user.id;
     const user = await this.container.db.user.findOne({ discordId: userId });
@@ -43,15 +39,15 @@ export class StartCommand extends Command {
             defaultValue: `You are already registered as **${existing?.name ?? user.class}**.\nClass cannot be changed, continue your adventure!`,
           }),
         )
-        .setColor(existing?.color ?? 0x95a5a6)
+        .setColor(0x95a5a6)
         .setFooter({
           text: t('commands/start:already_footer', { defaultValue: 'Use /profile to view status' }),
         });
-
-      return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+      return interaction.editReply({ embeds: [embed] });
     }
 
-    const classList = Object.values(CLASSES);
+    const classList = Object.entries(CLASSES);
+    const BASE_STAMINA = 100;
 
     const embed = new EmbedBuilder()
       .setTitle(
@@ -64,18 +60,41 @@ export class StartCommand extends Command {
         }),
       )
       .addFields(
-        classList.map((c) => ({
-          name: `${c.emoji} ${c.name}`,
-          value: t('commands/start:class_field', {
-            desc: c.desc,
-            hp: c.hp,
-            atk: c.atk,
-            stamina: c.stamina,
-            passive: c.passive,
-            defaultValue: `**${c.desc}**\n❤️ ${c.hp} HP | 🗡️ ${c.atk} ATK | ⚡ ${c.stamina} Stamina\n*Passive: ${c.passive}*`,
-          }),
-          inline: false,
-        })),
+        classList.map(([key, c]) => {
+          const skillList = c.skills
+            .map((s) => {
+              const sk = SKILLS[s.id];
+              return `• ${sk?.emoji ?? ''} **${sk?.name ?? s.id}** — Lv.${s.unlock}`;
+            })
+            .join('\n');
+
+          const dummyUser = { class: key, level: 99 } as any;
+          const passives = getPassiveSkills(dummyUser);
+          const passiveText =
+            passives
+              .map((p) => `• ${p.emoji} **${p.name}** (Lv.${p.requiredLevel}) — ${p.description}`)
+              .join('\n') || 'None';
+
+          const critPercent = (c.baseCritRate * 100).toFixed(0);
+          return {
+            name: `${c.emoji} ${c.name}`,
+            value: t('commands/start:class_field', {
+              desc: c.description,
+              hp: c.baseHp + 10,
+              atk: c.baseAtk,
+              crit: critPercent,
+              stamina: BASE_STAMINA,
+              skills: skillList,
+              passive: passiveText,
+              defaultValue:
+                `**${c.description}**\n` +
+                `❤️ ${c.baseHp + 10} HP | 🗡️ ${c.baseAtk} ATK | ⚡ ${BASE_STAMINA} Stamina | 🎯 ${critPercent}% Crit\n\n` +
+                `**Skills:**\n${skillList}\n\n` +
+                `${passives.length ? `**Passive:**\n${passiveText}` : ''}`,
+            }),
+            inline: false,
+          };
+        }),
       )
       .setColor(0xf1c40f)
       .setFooter({
@@ -86,21 +105,21 @@ export class StartCommand extends Command {
       .setThumbnail(interaction.user.displayAvatarURL());
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      classList.map((c) =>
+      classList.map(([key, c]) =>
         new ButtonBuilder()
-          .setCustomId(`class_${c.key}_${userId}`)
-          .setLabel(t(`commands/start:class_${c.key}`, { defaultValue: c.name }))
+          .setCustomId(`class_${key}_${userId}`)
+          .setLabel(t(`commands/start:class_${key}`, { defaultValue: c.name }))
           .setEmoji(c.emoji)
           .setStyle(
-            c.key === 'warrior'
+            key === 'warrior'
               ? ButtonStyle.Danger
-              : c.key === 'mage'
+              : key === 'mage'
                 ? ButtonStyle.Primary
                 : ButtonStyle.Success,
           ),
       ),
     );
 
-    return interaction.reply({ embeds: [embed], components: [row] });
+    return interaction.editReply({ embeds: [embed], components: [row] });
   }
 }

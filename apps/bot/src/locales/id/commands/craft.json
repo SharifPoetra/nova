@@ -1,0 +1,9 @@
+{
+  "choose": "Pilih resep — Halaman {{page}}/{{total}}",
+  "none": "📦 Gak ada yang bisa di-craft! Cari bahan di /explore atau /hunt",
+  "need_stamina": "⚡ Butuh {{cost}} stamina",
+  "missing": "📦 Bahan kurang",
+  "success_title": "✅ Berhasil Craft!",
+  "success_desc": "berhasil dibuat!",
+  "added": "Ditambahkan ke inventory"
+}

@@ -1,0 +1,54 @@
+{
+  "fish_sardine": {
+    "name": "Sardine",
+    "desc": "Small oily fish, cooks quickly"
+  },
+  "fish_mackerel": {
+    "name": "Mackerel",
+    "desc": "Fresh from shallow seas"
+  },
+  "fish_tilapia": {
+    "name": "Tilapia",
+    "desc": "Soft freshwater fish"
+  },
+  "fish_catfish": {
+    "name": "Giant Catfish",
+    "desc": "Large muddy catfish"
+  },
+  "fish_tuna": {
+    "name": "Small Tuna",
+    "desc": "Protein-rich young tuna"
+  },
+  "fish_salmon": {
+    "name": "Salmon",
+    "desc": "Orange salmon, chef's favorite"
+  },
+  "fish_goldfish": {
+    "name": "Goldfish",
+    "desc": "Lucky ornamental fish"
+  },
+  "fish_puffer": {
+    "name": "Spiny Puffer",
+    "desc": "Spiky, beware the poison"
+  },
+  "fish_eel": {
+    "name": "Electric Eel",
+    "desc": "An eel that can shock"
+  },
+  "fish_koi": {
+    "name": "Legendary Koi",
+    "desc": "Koi with scales like gold"
+  },
+  "fish_sword": {
+    "name": "Swordfish",
+    "desc": "Sharp bill like a sword"
+  },
+  "fish_dragon": {
+    "name": "Dragon Fish",
+    "desc": "Scales glitter like fire"
+  },
+  "fish_kraken": {
+    "name": "Baby Kraken",
+    "desc": "Tiny tentacled kraken"
+  }
+}

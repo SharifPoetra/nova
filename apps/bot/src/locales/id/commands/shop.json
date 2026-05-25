@@ -22,9 +22,10 @@
   "cancel": "Batal",
   "cancelled": "❌ Pembelian dibatalkan.",
   "success_title": "✅ Pembelian Berhasil",
-  "success_desc": "{{emoji}} **{{name}}** telah digunakan!",
+  "success_desc": "{{emoji}} **{{name}}** ditambahkan ke inventory!",
   "field_balance": "💰 Saldo",
   "field_stamina": "⚡ Stamina",
   "field_hp": "❤️ HP",
-  "coins": "koin"
+  "coins": "koin",
+  "use_hint": "Gunakan /inventory untuk mengonsumsi"
 }

@@ -1,0 +1,46 @@
+{
+  "wooden_rod": {
+    "name": "Joran Kayu",
+    "desc": "Joran pancing pemula. +10% peluang ikan langka"
+  },
+  "stone_pickaxe": {
+    "name": "Pickaxe Batu",
+    "desc": "Pickaxe pemula. +10% hasil ore"
+  },
+  "hunter_bow": {
+    "name": "Hunter Bow",
+    "desc": "Busur pemburu. Crit damage tinggi buat Rogue."
+  },
+  "iron_sword": {
+    "name": "Iron Sword",
+    "desc": "Pedang andalan Warrior. ATK seimbang."
+  },
+  "mage_staff": {
+    "name": "Mage Staff",
+    "desc": "Tongkat sihir pemula. Naikin ATK + crit tipis."
+  },
+  "iron_rod": {
+    "name": "Joran Besi",
+    "desc": "Joran kokoh. +20% peluang ikan langka"
+  },
+  "iron_pickaxe": {
+    "name": "Pickaxe Besi",
+    "desc": "Pickaxe solid. +20% hasil ore"
+  },
+  "forager_bag": {
+    "name": "Forager Bag",
+    "desc": "Tas tambahan. +15% hasil gathering"
+  },
+  "mythril_rod": {
+    "name": "Joran Mythril",
+    "desc": "Joran berkilau. +35% peluang ikan langka"
+  },
+  "mythril_pickaxe": {
+    "name": "Pickaxe Mythril",
+    "desc": "Enteng tapi nampol. +35% hasil ore"
+  },
+  "abyssal_rod": {
+    "name": "Joran Abyssal",
+    "desc": "Joran dari abyss. +50% peluang ikan langka"
+  }
+}
