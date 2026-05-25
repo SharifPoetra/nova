@@ -104,7 +104,8 @@ export function applyPassives(baseStats: PlayerStats, user: IUser): PlayerStats 
 
   for (const passive of passives) {
     for (const effect of passive.effects) {
-      if (effect.type !== 'buff' || !effect.value.startsWith('passive:')) continue;
+      if (effect.type !== 'buff') continue;
+      if (typeof effect.value !== 'string' || !effect.value.startsWith('passive:')) continue;
 
       const [, stat, condition, valueRaw] = effect.value.split(':');
       if (!stat || !condition || !valueRaw) continue;
