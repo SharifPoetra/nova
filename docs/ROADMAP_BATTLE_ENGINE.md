@@ -149,9 +149,9 @@ const { damage: monsterDamage } = engine.enemyAttack();
 ```
 
 Checklist:
-- [ ] Dungeon lantai 1-5 test manual
-- [ ] Passive rogue crit 30% muncul di log
-- [ ] Tidak ada perubahan embed
+- [x] Dungeon lantai 1-5 test manual
+- [x] Passive rogue crit 30% muncul di log
+- [x] Tidak ada perubahan embed
 
 ---
 
