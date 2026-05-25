@@ -72,7 +72,7 @@ export class StartCommand extends Command {
           const passives = getPassiveSkills(dummyUser);
           const passiveText =
             passives
-              .map((p) => `• ${p.emoji} **${p.name}** — Lv.${p.requiredLevel ?? 1}`)
+              .map((p) => `• ${p.emoji} **${p.name}** (Lv.${p.requiredLevel}) — ${p.description}`)
               .join('\n') || 'None';
 
           const critPercent = (c.baseCritRate * 100).toFixed(0);

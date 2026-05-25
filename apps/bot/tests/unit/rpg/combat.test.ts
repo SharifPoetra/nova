@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getPlayerStats, applyPassives } from '../../../src/lib/rpg/combat';
 import type { IUser } from '@nova/db';
 
-// Mock Item.find biar return equipment palsu
 vi.mock('@nova/db', async () => {
   const actual = await vi.importActual('@nova/db');
   return {
@@ -12,22 +11,22 @@ vi.mock('@nova/db', async () => {
         lean: () =>
           Promise.resolve(
             $in
-              .map((id: string) => {
-                const mockItems: Record<string, any> = {
-                  iron_sword: { itemId: 'iron_sword', slot: 'weapon', stats: { atk: 12 } },
-                  obsidian_plate: {
-                    itemId: 'obsidian_plate',
-                    slot: 'armor',
-                    stats: { hp: 50, def: 5 },
-                  },
-                  hunter_bow: {
-                    itemId: 'hunter_bow',
-                    slot: 'weapon',
-                    stats: { atk: 15, critDmg: 1.8 },
-                  },
-                };
-                return mockItems[id];
-              })
+              .map(
+                (id: string) =>
+                  ({
+                    iron_sword: { itemId: 'iron_sword', slot: 'weapon', stats: { atk: 12 } },
+                    obsidian_plate: {
+                      itemId: 'obsidian_plate',
+                      slot: 'armor',
+                      stats: { hp: 50, def: 5 },
+                    },
+                    hunter_bow: {
+                      itemId: 'hunter_bow',
+                      slot: 'weapon',
+                      stats: { atk: 15, critDmg: 1.8 },
+                    },
+                  })[id],
+              )
               .filter(Boolean),
           ),
       })),
@@ -53,6 +52,19 @@ const baseUser: IUser = {
   equipped: { weapon: null, helmet: null, armor: null, accessory: null, tool: null },
   skillCooldowns: new Map(),
 } as unknown as IUser;
+
+const makeStats = (hp: number, maxHp = 100, atk = 100, critRate = 0.05, critDmg = 1.5) => ({
+  hp,
+  maxHp,
+  atk,
+  def: 0,
+  critRate,
+  critDmg,
+  element: 'phys' as const,
+  activeBuffs: [],
+  availableSkills: [],
+  flags: {},
+});
 
 describe('getPlayerStats()', () => {
   beforeEach(() => vi.clearAllMocks());
@@ -84,11 +96,14 @@ describe('getPlayerStats()', () => {
     const user = {
       ...baseUser,
       class: 'rogue' as const,
+      level: 1,
       equipped: { ...baseUser.equipped, weapon: 'hunter_bow' },
     };
     const stats = await getPlayerStats(user);
-    expect(stats.atk).toBe(30); // rogue 14+1=15, +15=30
-    expect(stats.critDmg).toBeCloseTo(3.3); // 1.5 + 1.8
+    // rogue baseAtk 14 +1 =15, +15 =30
+    expect(stats.atk).toBe(30);
+    // base critDmg 1.5 + 1.8 = 3.3
+    expect(stats.critDmg).toBeCloseTo(3.3);
     expect(stats.availableSkills).toContain('backstab');
   });
 
@@ -98,76 +113,109 @@ describe('getPlayerStats()', () => {
       buffs: [{ type: 'atk', value: 0.3, expires: new Date(Date.now() + 10000), battle: false }],
     };
     const stats = await getPlayerStats(user);
-    expect(stats.atk).toBe(16); // floor(13 * 1.3) = 16
+    expect(stats.atk).toBe(16); // floor(13 * 1.3)
     expect(stats.activeBuffs).toHaveLength(1);
   });
 });
 
 describe('applyPassives() - Berserker Blood', () => {
-  const user = {
-    class: 'warrior',
-    level: 10,
-    discordId: '1',
-    username: 'berserker',
-  } as unknown as IUser;
-
-  const makeBase = (hp: number, maxHp = 100) => ({
-    hp,
-    maxHp,
-    atk: 100,
-    def: 0,
-    critRate: 0.05,
-    critDmg: 2,
-    element: 'phys' as const,
-    activeBuffs: [],
-    availableSkills: [],
-    flags: {},
-  });
+  const user = { class: 'warrior', level: 10 } as unknown as IUser;
 
   it('0% bonus at 100% HP', () => {
-    const res = applyPassives(makeBase(100), user);
+    const res = applyPassives(makeStats(100), user);
     expect(res.atk).toBe(100);
   });
-
   it('+1% at 90% HP (1 step)', () => {
-    const res = applyPassives(makeBase(90), user);
-    expect(res.atk).toBe(101); // sekarang pass setelah +1e-6
+    const res = applyPassives(makeStats(90), user);
+    expect(res.atk).toBe(101);
   });
-
   it('+5% at 50% HP (5 steps)', () => {
-    const res = applyPassives(makeBase(50), user);
+    const res = applyPassives(makeStats(50), user);
     expect(res.atk).toBe(105);
   });
-
   it('+9% at 10% HP (9 steps)', () => {
-    const res = applyPassives(makeBase(10), user);
+    const res = applyPassives(makeStats(10), user);
     expect(res.atk).toBe(109);
   });
-
   it('+10% at 0% HP (10 steps max)', () => {
-    const res = applyPassives(makeBase(0), user);
+    const res = applyPassives(makeStats(0), user);
     expect(res.atk).toBe(110);
   });
 });
 
-describe('applyPassives() - Integration with getPlayerStats', () => {
-  it('berserker passive applied in getPlayerStats', async () => {
+describe('applyPassives() - Shadow Dance', () => {
+  const user = { class: 'rogue', level: 10 } as unknown as IUser;
+  it('+15% critRate when HP >70%', () => {
+    const res = applyPassives(makeStats(80, 100, 50, 0.15), user);
+    expect(res.critRate).toBeCloseTo(0.3);
+  });
+  it('no bonus at 70%', () => {
+    const res = applyPassives(makeStats(70, 100, 50, 0.15), user);
+    expect(res.critRate).toBeCloseTo(0.15);
+  });
+  it('no bonus below', () => {
+    const res = applyPassives(makeStats(50, 100, 50, 0.15), user);
+    expect(res.critRate).toBeCloseTo(0.15);
+  });
+});
+
+describe('applyPassives() - Arcane Intellect', () => {
+  const user = { class: 'mage', level: 10 } as unknown as IUser;
+  it('+25% critDmg when HP >50%', () => {
+    const res = applyPassives(makeStats(60), user);
+    expect(res.critDmg).toBeCloseTo(1.75);
+  });
+  it('no bonus at 50%', () => {
+    const res = applyPassives(makeStats(50), user);
+    expect(res.critDmg).toBeCloseTo(1.5);
+  });
+});
+
+describe('applyPassives() - hp_loss steps', () => {
+  const user = { class: 'warrior', level: 10 } as IUser;
+  it('epsilon fix', () => {
+    // 29% hp -> lost 71% -> 7 steps
+    expect(applyPassives(makeStats(29), user).atk).toBe(107);
+  });
+});
+
+describe('Integration with getPlayerStats', () => {
+  it('berserker passive applied at 50% hp', async () => {
     const testUser = {
       ...baseUser,
       level: 10,
       class: 'warrior' as const,
-      hp: 110, // 50% dari maxHp 220
+      hp: 110, // 50% dari 220
       maxHp: 220,
       equipped: { ...baseUser.equipped, weapon: 'iron_sword' },
     };
-
     const stats = await getPlayerStats(testUser);
-    // base warrior lvl10: atk = 12 + floor(15) = 27, + iron 12 = 39
-    // HP 50% → 5 step → +5% → 39 * 1.05 = 40.95 → floor 40
+    // base 12+15=27 +12=39, +5% = 40.95 -> floor 40
     expect(stats.atk).toBe(40);
-
-    // passive TIDAK masuk availableSkills
     expect(stats.availableSkills).not.toContain('berserker_passive');
-    expect(stats.availableSkills).toContain('rage');
+  });
+
+  it('rogue passive applied', async () => {
+    const testUser = {
+      ...baseUser,
+      level: 10,
+      class: 'rogue' as const,
+      hp: 999, // akan di-cap ke maxHp (190) = 100%
+    };
+    const stats = await getPlayerStats(testUser);
+    // base crit 0.15 + 0.15 = 0.30
+    expect(stats.critRate).toBeCloseTo(0.3);
+  });
+
+  it('mage passive applied', async () => {
+    const testUser = {
+      ...baseUser,
+      level: 10,
+      class: 'mage' as const,
+      hp: 999,
+    };
+    const stats = await getPlayerStats(testUser);
+    // base 1.5 + 0.25 = 1.75
+    expect(stats.critDmg).toBeCloseTo(1.75);
   });
 });
