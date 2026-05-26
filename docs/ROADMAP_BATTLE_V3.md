@@ -1,18 +1,9 @@
 # Nova RPG — Elemental, Stamina AP, & Ultimate Roadmap
 
-> Branch: `feat/battle-v3`
+> Branch: `feat/battle-v3` (sudah dibuat)
 > Target: implement 3 fitur (Elemental System v2, Stamina as Action Points, Class Ultimates) tanpa breaking `/hunt` dan `/dungeon`
 
-
-## 1) Buat Branch
-```bash
-cd ~/nova
-git checkout main
-git pull
-git checkout -b feat/battle-v3
-```
-
-## 2) Phase 1 — Elemental System v2
+## Phase 1 — Elemental System v2
 
 ### Prasyarat
 - `phys` → rename ke `physical`
@@ -22,7 +13,7 @@ git checkout -b feat/battle-v3
 - Equipment `stats.element` sudah ada tapi belum diisi
 - BattleEngine sudah support `element` di PlayerStats & EnemyStats
 
-### 2.1 Update Types
+### 1.1 Update Types
 **File:** `apps/bot/src/lib/rpg/combat.ts`
 - Ganti:
 ```ts
@@ -44,13 +35,13 @@ const elementTable: Record<Element, Partial<Record<Element, number>>> = {
 };
 ```
 
-### 2.2 Update Skill Types
+### 1.2 Update Skill Types
 **File:** `skills.ts` line 14
 ```ts
 element?: Element;
 ```
 
-### 2.3 Data Monster
+### 1.3 Data Monster
 **File:** `monsters.ts` — tambah field `element: Element` di BaseMonster
 ```ts
 export interface BaseMonster { ... element: Element; ... }
@@ -75,7 +66,7 @@ Isi 18 monster:
 - hydra → water
 - phoenix → fire
 
-### 2.4 Data Equipment
+### 1.4 Data Equipment
 **File:** `equipments.ts` — isi `stats.element` untuk weapon:
 - iron_sword, rusted_sword, war_axe, goblin_dagger → physical
 - ice_club, frost_cape → ice
@@ -87,7 +78,7 @@ Isi 18 monster:
 - reaper_scythe, cursed_blade → dark
 - star_blade, nova_blade → light
 
-### 2.5 UI Battle
+### 1.5 UI Battle
 **File:** `hunt.ts` updateBattleEmbed
 Tambah setelah title:
 ```ts
@@ -96,37 +87,37 @@ const resist = Object.entries(elementTable[enemy.element]||{}).filter(([,v])=>v<
 embed.addFields({ name: 'Element', value: `${enemy.emoji} ${enemy.element}`, inline:true });
 ```
 
-### 2.6 Test Manual Phase 1
+### 1.6 Test Manual Phase 1
 - `/eval await db.user.updateOne({discordId:'...'}, {$set:{'equipped.weapon':'inferno_staff'}})`
 - `/hunt` vs frost_troll (ice) → damage harus ~1.5x
 - `/hunt` vs lava_slime (fire) → damage ~0.7x
 - Cek log: no TypeScript error
 
-## 3) Phase 2 — Stamina sebagai Action Points
+## Phase 2 — Stamina sebagai Action Points
 
-### 3.1 Ubah cost
+### 2.1 Ubah cost
 **File:** `actions.ts` — turunkan hunt cost 15 → 5
 
-### 3.2 Engine changes
+### 2.2 Engine changes
 **File:** `battle-engine.ts`
 - `playerAttack()`: setelah attack, `this.user.stamina = Math.max(0, this.user.stamina - (skillId==='basic'?3:skill.staminaCost));`
 - `enemyAttack()`: setelah hit, `this.user.stamina = Math.min(this.user.maxStamina, this.user.stamina + 2);`
 - Tambah di `playerAttack` awal: if stamina <3 dan basic → damage *=0.5, log "Exhausted!"
 
-### 3.3 UI
+### 2.3 UI
 **File:** `hunt.ts` — button disabled sudah cek stamina, tambah di embed footer: `⚡${stamina}` (sudah ada)
 
-### 3.4 Consumable
+### 2.4 Consumable
 **File:** `shop.ts` tambah stamina potion (+30, 50 coins)
 
-### 3.5 Test Manual
+### 2.5 Test Manual
 - Start hunt stamina 10 → 3 basic attack → stamina 1 → attack ke-4 damage 50%
 - Pakai skill rage (20) → stamina habis → button disable
 - Regen +2 per enemy turn terlihat
 
-## 4) Phase 3 — Class Ultimates (Lv30)
+## Phase 3 — Class Ultimates (Lv30)
 
-### 4.1 Skills
+### 3.1 Skills
 **File:** `skills.ts` tambah 3 skill:
 - `berserk` warrior lv30, cd 8, cost 25, buff atk +1.0 def -0.5 3 turn
 - `shadow_clone` rogue lv30, cd 7, cost 20, set flag clone=2
@@ -134,40 +125,66 @@ embed.addFields({ name: 'Element', value: `${enemy.emoji} ${enemy.element}`, inl
 
 Update `getSkillsByClass` sudah filter by level
 
-### 4.2 Engine flag
+### 3.2 Engine flag
 **File:** `battle-engine.ts` enemyAttack: cek `if(this.playerStats.flags?.shadow_clone){... dodge ...}`
 
-### 4.3 UI
+### 3.3 UI
 **File:** `hunt.ts` — tambah row kedua untuk ultimate (gold button), muncul jika level >=30
 
-### 4.4 Test
+### 3.4 Test
 - Buat test user lv30 `/eval await db.user.updateOne({discordId:'...'},{$set:{level:30}})`
 - `/hunt` → tombol ultimate muncul
 - Pakai meteor → HP turun 40%, damage 3x
 
-## 5) Migration & Compatibility
+## Migration & Compatibility
 - Tidak perlu DB migration (element di code only)
 - Existing users dengan weapon tanpa element → default `physical`
 - `calculateDamage` fallback `elementTable[attacker.element]?.[defender.element] ?? 1.0`
 
-## 6) Testing Checklist
+## Checklist Tracking
 
-### Unit (manual via /eval)
-1. `await getPlayerStats(user)` → element = 'physical' jika iron_sword
-2. `calculateDamage({atk:100,element:'fire',...},{def:0,element:'ice'})` → ~150
-3. `engine.playerAttack('basic')` → stamina -3
+### Phase 1 — Elemental
+- [ ] Update `combat.ts` Element type + elementTable
+- [ ] Update `skills.ts` element?: Element
+- [ ] Tambah field element di `monsters.ts` interface
+- [ ] Isi element 18 monster
+- [ ] Isi element 15+ weapon di `equipments.ts`
+- [ ] Update UI `hunt.ts` tampilkan element
+- [ ] Test fire vs ice (1.5x)
+- [ ] Test fire vs fire (0.7x)
+- [ ] Test physical default
+- [ ] Commit: `feat(elements): add 9-element system`
 
-### Integration
-- [ ] /hunt vs 5 monster berbeda element, cek multiplier
-- [ ] /dungeon floor 5 (boss) dengan weapon fire vs ice boss
-- [ ] Stamina habis di turn 4 → exhausted log muncul
-- [ ] Ultimate warrior 3 turn buff hilang tepat waktu
-- [ ] No regression di /explore, /fish (tidak pakai element)
+### Phase 2 — Stamina AP
+- [ ] Ubah ACTION_COST.hunt 15→5 di `actions.ts`
+- [ ] Implement stamina -3 basic di `battle-engine.ts`
+- [ ] Implement stamina +2 regen per enemy turn
+- [ ] Tambah exhausted damage 50% log
+- [ ] Tambah stamina potion di `shop.ts`
+- [ ] Test 3x attack → exhausted
+- [ ] Test skill disable saat stamina kurang
+- [ ] Commit: `feat(stamina): action points`
 
-### Performance
-- getPlayerStats dipanggil tiap turn → pastikan tidak query DB tambahan (sudah lean)
+### Phase 3 — Ultimates
+- [ ] Tambah skill berserk di `skills.ts`
+- [ ] Tambah skill shadow_clone
+- [ ] Tambah skill meteor (hp cost)
+- [ ] Implement flag shadow_clone di engine
+- [ ] Tambah UI gold button di `hunt.ts`
+- [ ] Test warrior lv30 berserk
+- [ ] Test rogue clone dodge 2x
+- [ ] Test mage meteor HP -40%
+- [ ] Commit: `feat(ultimates): lv30 skills`
 
-## 7) Commit Plan
+### Final QA
+- [ ] /hunt 10x tanpa error
+- [ ] /dungeon floor 1-10 lancar
+- [ ] /explore, /fish tidak terpengaruh
+- [ ] TypeScript build sukses
+- [ ] Push origin feat/battle-v3
+- [ ] Merge ke main setelah test
+
+## Commit Plan
 ```bash
 git add apps/bot/src/lib/rpg/combat.ts
 git commit -m "feat(elements): add 9-element system keep physical"
@@ -184,10 +201,7 @@ git commit -m "feat(ultimates): add lv30 class ultimates"
 git push origin feat/battle-v3
 ```
 
-
-## 8) Future (optional)
+## Future (optional)
 - Dual-element bosses
 - Elemental status effects (burn/freeze)
 - Guild raid dengan elemental weakness rotation
-
----
