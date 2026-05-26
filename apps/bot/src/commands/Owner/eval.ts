@@ -82,10 +82,20 @@ export class EvalCommand extends Command {
 
       // eval bebas pakai with
       const result = await (async () => {
-        // eslint-disable-next-line no-new-func
-        const fn = new Function('ctx', 'code', `with(ctx){ return (async () => eval(code))() }`);
-        return fn(ctx, code);
-      })();
+  // eslint-disable-next-line no-new-func
+  const fn = new Function('ctx', 'code', `
+    with(ctx){
+      try {
+        // coba sebagai expression: return (code)
+        return eval('(async () => { return (' + code + ') })()');
+      } catch (e) {
+        // kalau gagal (multi-line, const, dll), jalankan sebagai statement
+        return eval('(async () => { ' + code + ' })()');
+      }
+    }
+  `);
+  return fn(ctx, code);
+})();
 
       let output =
         typeof result === 'string' ? result : util.inspect(result, { depth, colors: false });
