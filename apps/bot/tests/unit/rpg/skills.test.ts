@@ -22,16 +22,30 @@ describe('Skills', () => {
     expect(skills.some((s) => s.id === 'rage')).toBe(true);
   });
 
-  it('passive unlocks at level 10', () => {
-    const user = { class: 'warrior', level: 10 } as IUser;
-    const passives = getPassiveSkills(user);
-    expect(passives.length).toBeGreaterThan(0);
+  it('passive unlocks at level 5', () => {
+    const warrior = { class: 'warrior', level: 5 } as IUser;
+    const rogue = { class: 'rogue', level: 5 } as IUser;
+    const mage = { class: 'mage', level: 5 } as IUser;
+
+    expect(getPassiveSkills(warrior).map((p) => p.id)).toContain('shield_wall');
+    expect(getPassiveSkills(rogue).map((p) => p.id)).toContain('evasion');
+    expect(getPassiveSkills(mage).map((p) => p.id)).toContain('mana_shield');
   });
 
-  it('passive does not unlock before level 10', () => {
-    const user = { class: 'rogue', level: 9 } as IUser;
+  it('passive does not unlock before level 5', () => {
+    const user = { class: 'rogue', level: 4 } as IUser;
     const passives = getPassiveSkills(user);
     expect(passives.length).toBe(0);
+  });
+
+  it('level 10 passives unlock correctly', () => {
+    const warrior = { class: 'warrior', level: 10 } as IUser;
+    const rogue = { class: 'rogue', level: 10 } as IUser;
+    const mage = { class: 'mage', level: 10 } as IUser;
+
+    expect(getPassiveSkills(warrior).length).toBe(2);
+    expect(getPassiveSkills(rogue).length).toBe(2);
+    expect(getPassiveSkills(mage).length).toBe(2);
   });
 
   it('berserker_passive uses new generic format', () => {
@@ -56,6 +70,16 @@ describe('Skills', () => {
     expect(p?.effects[0].value).toBe('passive:critDmg:hp>0.5:0.25');
   });
 
+  it('new level 5 passives use correct format', () => {
+    const shield = getSkill('shield_wall');
+    const evasion = getSkill('evasion');
+    const mana = getSkill('mana_shield');
+
+    expect(shield?.effects[0].value).toBe('passive:flag:always:warrior_block');
+    expect(evasion?.effects[0].value).toBe('passive:dodge:hp>0.7:0.10');
+    expect(mana?.effects[0].value).toBe('passive:flag:always:mana_shield');
+  });
+
   it('all passive effects follow format', () => {
     Object.values(SKILLS)
       .filter((s) => s.passive)
@@ -78,8 +102,12 @@ describe('Skills', () => {
             expect(['always', 'hp>0.7', 'hp>0.5', 'hp<0.5', 'hp<0.3', 'hp_loss']).toContain(
               parts[2],
             );
-            // value harus parseable
-            expect(parseFloat(parts[3])).not.toBeNaN();
+            // value harus parseable KECUALI untuk flag
+            if (parts[1] !== 'flag') {
+              expect(parseFloat(parts[3])).not.toBeNaN();
+            } else {
+              expect(parts[3]).toMatch(/^[a-z_]+$/); // flag harus snake_case
+            }
           }
         });
       });
@@ -90,8 +118,11 @@ describe('Skills', () => {
     const rogue = getPassiveSkills({ class: 'rogue', level: 15 } as IUser);
     const mage = getPassiveSkills({ class: 'mage', level: 15 } as IUser);
 
+    expect(warrior.map((p) => p.id)).toContain('shield_wall');
     expect(warrior.map((p) => p.id)).toContain('berserker_passive');
+    expect(rogue.map((p) => p.id)).toContain('evasion');
     expect(rogue.map((p) => p.id)).toContain('shadow_dance');
+    expect(mage.map((p) => p.id)).toContain('mana_shield');
     expect(mage.map((p) => p.id)).toContain('arcane_intellect');
   });
 });
