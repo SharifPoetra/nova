@@ -23,15 +23,15 @@ export type Element = 'physical'|'fire'|'water'|'earth'|'wind'|'ice'|'lightning'
 - Ganti elementTable:
 ```ts
 const elementTable: Record<Element, Partial<Record<Element, number>>> = {
-  physical: {},
-  fire: { ice:1.5, wind:1.5, water:0.7, earth:0.7 },
-  water: { fire:1.5, earth:1.5, lightning:0.7, wind:0.7 },
-  earth: { lightning:1.5, fire:1.5, wind:0.7, ice:0.7 },
-  wind: { earth:1.5, water:1.5, ice:0.7, lightning:0.7 },
-  ice: { wind:1.5, lightning:1.5, fire:0.7, earth:0.7 },
-  lightning: { water:1.5, ice:1.5, earth:0.7, fire:0.7 },
-  light: { dark:1.5 },
-  dark: { light:1.5 },
+    physical: { light: 1.2, dark: 1.2 },
+    fire: { ice: 1.5, wind: 1.5, physical: 0.8, water: 0.7, earth: 0.7 },
+    water: { fire: 1.5, earth: 1.5, physical: 0.8, lightning: 0.7, wind: 0.7 },
+    earth: { lightning: 1.5, fire: 1.5, physical: 0.8, wind: 0.7, ice: 0.7 },
+    wind: { earth: 1.5, water: 1.5, physical: 0.8, ice: 0.7, lightning: 0.7 },
+    ice: { wind: 1.5, lightning: 1.5, physical: 0.8, fire: 0.7, earth: 0.7 },
+    lightning: { water: 1.5, ice: 1.5, physical: 0.8, earth: 0.7, fire: 0.7 },
+    light: { dark: 1.5, physical: 0.9 },
+    dark: { light: 1.5, physical: 0.9 },
 };
 ```
 
@@ -93,6 +93,7 @@ embed.addFields({ name: 'Element', value: `${enemy.emoji} ${enemy.element}`, inl
 - `/hunt` vs lava_slime (fire) → damage ~0.7x
 - Cek log: no TypeScript error
 
+Catatan: duplicate query Item di getPlayerStats (sekali di sumEquipmentStats, sekali lagi buat grantsSkill). Nanti bisa di-optimize, tapi untuk Phase 1 biarin dulu biar gak break.
 ## Phase 2 — Stamina sebagai Action Points
 
 ### 2.1 Ubah cost
@@ -144,8 +145,8 @@ Update `getSkillsByClass` sudah filter by level
 ## Checklist Tracking
 
 ### Phase 1 — Elemental
-- [ ] Update `combat.ts` Element type + elementTable
-- [ ] Update `skills.ts` element?: Element
+- [x] Update `combat.ts` Element type + elementTable (Element di export dari @nova/db, done.)
+- [x] Update `skills.ts` element?: Element
 - [ ] Tambah field element di `monsters.ts` interface
 - [ ] Isi element 18 monster
 - [ ] Isi element 15+ weapon di `equipments.ts`

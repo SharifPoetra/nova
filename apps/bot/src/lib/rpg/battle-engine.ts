@@ -8,7 +8,7 @@ import {
   type PlayerStats,
 } from './combat';
 import { getSkill, type SkillData, type SkillContext } from './skills';
-import type { IUser } from '@nova/db';
+import type { IUser, Element } from '@nova/db';
 
 export interface EnemyStats {
   id: string;
@@ -18,7 +18,7 @@ export interface EnemyStats {
   maxHp: number;
   atk: number;
   def: number;
-  element?: 'phys' | 'fire' | 'ice' | 'light' | 'dark';
+  element?: Element;
   critRate?: number;
   critDmg?: number;
   isBoss?: boolean;
@@ -179,7 +179,7 @@ export class BattleEngine {
       def: this.enemy.def,
       critRate: this.enemy.critRate ?? 0.05,
       critDmg: this.enemy.critDmg ?? 1.5,
-      element: this.enemy.element ?? 'phys',
+      element: this.enemy.element ?? 'physical',
       activeBuffs: [],
       availableSkills: [],
     };

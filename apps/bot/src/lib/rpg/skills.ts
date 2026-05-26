@@ -1,4 +1,4 @@
-import type { IUser } from '@nova/db';
+import type { IUser, Element } from '@nova/db';
 import { calculateDamage, PlayerStats } from './combat';
 
 export type SkillTarget = 'self' | 'enemy' | 'all_enemies' | 'ally';
@@ -7,7 +7,7 @@ export type SkillEffectType = 'damage' | 'heal' | 'buff' | 'debuff';
 export interface SkillEffect {
   type: SkillEffectType;
   value: number | string;
-  element?: 'phys' | 'fire' | 'ice' | 'light' | 'dark';
+  element?: Element;
   duration?: number;
   chance?: number;
 }
@@ -15,11 +15,10 @@ export interface SkillEffect {
 export interface SkillContext {
   user: IUser;
   stats: PlayerStats;
-  enemy: { hp: number; def: number; element?: string };
+  enemy: { hp: number; def: number; element?: Element };
   t: (key: string, opts?: any) => string;
   addBuff: (type: string, value: number, durationTurns: number) => void;
   addLog: (text: string) => void;
-  // dipakai internal untuk efek battle-only
   stunTurns?: number;
 }
 
@@ -52,7 +51,7 @@ export const SKILLS: Record<string, SkillData> = {
     classLock: ['warrior'],
     effects: [
       { type: 'buff', value: 'buff:atk:0.3', duration: 3 },
-      { type: 'damage', value: '0.8*atk' },
+      { type: 'damage', value: '0.8*atk', element: 'physical' },
     ],
     use: (ctx) => {
       const res = executeEffects(ctx, SKILLS.rage);
@@ -72,7 +71,7 @@ export const SKILLS: Record<string, SkillData> = {
     classLock: ['warrior'],
     requiredLevel: 10,
     effects: [
-      { type: 'damage', value: '1.2*atk', element: 'phys' },
+      { type: 'damage', value: '1.2*atk', element: 'physical' },
       { type: 'debuff', value: 'stun', duration: 1 },
     ],
     use: (ctx) => {
@@ -110,7 +109,7 @@ export const SKILLS: Record<string, SkillData> = {
     classLock: ['rogue'],
     effects: [
       { type: 'buff', value: 'buff:critRate:0.2', duration: 0 }, // instant
-      { type: 'damage', value: '2.0*atk', element: 'phys' },
+      { type: 'damage', value: '2.0*atk', element: 'physical' },
     ],
     use: (ctx) => {
       const res = executeEffects(ctx, SKILLS.backstab);
@@ -249,9 +248,14 @@ function executeEffects(ctx: SkillContext, skill: SkillData) {
 
     if (eff.type === 'damage') {
       const mult = parseValue(eff.value, tempStats.atk) / tempStats.atk;
+      const originalElement = tempStats.element;
+      if (eff.element) tempStats.element = eff.element;
+
       const res = calculateDamage(tempStats, ctx.enemy, mult);
       totalDamage += res.damage;
       isCrit = isCrit || res.isCrit;
+
+      tempStats.element = originalElement;
     }
 
     if (eff.type === 'heal') {

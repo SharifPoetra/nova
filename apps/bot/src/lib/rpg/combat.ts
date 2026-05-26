@@ -1,8 +1,18 @@
 import { getClass } from './classes';
 import { getPassiveSkills, getSkill, SkillData } from './skills';
-import { Item } from '@nova/db';
-import type { IUser, IEquipmentStat } from '@nova/db';
-import { User } from '@nova/db';
+import { Item, User, type Element, type IUser, type IEquipmentStat } from '@nova/db';
+
+export const elementTable: Record<Element, Partial<Record<Element, number>>> = {
+  physical: { light: 1.2, dark: 1.2 },
+  fire: { ice: 1.5, wind: 1.5, physical: 0.8, water: 0.7, earth: 0.7 },
+  water: { fire: 1.5, earth: 1.5, physical: 0.8, lightning: 0.7, wind: 0.7 },
+  earth: { lightning: 1.5, fire: 1.5, physical: 0.8, wind: 0.7, ice: 0.7 },
+  wind: { earth: 1.5, water: 1.5, physical: 0.8, ice: 0.7, lightning: 0.7 },
+  ice: { wind: 1.5, lightning: 1.5, physical: 0.8, fire: 0.7, earth: 0.7 },
+  lightning: { water: 1.5, ice: 1.5, physical: 0.8, earth: 0.7, fire: 0.7 },
+  light: { dark: 1.5, physical: 0.9 },
+  dark: { light: 1.5, physical: 0.9 },
+};
 
 export interface PlayerStats {
   hp: number;
@@ -11,7 +21,7 @@ export interface PlayerStats {
   def: number;
   critRate: number; // 0.05 = 5%
   critDmg: number; // 2.0 = 200%
-  element: 'phys' | 'fire' | 'ice' | 'light' | 'dark';
+  element: Element;
   activeBuffs: { type: string; value: number; turnsLeft: number }[];
   availableSkills: string[]; // skill IDs yang bisa dipake
   dodge?: number;
@@ -207,7 +217,7 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
     def: 0,
     critRate: baseCritRate,
     critDmg: 1.5,
-    element: 'phys',
+    element: 'physical',
     activeBuffs: [],
     availableSkills: [],
   };
@@ -270,7 +280,7 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
 // === DAMAGE CALC ===
 export function calculateDamage(
   attacker: PlayerStats,
-  defender: { def: number; element?: string },
+  defender: { def: number; element?: Element },
   skillMultiplier = 1.0,
   isCrit = false,
 ): { damage: number; isCrit: boolean; elementMult: number } {
@@ -284,13 +294,7 @@ export function calculateDamage(
     dmg *= attacker.critDmg;
   }
 
-  const elementTable: Record<string, Record<string, number>> = {
-    fire: { ice: 1.5, phys: 1.2 },
-    ice: { phys: 1.5 },
-    light: { dark: 1.5 },
-    dark: { light: 1.5 },
-  };
-  const eleMult = elementTable[attacker.element]?.[defender.element ?? 'phys'] ?? 1.0;
+  const eleMult = elementTable[attacker.element]?.[defender.element ?? 'physical'] ?? 1.0;
   dmg *= eleMult;
 
   dmg = Math.max(1, dmg - defender.def);
