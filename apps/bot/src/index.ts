@@ -45,7 +45,7 @@ const client = new SapphireClient({
     GatewayIntentBits.MessageContent,
   ],
   logger: {
-    level: isProd ? LogLevel.Info : LogLevel.Debug, // <-- ini kuncinya
+    level: isProd ? LogLevel.Info : LogLevel.Debug,
   },
   i18n: {
     fetchLanguage: async (context) => {
@@ -147,7 +147,7 @@ async function main() {
   try {
     console.log('--- STARTING NOVA ---');
     const mongoUri = process.env.MONGODB_URI;
-    if (!mongoUri) throw new Error('MONGODB_URI missing di.env');
+    if (!mongoUri) throw new Error('MONGODB_URI missing di .env');
 
     const conn = await createDatabase(mongoUri);
     container.db = {
