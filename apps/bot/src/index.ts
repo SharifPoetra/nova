@@ -24,9 +24,14 @@ setGlobalDispatcher(
   }),
 );
 
-const devGuildId = process.env.DEV_GUILD_ID;
-if (process.env.NODE_ENV === 'development' && devGuildId) {
-  ApplicationCommandRegistries.setDefaultGuildIds([devGuildId]);
+if (process.env.NODE_ENV === 'development') {
+  const devGuildIds = process.env.DEV_GUILD_IDS?.split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+  if (devGuildIds?.length) {
+    ApplicationCommandRegistries.setDefaultGuildIds(devGuildIds);
+    console.log(`[DEV] Commands registered to ${devGuildIds.length} guilds`);
+  }
 }
 
 const isProd = process.env.NODE_ENV === 'production';
