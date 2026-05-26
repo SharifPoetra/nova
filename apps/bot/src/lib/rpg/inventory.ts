@@ -62,7 +62,7 @@ export const formatStats = (stats?: IEquipmentStat): string => {
   if (stats.fishBonus) parts.push(`Fish +${(stats.fishBonus * 100).toFixed(0)}%`);
   if (stats.mineBonus) parts.push(`Mine +${(stats.mineBonus * 100).toFixed(0)}%`);
   if (stats.gatherBonus) parts.push(`Gather +${(stats.gatherBonus * 100).toFixed(0)}%`);
-  if (stats.element && stats.element !== 'phys') parts.push(stats.element.toUpperCase());
+  if (stats.element) parts.push(stats.element.toUpperCase());
   return parts.join(' • ') || '-';
 };
 

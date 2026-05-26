@@ -7,7 +7,16 @@ export interface IItemEffect {
 
 export type EquipmentSlot = 'weapon' | 'helmet' | 'armor' | 'accessory' | 'tool';
 
-export type Element = 'phys' | 'fire' | 'ice' | 'light' | 'dark';
+export type Element =
+  | 'physical'
+  | 'fire'
+  | 'water'
+  | 'earth'
+  | 'wind'
+  | 'ice'
+  | 'lightning'
+  | 'light'
+  | 'dark';
 
 export interface IEquipmentStat {
   atk?: number;
@@ -65,7 +74,10 @@ const ItemSchema = new Schema<IItem>(
         def: Number,
         critRate: Number,
         critDmg: Number,
-        element: { type: String, enum: ['phys', 'fire', 'ice', 'light', 'dark'] },
+        element: {
+          type: String,
+          enum: ['physical', 'fire', 'water', 'earth', 'wind', 'ice', 'lightning', 'light', 'dark'],
+        },
         grantsSkill: String,
         classLock: [{ type: String, enum: ['warrior', 'mage', 'rogue'] }],
         fishBonus: Number,

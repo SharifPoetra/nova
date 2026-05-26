@@ -46,7 +46,7 @@ export async function runInteractiveBattle(params: BattleParams) {
       maxHp: monsterMaxHp,
       atk: monsterAtk,
       def: monsterDef,
-      element: 'phys',
+      element: 'physical',
       isBoss,
       isElite,
     },
