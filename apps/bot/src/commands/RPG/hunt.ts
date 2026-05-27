@@ -14,7 +14,6 @@ import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { getScaledMonster } from '../../lib/rpg/monsters';
 import { ACTION_COST } from '../../lib/rpg/actions';
 import { getPlayerStats, resetSkillCooldowns } from '../../lib/rpg/combat';
-import { getSkill, type SkillData } from '../../lib/rpg/skills';
 import { addItemToInventory } from '../../lib/rpg/inventory';
 import { i18nMonster } from '../../lib/i18n/display';
 import { getItemDisplay } from '../../lib/rpg/item-registry';
@@ -75,7 +74,7 @@ export class HuntCommand extends Command {
       element: baseMonster.element,
     };
     const engine = new BattleEngine(battleUser, enemy, {
-      onLog: (msg) => {},
+      onLog: () => {},
     });
     await engine.init();
     const playerClass = battleUser.class ?? 'warrior';
@@ -102,7 +101,7 @@ export class HuntCommand extends Command {
 
       // Element weakness hint
       const weakTo = Object.entries(elementTable)
-        .filter(([atk, defs]) => (defs as any)[enemy.element!] > 1)
+        .filter(([, defs]) => (defs as any)[enemy.element!] > 1)
         .map(([e]) => ELEMENT_EMOJI[e as keyof typeof ELEMENT_EMOJI]);
       const elementInfo = `${ELEMENT_EMOJI[enemy.element!]} ${enemy.element!.toUpperCase()}${weakTo.length ? ` → ${weakTo.join('')}` : ''}`;
 

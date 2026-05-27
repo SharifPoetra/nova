@@ -240,7 +240,7 @@ function executeEffects(ctx: SkillContext, skill: SkillData) {
   let totalDamage = 0;
   let totalHeal = 0;
   let isCrit = false;
-  let tempStats = { ...ctx.stats };
+  const tempStats = { ...ctx.stats };
 
   for (const eff of skill.effects) {
     // chance check

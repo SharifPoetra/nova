@@ -82,7 +82,6 @@ export class EvalCommand extends Command {
 
       // eval bebas pakai with
       const result = await (async () => {
-        // eslint-disable-next-line no-new-func
         const fn = new Function(
           'ctx',
           'code',

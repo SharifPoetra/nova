@@ -107,8 +107,8 @@ export class BattleEngine {
       }
     }
 
-    let damage = 0;
-    let isCrit = false;
+    let damage: number;
+    let isCrit: boolean;
     let healed = 0;
 
     if (!skillId || skillId === 'basic') {

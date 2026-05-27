@@ -199,7 +199,7 @@ export function buildBattleEmbed(params: {
 }) {
   const { t } = params;
   const weakTo = Object.entries(elementTable)
-    .filter(([atk, defs]) => (defs as any)[params.monsterElement] > 1)
+    .filter(([, defs]) => (defs as any)[params.monsterElement] > 1)
     .map(([e]) => ELEMENT_EMOJI[e as keyof typeof ELEMENT_EMOJI]);
   const elementInfo = `${ELEMENT_EMOJI[params.monsterElement]} ${params.monsterElement.toUpperCase()}${weakTo.length ? ` → ${weakTo.join('')}` : ''}`;
   return new EmbedBuilder()

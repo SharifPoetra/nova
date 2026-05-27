@@ -1,6 +1,6 @@
 import { getClass } from './classes';
-import { getPassiveSkills, getSkill, SkillData } from './skills';
-import { Item, User, type Element, type IUser, type IEquipmentStat } from '@nova/db';
+import { getPassiveSkills, type SkillData } from './skills';
+import { Item, type Element, type IUser, type IEquipmentStat } from '@nova/db';
 
 export const elementTable: Record<Element, Partial<Record<Element, number>>> = {
   physical: { light: 1.2, dark: 1.2 },
@@ -134,7 +134,7 @@ export function applyPassives(baseStats: PlayerStats, user: IUser): PlayerStats 
 
       // cek kondisi
       const hpPct = newStats.hp / newStats.maxHp;
-      let active = false;
+      let active: boolean;
       switch (condition) {
         case 'always':
           active = true;
@@ -166,7 +166,7 @@ export function applyPassives(baseStats: PlayerStats, user: IUser): PlayerStats 
         const hpLostPercent = 1 - hpPct;
         const steps = Math.floor(hpLostPercent * 10 + 1e-6); // 0-10 step, tambah epsilon biar 0.9999 jadi 1
 
-        let baseValue = 0;
+        let baseValue: number;
         if (valueRaw.includes('*level')) {
           const base = parseFloat(valueRaw.replace('*level', ''));
           baseValue = base * user.level;
