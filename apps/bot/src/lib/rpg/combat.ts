@@ -14,6 +14,18 @@ export const elementTable: Record<Element, Partial<Record<Element, number>>> = {
   dark: { light: 1.5, physical: 0.9 },
 };
 
+export const ELEMENT_EMOJI: Record<Element, string> = {
+  physical: '⚔️',
+  fire: '🔥',
+  water: '💧',
+  earth: '🌱',
+  wind: '💨',
+  ice: '❄️',
+  lightning: '⚡',
+  light: '✨',
+  dark: '🌑',
+};
+
 export interface PlayerStats {
   hp: number;
   maxHp: number;
