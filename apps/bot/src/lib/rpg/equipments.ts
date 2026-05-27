@@ -38,7 +38,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Uncommon',
     sellPrice: 40,
-    stats: { atk: 6, critRate: 0.03, classLock: ['rogue'] },
+    stats: { atk: 6, critRate: 0.03, classLock: ['rogue'], element: 'physical' },
   },
   hunter_bow: {
     id: 'hunter_bow',
@@ -47,7 +47,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Uncommon',
     sellPrice: 70,
-    stats: { atk: 15, critDmg: 1.8 },
+    stats: { atk: 15, critDmg: 1.8, element: 'physical' },
   },
   ice_club: {
     id: 'ice_club',
@@ -56,7 +56,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Uncommon',
     sellPrice: 95,
-    stats: { atk: 18, def: 2, classLock: ['warrior'] },
+    stats: { atk: 18, def: 2, classLock: ['warrior'], element: 'ice' },
   },
   iron_gauntlet: {
     id: 'iron_gauntlet',
@@ -74,7 +74,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Uncommon',
     sellPrice: 45,
-    stats: { atk: 12 },
+    stats: { atk: 12, element: 'physical' },
   },
   lizard_scale_armor: {
     id: 'lizard_scale_armor',
@@ -92,7 +92,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Uncommon',
     sellPrice: 50,
-    stats: { atk: 10, critRate: 0.05 },
+    stats: { atk: 10, critRate: 0.05, element: 'physical' },
   },
   rusted_sword: {
     id: 'rusted_sword',
@@ -101,7 +101,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Uncommon',
     sellPrice: 45,
-    stats: { atk: 8, classLock: ['warrior'] },
+    stats: { atk: 8, classLock: ['warrior'], element: 'physical' },
   },
   war_axe: {
     id: 'war_axe',
@@ -110,7 +110,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Uncommon',
     sellPrice: 70,
-    stats: { atk: 12, classLock: ['warrior'] },
+    stats: { atk: 12, classLock: ['warrior'], element: 'physical' },
   },
 
   // === RARE ===
@@ -139,7 +139,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Rare',
     sellPrice: 250,
-    stats: { atk: 12, critRate: 0.05, critDmg: 0.2, classLock: ['rogue'] },
+    stats: { atk: 12, critRate: 0.05, critDmg: 0.2, classLock: ['rogue'], element: 'water' },
   },
   harpy_bow: {
     id: 'harpy_bow',
@@ -148,7 +148,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Rare',
     sellPrice: 220,
-    stats: { atk: 16, critRate: 0.06, classLock: ['rogue'] },
+    stats: { atk: 16, critRate: 0.06, classLock: ['rogue'], element: 'wind' },
   },
   lava_boots: {
     id: 'lava_boots',
@@ -157,7 +157,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'armor',
     rarity: 'Rare',
     sellPrice: 200,
-    stats: { hp: 25, def: 3 },
+    stats: { hp: 25, def: 3, element: 'fire' },
   },
   slime_crown: {
     id: 'slime_crown',
@@ -184,7 +184,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Rare',
     sellPrice: 200,
-    stats: { atk: 14, critDmg: 0.3, classLock: ['rogue'] },
+    stats: { atk: 14, critDmg: 0.3, classLock: ['rogue'], element: 'physical' },
   },
   wolf_fang_necklace: {
     id: 'wolf_fang_necklace',
@@ -202,7 +202,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Rare',
     sellPrice: 240,
-    stats: { atk: 22, critRate: 0.06, classLock: ['warrior'] },
+    stats: { atk: 22, critRate: 0.06, classLock: ['warrior'], element: 'dark' },
   },
 
   // === EPIC ===
@@ -231,7 +231,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'armor',
     rarity: 'Epic',
     sellPrice: 480,
-    stats: { hp: 45, def: 6, critDmg: 0.2 },
+    stats: { hp: 45, def: 6, critDmg: 0.2, element: 'ice' },
   },
   obsidian_plate: {
     id: 'obsidian_plate',
@@ -249,7 +249,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Epic',
     sellPrice: 450,
-    stats: { atk: 25, critRate: 0.1, critDmg: 2.0 },
+    stats: { atk: 25, critRate: 0.1, critDmg: 2.0, element: 'dark' },
   },
   shadow_cloak: {
     id: 'shadow_cloak',
@@ -267,7 +267,13 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Epic',
     sellPrice: 800,
-    stats: { atk: 20, critRate: 0.05, critDmg: 0.3, classLock: ['warrior', 'rogue'] },
+    stats: {
+      atk: 20,
+      critRate: 0.05,
+      critDmg: 0.3,
+      classLock: ['warrior', 'rogue'],
+      element: 'light',
+    },
   },
   warden_cape: {
     id: 'warden_cape',
@@ -294,7 +300,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Epic',
     sellPrice: 600,
-    stats: { atk: 25, critRate: 0.08, critDmg: 0.3, classLock: ['rogue'] },
+    stats: { atk: 25, critRate: 0.08, critDmg: 0.3, classLock: ['rogue'], element: 'lightning' },
   },
 
   // === LEGENDARY ===
@@ -305,7 +311,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Legendary',
     sellPrice: 1000,
-    stats: { atk: 30, critDmg: 0.4, classLock: ['mage'] },
+    stats: { atk: 30, critDmg: 0.4, classLock: ['mage'], element: 'fire' },
   },
   orc_warchief_helm: {
     id: 'orc_warchief_helm',
@@ -341,7 +347,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Legendary',
     sellPrice: 1100,
-    stats: { atk: 28, critDmg: 0.4, hp: 30, classLock: ['mage'] },
+    stats: { atk: 28, critDmg: 0.4, hp: 30, classLock: ['mage'], element: 'light' },
   },
   hydra_venom_dagger: {
     id: 'hydra_venom_dagger',
@@ -350,7 +356,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Legendary',
     sellPrice: 1200,
-    stats: { atk: 35, critRate: 0.1, critDmg: 0.4, classLock: ['rogue'] },
+    stats: { atk: 35, critRate: 0.1, critDmg: 0.4, classLock: ['rogue'], element: 'water' },
   },
 
   // === MYTHIC ===
@@ -361,7 +367,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'weapon',
     rarity: 'Mythic',
     sellPrice: 5000,
-    stats: { atk: 40, critRate: 0.1, critDmg: 0.5, hp: 50 },
+    stats: { atk: 40, critRate: 0.1, critDmg: 0.5, hp: 50, element: 'light' },
   },
   phoenix_wings: {
     id: 'phoenix_wings',
@@ -370,7 +376,7 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
     slot: 'armor',
     rarity: 'Mythic',
     sellPrice: 3000,
-    stats: { atk: 40, critDmg: 0.5, hp: 60 },
+    stats: { atk: 40, critDmg: 0.5, hp: 60, element: 'fire' },
   },
 
   // === TOOLS ===
