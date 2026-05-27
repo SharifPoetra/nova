@@ -98,15 +98,27 @@ export class BattleEngine {
   ): Promise<{ damage: number; isCrit: boolean; healed: number }> {
     await this.refreshStats();
 
+    if (this.turn > 0) {
+      const before = this.user.stamina;
+      this.user.stamina = Math.min(this.user.maxStamina, this.user.stamina + 2);
+      const gained = this.user.stamina - before;
+      if (gained > 0) {
+        this.logPush(`⚡ +${gained} Stamina (${this.user.stamina}/${this.user.maxStamina})`);
+      }
+    }
+
     let damage = 0;
     let isCrit = false;
     let healed = 0;
 
     if (!skillId || skillId === 'basic') {
+      const isExhausted = this.user.stamina < 3;
+      const dmgMult = isExhausted ? 0.5 : 1.0;
+
       const result = calculateDamage(
         this.playerStats,
         { def: this.enemy.def, element: this.enemy.element },
-        1.0,
+        dmgMult,
       );
       damage = result.damage;
       isCrit = result.isCrit;
@@ -116,8 +128,11 @@ export class BattleEngine {
       let extra = '';
       if (mult >= 1.5) extra = ` 💥 **WEAK!** ${elemEmoji}${mult.toFixed(1)}x`;
       else if (mult <= 0.7) extra = ` 🛡️ Resist ${mult.toFixed(1)}x`;
+      if (isExhausted) extra += ` 😮‍💨 Exhausted`;
 
       this.logPush(`🗡️ You attack **${damage}**${isCrit ? ' 💥CRIT!' : ''}${extra}`);
+
+      this.user.stamina = Math.max(0, this.user.stamina - 3);
     } else {
       const skill = getSkill(skillId);
       if (!skill) {
