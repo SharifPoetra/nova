@@ -102,7 +102,7 @@ export class HuntCommand extends Command {
 
       // Element weakness hint
       const weakTo = Object.entries(elementTable)
-        .filter(([atk, defs]) => (defs as any)[enemy.element] > 1)
+        .filter(([atk, defs]) => (defs as any)[enemy.element!] > 1)
         .map(([e]) => ELEMENT_EMOJI[e as keyof typeof ELEMENT_EMOJI]);
       const elementInfo = `${ELEMENT_EMOJI[enemy.element!]} ${enemy.element!.toUpperCase()}${weakTo.length ? ` → ${weakTo.join('')}` : ''}`;
 
@@ -120,8 +120,8 @@ export class HuntCommand extends Command {
             name: `${enemy.emoji} ${enemy.name}`,
             value:
               `
-            ${ratioBar(engine.enemyHp, enemy.maxHp)} \`${engine.enemyHp}/${enemy.maxHp}\`` +
-              `\n**Element** ${elementInfo}`,
+              ${ratioBar(engine.enemyHp, enemy.maxHp)} \`${engine.enemyHp}/${enemy.maxHp}\`` +
+              `\n**Element:** ${elementInfo}`,
             inline: false,
           },
           {
