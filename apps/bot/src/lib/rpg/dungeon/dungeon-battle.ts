@@ -63,6 +63,7 @@ export async function runInteractiveBattle(params: BattleParams) {
       id: s.id,
       name: s.name,
       cd: getSkillCooldown(player, s.id),
+      canUseSkill: engine.canUseSkill(s.id).ok,
     }));
 
     const embed = buildBattleEmbed({

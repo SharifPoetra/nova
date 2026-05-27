@@ -267,9 +267,28 @@ Isi 18 monster:
 
 ### 2.2 Engine changes
 **File:** `battle-engine.ts`
-- `playerAttack()`: setelah attack, `this.user.stamina = Math.max(0, this.user.stamina - (skillId==='basic'?3:skill.staminaCost));`
-- `enemyAttack()`: setelah hit, `this.user.stamina = Math.min(this.user.maxStamina, this.user.stamina + 2);`
-- Tambah di `playerAttack` awal: if stamina <3 dan basic → damage *=0.5, log "Exhausted!"
+- `playerAttack()`: di awal function (setelah `await this.refreshStats())`:
+```ts
+if (this.turn > 0) {
+  this.user.stamina = Math.min(this.user.maxStamina, this.user.stamina + 2);
+}
+```
+→ Regen +2 stamina setiap turn player (kecuali turn pertama), log ⚡ +2 Stamina
+- `playerAttack()`: untuk basic attack:
+```ts
+const isExhausted = this.user.stamina < 3;
+const dmgMult = isExhausted ? 0.5 : 1.0;
+const result = calculateDamage(this.playerStats, { def: this.enemy.def, element: this.enemy.element }, dmgMult);
+// ... setelah log attack
+this.user.stamina = Math.max(0, this.user.stamina - 3);
+if (isExhausted) extra += ` 😮‍💨 Exhausted`;
+```
+→ Cost basic = 3, kalau stamina <3 damage jadi 50% + tag "Exhausted"
+- `playerAttack()`: untuk skill:
+```ts
+  this.user.stamina = Math.max(0, this.user.stamina - skill.staminaCost);
+```
+→ Tetap pakai cost dari skills.ts (sudah ada)
 
 ### 2.3 UI
 **File:** `hunt.ts` — button disabled sudah cek stamina, tambah di embed footer: `⚡${stamina}` (sudah ada)
@@ -332,14 +351,15 @@ Update `getSkillsByClass` sudah filter by level
 - [x] Commit: `feat(elements): assign elements to dungeon monsters + dungeon UI`
 
 ### Phase 2 — Stamina AP
-- [ ] Ubah ACTION_COST.hunt 15→5 di `actions.ts`
-- [ ] Implement stamina -3 basic di `battle-engine.ts`
-- [ ] Implement stamina +2 regen per enemy turn
-- [ ] Tambah exhausted damage 50% log
-- [ ] Tambah stamina potion di `shop.ts`
-- [ ] Test 3x attack → exhausted
-- [ ] Test skill disable saat stamina kurang
-- [ ] Commit: `feat(stamina): action points`
+- [x] Ubah ACTION_COST.hunt 10→5 di `actions.ts`
+- [x] Implement stamina -3 basic di `battle-engine.ts` (playerAttack)
+- [x] Implement stamina +2 regen di awal turn player (bukan per enemy turn)
+- [x] Tambah exhausted damage 50% + log "😮‍💨 Exhausted" saat stamina <3
+- [x] Update stamina potion di `shop.ts` price 150→50
+- [x] Test 3x basic attack → stamina 1 → attack ke-4 damage 50%
+- [x] Test skill disable otomatis saat stamina kurang (canUseSkill)
+- [x] Test regen muncul di log setiap turn (kecuali turn 1)
+- [x] Commit: `feat(stamina): action points system`
 
 ### Phase 3 — Ultimates
 - [ ] Tambah skill berserk di `skills.ts`

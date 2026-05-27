@@ -23,7 +23,7 @@ const SHOP_ITEMS = [
     id: 'potion_stamina',
     key: 'stamina',
     emoji: '🧪',
-    price: 150,
+    price: 50,
     data: {
       name: 'Stamina Potion',
       type: 'consumable' as const,
