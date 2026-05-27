@@ -54,7 +54,13 @@ export class InvConsumableHandler extends InteractionHandler {
       avatar: interaction.user.displayAvatarURL(),
     };
 
-    let { embed, components } = await renderConsumablePage(this.container, renderUser, page, t);
+    const { embed, components: baseComponents } = await renderConsumablePage(
+      this.container,
+      renderUser,
+      page,
+      t,
+    );
+    let components = baseComponents;
 
     if (isDungeon) {
       components = components
