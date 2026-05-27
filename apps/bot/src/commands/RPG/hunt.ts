@@ -118,13 +118,11 @@ export class HuntCommand extends Command {
         .setFields(
           {
             name: `${enemy.emoji} ${enemy.name}`,
-            value: `${ratioBar(engine.enemyHp, enemy.maxHp)} \`${engine.enemyHp}/${enemy.maxHp}\``,
+            value:
+              `
+            ${ratioBar(engine.enemyHp, enemy.maxHp)} \`${engine.enemyHp}/${enemy.maxHp}\`` +
+              `\n**Element** ${elementInfo}`,
             inline: false,
-          },
-          {
-            name: 'Element',
-            value: elementInfo,
-            inline: true,
           },
           {
             name: t('commands/hunt:field_you'),
