@@ -19,6 +19,7 @@ import { addItemToInventory } from '../../lib/rpg/inventory';
 import { i18nMonster } from '../../lib/i18n/display';
 import { getItemDisplay } from '../../lib/rpg/item-registry';
 import { BattleEngine, type EnemyStats } from '../../lib/rpg/battle-engine';
+import { elementTable, ELEMENT_EMOJI } from '../../lib/rpg/combat';
 
 @ApplyOptions({ name: 'hunt', description: 'Hunt monsters', fullCategory: ['RPG'] })
 export class HuntCommand extends Command {
@@ -34,7 +35,6 @@ export class HuntCommand extends Command {
     const db = this.container.db;
     const battleUser = await db.user.findOne({ discordId: interaction.user.id });
     if (!battleUser) return interaction.editReply(t('common:need_start'));
-
     applyPassiveRegen(battleUser);
     const now = Date.now();
     if (now - (battleUser.lastHunt?.getTime() ?? 0) < 45000) {
@@ -48,26 +48,23 @@ export class HuntCommand extends Command {
         t('common:error.low_stamina', { current: battleUser.stamina, need: ACTION_COST.hunt }),
       );
     }
-
     const initialStats = await getPlayerStats(battleUser);
     if (initialStats.hp < 20) {
       await battleUser.save();
       return interaction.editReply(t('commands/hunt:low_hp', { hp: initialStats.hp }));
     }
-
     battleUser.stamina -= ACTION_COST.hunt;
     battleUser.lastHunt = new Date();
     resetSkillCooldowns(battleUser);
-
     const baseMonster = getScaledMonster(battleUser.level ?? 1);
     const isElite = Math.random() < 0.05;
     const monsterName = i18nMonster('hunt', baseMonster.id, t);
-
     // Build EnemyStats for engine
+    const elementEmoji = ELEMENT_EMOJI[baseMonster.element];
     const enemy: EnemyStats = {
       id: baseMonster.id,
       name: isElite ? `Elite ${monsterName}` : monsterName,
-      emoji: isElite ? `💀${baseMonster.emoji}` : baseMonster.emoji,
+      emoji: isElite ? `💀${baseMonster.emoji}` : `${elementEmoji}${baseMonster.emoji}`,
       hp: isElite ? Math.floor(baseMonster.hp * 1.8) : baseMonster.hp,
       maxHp: isElite ? Math.floor(baseMonster.hp * 1.8) : baseMonster.hp,
       atk: Math.floor(((baseMonster.dmg[0] + baseMonster.dmg[1]) / 2) * (isElite ? 1.5 : 1)),
@@ -75,16 +72,14 @@ export class HuntCommand extends Command {
       isElite,
       critRate: 0.05,
       critDmg: 1.5,
+      element: baseMonster.element,
     };
-
     const engine = new BattleEngine(battleUser, enemy, {
-      onLog: (msg) => {}, // logs stored in engine.log
+      onLog: (msg) => {},
     });
     await engine.init();
-
     const playerClass = battleUser.class ?? 'warrior';
     const classIcon = playerClass === 'warrior' ? '🛡️' : playerClass === 'mage' ? '🪄' : '🏹';
-
     const embed = new EmbedBuilder()
       .setColor(isElite ? 0x8e44ad : 0xe67e22)
       .setAuthor({
@@ -102,9 +97,14 @@ export class HuntCommand extends Command {
     const updateBattleEmbed = async (showButtons = true) => {
       const playerStats = engine.playerStats;
       const playerSkills = engine.getPlayerSkills();
-
       const atkBuff = playerStats.activeBuffs.find((b) => b.type === 'atk');
       const buffInfo = atkBuff ? ` • 🔥 ATK +${Math.floor(atkBuff.value * 100)}%` : '';
+
+      // Element weakness hint
+      const weakTo = Object.entries(elementTable)
+        .filter(([atk, defs]) => (defs as any)[enemy.element] > 1)
+        .map(([e]) => ELEMENT_EMOJI[e as keyof typeof ELEMENT_EMOJI]);
+      const elementInfo = `${ELEMENT_EMOJI[enemy.element!]} ${enemy.element!.toUpperCase()}${weakTo.length ? ` → ${weakTo.join('')}` : ''}`;
 
       embed
         .setDescription(
@@ -122,12 +122,16 @@ export class HuntCommand extends Command {
             inline: false,
           },
           {
+            name: 'Element',
+            value: elementInfo,
+            inline: true,
+          },
+          {
             name: t('commands/hunt:field_you'),
             value: `${ratioBar(playerStats.hp, playerStats.maxHp)} \`${playerStats.hp}/${playerStats.maxHp}\` • ⚡${battleUser.stamina}/${battleUser.maxStamina ?? 100}`,
             inline: false,
           },
         );
-
       const components: ActionRowBuilder<ButtonBuilder>[] = [];
       if (showButtons && engine.enemyHp > 0 && playerStats.hp > 0) {
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -137,7 +141,6 @@ export class HuntCommand extends Command {
             .setEmoji('🗡️')
             .setStyle(ButtonStyle.Danger),
         );
-
         for (const skill of playerSkills.slice(0, 4)) {
           const cd = engine['user'].skillCooldowns.get(skill.id) ?? 0;
           row.addComponents(
@@ -156,11 +159,9 @@ export class HuntCommand extends Command {
 
     await updateBattleEmbed(true);
     await sleep(1000);
-
     // Battle loop using engine
     while (!engine.isBattleOver()) {
       await updateBattleEmbed(true);
-
       const turn = await interaction.channel
         ?.awaitMessageComponent({
           filter: (i) =>
@@ -170,7 +171,6 @@ export class HuntCommand extends Command {
           componentType: ComponentType.Button,
         })
         .catch(() => null);
-
       if (!turn) {
         // Auto attack
         await engine.playerAttack('basic');
@@ -187,30 +187,24 @@ export class HuntCommand extends Command {
         await updateBattleEmbed(false);
         await sleep(700);
       }
-
       if (engine.enemyHp <= 0) break;
-
       // Enemy turn - engine handles dodge/block/crit
       engine.enemyAttack();
       await engine.endTurn();
       await updateBattleEmbed(false);
       await sleep(850);
     }
-
     const result = engine.getResult();
     const battleSummary = result.log.slice(-15).join('\n');
-
     if (!result.victory) {
       const loseExp = Math.floor(getScaledExp(baseMonster.xp, battleUser.level, 'hunt') / 3);
       battleUser.exp += loseExp;
       battleUser.markModified('skillCooldowns');
       battleUser.markModified('buffs');
       await battleUser.save();
-
       const finalStats = await getPlayerStats(battleUser);
       const atkBuff = finalStats.activeBuffs.find((b) => b.type === 'atk');
       const finalBuffInfo = atkBuff ? ` • 🔥 ATK +${Math.floor(atkBuff.value * 100)}%` : '';
-
       embed
         .setColor(0xe74c3c)
         .setTitle(t('commands/hunt:lose_title', { name: enemy.name }))
@@ -228,7 +222,6 @@ export class HuntCommand extends Command {
         .setFields();
       return interaction.editReply({ embeds: [embed], components: [] });
     }
-
     // Victory - drops
     const dropRoll = Math.random() * 100;
     let cumulativeChance = 0;
@@ -238,7 +231,6 @@ export class HuntCommand extends Command {
       return dropRoll <= cumulativeChance;
     });
     if (!selectedDrop) selectedDrop = baseMonster.drops[0];
-
     await addItemToInventory(
       battleUser.discordId,
       {
@@ -253,7 +245,6 @@ export class HuntCommand extends Command {
       },
       1,
     );
-
     const user = await db.user.findOne({ discordId: interaction.user.id });
     if (!user) return;
     user.hp = battleUser.hp;
@@ -262,7 +253,6 @@ export class HuntCommand extends Command {
     user.lastPassive = battleUser.lastPassive;
     user.buffs = battleUser.buffs;
     user.markModified('buffs');
-
     const expGain = getScaledExp(baseMonster.xp, user.level, 'hunt', isElite);
     user.balance += expGain * 2;
     user.exp += expGain;
@@ -282,12 +272,10 @@ export class HuntCommand extends Command {
     user.markModified('skillCooldowns');
     user.markModified('buffs');
     await user.save();
-
     const finalPlayerStats = await getPlayerStats(user);
     const finalAtkBuff = finalPlayerStats.activeBuffs.find((b) => b.type === 'atk');
     const finalBuffInfo = finalAtkBuff ? ` • 🔥 ATK +${Math.floor(finalAtkBuff.value * 100)}%` : '';
     const dropName = (await getItemDisplay(selectedDrop.id, t))?.name ?? selectedDrop.id;
-
     embed
       .setColor(RARITY_COLOR[selectedDrop.rarity as keyof typeof RARITY_COLOR])
       .setTitle(
