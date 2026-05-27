@@ -3,7 +3,7 @@ import { IUser } from '@nova/db';
 import { sleep } from '../../utils';
 import { RunState } from './dungeon-state';
 import { buildBattleEmbed, getBattleButtons } from './dungeon-ui';
-import { getSkillCooldown } from '../combat';
+import { getSkillCooldown, ELEMENT_EMOJI } from '../combat';
 import { getSkill, type SkillData } from '../skills';
 import { BattleEngine } from '../battle-engine';
 import type { TFunction } from 'i18next';
@@ -46,7 +46,7 @@ export async function runInteractiveBattle(params: BattleParams) {
       maxHp: monsterMaxHp,
       atk: monsterAtk,
       def: monsterDef,
-      element: 'physical',
+      element: monster.element ?? 'physical',
       isBoss,
       isElite,
     },
@@ -70,6 +70,7 @@ export async function runInteractiveBattle(params: BattleParams) {
       monsterEmoji: monster.emoji,
       monsterHp: engine.enemyHp,
       monsterMaxHp,
+      monsterElement: monster.element ?? 'physical',
       playerName: username,
       playerHp: player.hp,
       playerMaxHp: stats.maxHp,
