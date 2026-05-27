@@ -292,7 +292,10 @@ export function getMainButtons(t: TFunction) {
   );
 }
 
-export function getBattleButtons(skills: { id: string; name: string; cd: number }[], t: TFunction) {
+export function getBattleButtons(
+  skills: { id: string; name: string; cd: number; canUseSkill: boolean }[],
+  t: TFunction,
+) {
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId('atk')
@@ -312,7 +315,7 @@ export function getBattleButtons(skills: { id: string; name: string; cd: number 
           }),
         )
         .setStyle(ButtonStyle.Success)
-        .setDisabled(s.cd > 0),
+        .setDisabled(!s.canUseSkill),
     );
   }
   return row;

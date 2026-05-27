@@ -140,6 +140,7 @@ export class HuntCommand extends Command {
             .setStyle(ButtonStyle.Danger),
         );
         for (const skill of playerSkills.slice(0, 4)) {
+          const canUse = engine.canUseSkill(skill.id);
           const cd = engine['user'].skillCooldowns.get(skill.id) ?? 0;
           row.addComponents(
             new ButtonBuilder()
@@ -147,7 +148,7 @@ export class HuntCommand extends Command {
               .setLabel(`${skill.name ?? 'Skill'}${cd > 0 ? ` (${cd})` : ''}`)
               .setEmoji(skill.emoji ?? '✨')
               .setStyle(ButtonStyle.Primary)
-              .setDisabled(cd > 0 || battleUser.stamina < skill.staminaCost),
+              .setDisabled(!canUse.ok),
           );
         }
         components.push(row);
