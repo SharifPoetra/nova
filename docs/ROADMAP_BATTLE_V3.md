@@ -1,7 +1,8 @@
-# Nova RPG — Elemental, Stamina AP, & Ultimate Roadmap
+# Nova RPG — Elemental & Stamina AP Roadmap
 
 > Branch: `feat/battle-v3` (sudah dibuat)
-> Target: implement 3 fitur (Elemental System v2, Stamina as Action Points, Class Ultimates) tanpa breaking `/hunt` dan `/dungeon`
+> Target: implement 2 fitur utama (Elemental System v2, Stamina as Action Points) tanpa breaking `/hunt` dan `/dungeon`
+> Note: Class Ultimates di-drop untuk v3, masuk backlog
 
 ## Phase 1 — Elemental System v2
 
@@ -221,11 +222,11 @@ Isi 18 monster:
 
 ### 1.7 Update dungeon-battle
 **File:** `dungeon-battle.ts`
-- Ganti hardcode `element: 'physical'` jadi `element: monster.element ?? 'physical` di constructor `BattleEngine`
+- Ganti hardcode `element: 'physical'` jadi `element: monster.element ?? 'physical'` di constructor `BattleEngine`
 - Update call `buildBattleEmbed` di dalam fungsi `updateBattle` — tambah param baru: `monsterElement: Element`
 
 ### 1.8 Update dungeon-ui
-- Tambah dua param baru ke interface `buildBattleEmbed`: `monsterElement: Element`
+- Tambah param ke interface `buildBattleEmbed`: `monsterElement: Element`
 - Element ditampilkan di bawah HP bar monster
 
 ---
@@ -240,7 +241,7 @@ Isi 18 monster:
 
 | Test | Expected |
 |---|---|
-| `/hunt` vs frost_troll (ice) + inferno_staff (fire) | damage ~1.5x, Element field tampil `🔥 FIRE → ❄️💨` |
+| `/hunt` vs frost_troll (ice) + inferno_staff (fire) | damage ~1.5x, Element field tampil |
 | `/hunt` vs lava_slime (fire) + inferno_staff (fire) | damage ~0.7x |
 | `/hunt` default weapon (physical) | damage normal, element tampil |
 
@@ -250,154 +251,137 @@ Isi 18 monster:
 |---|---|
 | `/dungeon` floor 2 (blue_slime, water) + fire weapon | damage ~1.5x |
 | `/dungeon` floor 3 (red_slime, fire) + water weapon | damage ~1.5x |
-| `/dungeon` floor 4 (gold_slime, light) + physical weapon | damage normal (physical → light: 0.9) |
-| `/dungeon` floor 10 boss (slime_king) | element `🌑 dark` muncul di bawah HP bar |
-| `/dungeon` floor 40 boss (inferno_drake) | element `🔥 fire` muncul, boss indicator tetap tampil |
-| `/dungeon` floor 50 boss (absolute_zero) | element `❄️ ice` muncul |
+| `/dungeon` floor 10 boss (slime_king) | element `🌑 dark` muncul |
+| `/dungeon` floor 40 boss (inferno_drake) | element `🔥 fire` muncul |
 | TypeScript build | no errors |
 
-> Catatan: duplicate query Item di `getPlayerStats` (sekali di `sumEquipmentStats`, sekali lagi buat `grantsSkill`). Nanti bisa di-optimize, tapi untuk Phase 1 biarin dulu biar gak break.
+> Catatan: duplicate query Item di `getPlayerStats`. Biarkan untuk Phase 1.
 
 ---
 
 ## Phase 2 — Stamina sebagai Action Points
 
 ### 2.1 Ubah cost
-**File:** `actions.ts` — turunkan hunt cost 15 → 5
+**File:** `actions.ts` — hunt cost 10 → 5
 
 ### 2.2 Engine changes
 **File:** `battle-engine.ts`
-- `playerAttack()`: di awal function (setelah `await this.refreshStats())`:
+- `playerAttack()`: di awal (setelah `await this.refreshStats()`):
 ```ts
 if (this.turn > 0) {
+  const before = this.user.stamina;
   this.user.stamina = Math.min(this.user.maxStamina, this.user.stamina + 2);
+  const gained = this.user.stamina - before;
+  if (gained > 0) this.logPush(`⚡ +${gained} Stamina (${this.user.stamina}/${this.user.maxStamina})`);
 }
 ```
-→ Regen +2 stamina setiap turn player (kecuali turn pertama), log ⚡ +2 Stamina
-- `playerAttack()`: untuk basic attack:
+→ Regen +2 stamina setiap turn player
+
+- `playerAttack()`: basic attack:
 ```ts
 const isExhausted = this.user.stamina < 3;
 const dmgMult = isExhausted ? 0.5 : 1.0;
 const result = calculateDamage(this.playerStats, { def: this.enemy.def, element: this.enemy.element }, dmgMult);
-// ... setelah log attack
+// ...
 this.user.stamina = Math.max(0, this.user.stamina - 3);
 if (isExhausted) extra += ` 😮‍💨 Exhausted`;
 ```
-→ Cost basic = 3, kalau stamina <3 damage jadi 50% + tag "Exhausted"
-- `playerAttack()`: untuk skill:
-```ts
-  this.user.stamina = Math.max(0, this.user.stamina - skill.staminaCost);
-```
-→ Tetap pakai cost dari skills.ts (sudah ada)
+→ Cost 3, exhausted = 50% damage
+
+- `playerAttack()`: skill tetap pakai `skill.staminaCost`
 
 ### 2.3 UI
-**File:** `hunt.ts` — button disabled sudah cek stamina, tambah di embed footer: `⚡${stamina}` (sudah ada)
+**File:** `hunt.ts` — `setDisabled(!canUse.ok)` sudah benar
 
 ### 2.4 Consumable
-**File:** `shop.ts` tambah stamina potion (+30, 50 coins)
+**File:** `shop.ts` — stamina potion price 150 → 50
 
 ### 2.5 Test Manual
-- Start hunt stamina 10 → 3 basic attack → stamina 1 → attack ke-4 damage 50%
-- Pakai skill rage (20) → stamina habis → button disable
-- Regen +2 per enemy turn terlihat
+- Start hunt stamina 10 → 3x basic → stamina 1 → attack ke-4 damage 50%
+- Skill disable saat stamina kurang
+- Regen muncul tiap turn
 
-## Phase 3 — Class Ultimates (Lv30)
+---
 
-### 3.1 Skills
-**File:** `skills.ts` tambah 3 skill:
-- `berserk` warrior lv30, cd 8, cost 25, buff atk +1.0 def -0.5 3 turn
-- `shadow_clone` rogue lv30, cd 7, cost 20, set flag clone=2
-- `meteor` mage lv30, cd 10, cost 0, hpCost 0.4*maxHp, damage 3.0*atk element fire
+## Phase 3 — Polish & Balance (ganti Ultimates)
 
-Update `getSkillsByClass` sudah filter by level
+> Ultimates di-drop. Fokus stabilkan 2 sistem inti dulu.
 
-### 3.2 Engine flag
-**File:** `battle-engine.ts` enemyAttack: cek `if(this.playerStats.flags?.shadow_clone){... dodge ...}`
+### 3.1 Balance tuning
+- Cek apakah hunt cost 5 terlalu spam — monitor stamina potion usage
+- Cek apakah regen +2 terlalu cepat di dungeon panjang
+- Adjust elementTable jika ada elemen terlalu OP (light/dark 1.5x)
 
-### 3.3 UI
-**File:** `hunt.ts` — tambah row kedua untuk ultimate (gold button), muncul jika level >=30
+### 3.2 Code cleanup
+**File:** `combat.ts` / `getPlayerStats`
+- Hapus duplicate `Item.find()` — gabung dengan `sumEquipmentStats`
+- Cache equipment stats per battle
 
-### 3.4 Test
-- Buat test user lv30 `/eval await db.user.updateOne({discordId:'...'},{$set:{level:30}})`
-- `/hunt` → tombol ultimate muncul
-- Pakai meteor → HP turun 40%, damage 3x
+### 3.3 Data completion
+- Isi `stats.element` untuk armor/accessory yang belum
+- Review 100 dungeon monsters — pastikan tidak ada `element` undefined
+
+### 3.4 QA
+- `/hunt` 20x dengan 3 class berbeda
+- `/dungeon` F1-F20 full run
+- Pastikan `/explore`, `/fish`, `/daily` tidak terpengaruh stamina
+
+---
 
 ## Migration & Compatibility
-- Tidak perlu DB migration (element di code only)
-- Existing users dengan weapon tanpa element → default `physical`
-- `calculateDamage` fallback `elementTable[attacker.element]?.[defender.element] ?? 1.0`
+- Tidak perlu DB migration
+- Existing weapon tanpa element → default `physical`
+- `calculateDamage` fallback ke 1.0
 
 ## Checklist Tracking
 
 ### Phase 1 — Elemental
-- [x] Update `combat.ts` Element type + elementTable (Element di export dari @nova/db, done.)
+- [x] Update `combat.ts` Element type + elementTable
 - [x] Update `skills.ts` element?: Element
-- [x] Tambah field element di `monsters.ts` interface
-- [x] Isi element 18 monster
-- [x] Isi element 15+ weapon di `equipments.ts`
-- [x] Update UI `hunt.ts` tampilkan element
-- [x] Test fire vs ice (1.5x)
-- [x] Test physical default
+- [x] Tambah field element di `monsters.ts`
+- [x] Isi element 18 monster hunt
+- [x] Isi element 15+ weapon
+- [x] Update UI `hunt.ts`
+- [x] Isi element 100 dungeon monsters
+- [x] Update `dungeon-battle.ts` & `dungeon-ui.ts`
+- [x] Test fire vs ice, water vs fire
 - [x] Commit: `feat(elements): add 9-element system`
-- [x] Hapus `as const` di `DUNGEON_MONSTERS`, ganti explicit type annotation + tambah field `element`
-- [x] Isi element semua ~100 monster dungeon (slime×10, golem×10, specter×10, drake×10, warden×10, guardian×50)
-- [x] Fix `getMonster()` — boss spread `baseData` dulu biar `element` ikut terbawa
-- [x] Update `dungeon-battle.ts` — tambah `ELEMENT_EMOJI` import, ganti hardcode `element: 'physical'` → `monster.element ?? 'physical'`
-- [x] Update call `buildBattleEmbed` di `dungeon-battle.ts` — pass `monsterElement`
-- [x] Update `dungeon-ui.ts` — tambah param `monsterElement`, tampilkan di bawah HP bar monster
-- [x] Test `/dungeon` floor 2 blue_slime (water) + fire weapon → 1.5x
-- [x] Test `/dungeon` floor 3 red_slime (fire) + water weapon → 1.5x
-- [x] Test element muncul di bawah HP bar dungeon (non-boss & boss)
-- [x] Commit: `feat(elements): assign elements to dungeon monsters + dungeon UI`
 
 ### Phase 2 — Stamina AP
-- [x] Ubah ACTION_COST.hunt 10→5 di `actions.ts`
-- [x] Implement stamina -3 basic di `battle-engine.ts` (playerAttack)
-- [x] Implement stamina +2 regen di awal turn player (bukan per enemy turn)
-- [x] Tambah exhausted damage 50% + log "😮‍💨 Exhausted" saat stamina <3
-- [x] Update stamina potion di `shop.ts` price 150→50
-- [x] Test 3x basic attack → stamina 1 → attack ke-4 damage 50%
-- [x] Test skill disable otomatis saat stamina kurang (canUseSkill)
-- [x] Test regen muncul di log setiap turn (kecuali turn 1)
+- [x] Ubah ACTION_COST.hunt 10→5
+- [x] Implement stamina -3 basic
+- [x] Implement stamina +2 regen di awal turn
+- [x] Tambah exhausted 50% + log
+- [x] Update stamina potion price 150→50
+- [x] Test 3x basic → exhausted
+- [x] Test skill disable
 - [x] Commit: `feat(stamina): action points system`
 
-### Phase 3 — Ultimates
-- [ ] Tambah skill berserk di `skills.ts`
-- [ ] Tambah skill shadow_clone
-- [ ] Tambah skill meteor (hp cost)
-- [ ] Implement flag shadow_clone di engine
-- [ ] Tambah UI gold button di `hunt.ts`
-- [ ] Test warrior lv30 berserk
-- [ ] Test rogue clone dodge 2x
-- [ ] Test mage meteor HP -40%
-- [ ] Commit: `feat(ultimates): lv30 skills`
-
-### Final QA
-- [ ] /hunt 10x tanpa error
-- [ ] /dungeon floor 1-10 lancar
-- [ ] /explore, /fish tidak terpengaruh
+### Phase 3 — Polish & Balance
+- [ ] Monitor hunt spam rate (target 8-12 hunt per jam)
+- [ ] Tune regen jika dungeon F30+ terlalu mudah
+- [ ] Hapus duplicate Item query di getPlayerStats
+- [ ] Lengkapi element untuk semua equipment
+- [ ] Final QA hunt/dungeon 50x
 - [ ] TypeScript build sukses
-- [ ] Push origin feat/battle-v3
-- [ ] Merge ke main setelah test
+- [ ] Merge feat/battle-v3 → main
 
 ## Commit Plan
 ```bash
-git add apps/bot/src/lib/rpg/combat.ts
-git commit -m "feat(elements): add 9-element system keep physical"
+git add apps/bot/src/lib/rpg/actions.ts apps/bot/src/lib/rpg/battle-engine.ts
+git commit -m "feat(stamina): action points -3 basic, +2 regen, exhausted"
 
-git add apps/bot/src/lib/rpg/monsters.ts apps/bot/src/lib/rpg/equipments.ts
-git commit -m "feat(elements): assign elements to monsters and weapons"
+git add apps/bot/src/commands/
+git commit -m "feat(stamina): update shop and hunt UI"
 
-git add apps/bot/src/lib/rpg/battle-engine.ts apps/bot/src/commands/RPG/hunt.ts
-git commit -m "feat(stamina): implement action points in battle"
-
-git add apps/bot/src/lib/rpg/skills.ts
-git commit -m "feat(ultimates): add lv30 class ultimates"
+git add docs/ROADMAP_BATTLE_V3.md
+git commit -m "docs(roadmap): drop ultimates, add Phase 3 polish"
 
 git push origin feat/battle-v3
 ```
 
-## Future (optional)
+## Backlog (Future)
+- Class Ultimates Lv30 (berserk, shadow_clone, meteor) — ditunda sampai balance stabil
 - Dual-element bosses
 - Elemental status effects (burn/freeze)
-- Guild raid dengan elemental weakness rotation
+- Guild raid elemental rotation
