@@ -147,9 +147,9 @@ Update `getSkillsByClass` sudah filter by level
 ### Phase 1 — Elemental
 - [x] Update `combat.ts` Element type + elementTable (Element di export dari @nova/db, done.)
 - [x] Update `skills.ts` element?: Element
-- [ ] Tambah field element di `monsters.ts` interface
-- [ ] Isi element 18 monster
-- [ ] Isi element 15+ weapon di `equipments.ts`
+- [x] Tambah field element di `monsters.ts` interface
+- [x] Isi element 18 monster
+- [x] Isi element 15+ weapon di `equipments.ts`
 - [ ] Update UI `hunt.ts` tampilkan element
 - [ ] Test fire vs ice (1.5x)
 - [ ] Test fire vs fire (0.7x)
