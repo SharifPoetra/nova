@@ -6,6 +6,7 @@ import {
   getSkillCooldown,
   setSkillCooldown,
   type PlayerStats,
+  ELEMENT_EMOJI,
 } from './combat';
 import { getSkill, type SkillData, type SkillContext } from './skills';
 import type { IUser, Element } from '@nova/db';
@@ -109,7 +110,14 @@ export class BattleEngine {
       );
       damage = result.damage;
       isCrit = result.isCrit;
-      this.logPush(`🗡️ You attack **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
+
+      const mult = result.elementMult;
+      const elemEmoji = ELEMENT_EMOJI[this.playerStats.element];
+      let extra = '';
+      if (mult >= 1.5) extra = ` 💥 **WEAK!** ${elemEmoji}${mult.toFixed(1)}x`;
+      else if (mult <= 0.7) extra = ` 🛡️ Resist ${mult.toFixed(1)}x`;
+
+      this.logPush(`🗡️ You attack **${damage}**${isCrit ? ' 💥CRIT!' : ''}${extra}`);
     } else {
       const skill = getSkill(skillId);
       if (!skill) {
