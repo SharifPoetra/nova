@@ -14,7 +14,7 @@
 - BattleEngine sudah support `element` di PlayerStats & EnemyStats
 
 ### 1.1 Update Types
-**File:** `apps/bot/src/lib/rpg/combat.ts`
+**File:** `combat.ts`
 - Ganti:
 ```ts
 export type Element = 'physical'|'fire'|'water'|'earth'|'wind'|'ice'|'lightning'|'light'|'dark';
@@ -79,21 +79,187 @@ Isi 18 monster:
 - star_blade, nova_blade → light
 
 ### 1.5 UI Battle
-**File:** `hunt.ts` updateBattleEmbed
-Tambah setelah title:
-```ts
-const weak = Object.entries(elementTable).filter(([atk, defs]) => defs[enemy.element] > 1).map(([e])=>e);
-const resist = Object.entries(elementTable[enemy.element]||{}).filter(([,v])=>v<1).map(([e])=>e);
-embed.addFields({ name: 'Element', value: `${enemy.emoji} ${enemy.element}`, inline:true });
+**File:** `hunt.ts` updateBattleEmbed tampilkan element
+
+### 1.6 Data Monster (dungeon)
+**File:** `dungeon-data.ts`
+- Fix `getMonster()` untuk boss
+
+#### 1.6.1 Isi element semua monster
+
+**slime (10 monster):**
+
+| id | element |
+|---|---|
+| green_slime | earth |
+| blue_slime | water |
+| red_slime | fire |
+| gold_slime | light |
+| shadow_slime | dark |
+| poison_slime | earth |
+| electric_slime | lightning |
+| lava_slime | fire |
+| ice_slime | ice |
+| slime_king *(boss F10)* | dark |
+
+**golem (10 monster):**
+
+| id | element |
+|---|---|
+| earth_golem | earth |
+| iron_golem | physical |
+| crystal_golem | light |
+| lava_golem | fire |
+| ice_golem | ice |
+| sand_golem | earth |
+| obsidian_golem | dark |
+| gold_golem | light |
+| void_golem | dark |
+| heart_of_crystal *(boss F20)* | light |
+
+**specter (10 monster):**
+
+| id | element |
+|---|---|
+| wild_ghost | dark |
+| wandering_spirit | dark |
+| void_specter | dark |
+| night_wraith | dark |
+| screaming_banshee | dark |
+| shadow_phantom | dark |
+| poltergeist | wind |
+| revenant | dark |
+| shadow_fiend | dark |
+| void_reaper *(boss F30)* | dark |
+
+**drake (10 monster):**
+
+| id | element |
+|---|---|
+| young_drake | physical |
+| fire_drake | fire |
+| lightning_drake | lightning |
+| ice_drake | ice |
+| ancient_wyvern | wind |
+| poison_drake | earth |
+| earth_drake | earth |
+| wind_drake | wind |
+| shadow_drake | dark |
+| inferno_drake *(boss F40)* | fire |
+
+**warden (10 monster):**
+
+| id | element |
+|---|---|
+| prison_warden | physical |
+| frost_warden | ice |
+| flame_warden | fire |
+| storm_warden | lightning |
+| void_warden | dark |
+| earth_warden | earth |
+| light_warden | light |
+| blood_warden | dark |
+| chaos_warden | dark |
+| absolute_zero *(boss F50)* | ice |
+
+**guardian (50+ monster — endgame):**
+
+| id | element |
+|---|---|
+| silver_guardian | light |
+| gold_guardian | light |
+| astral_guardian | light |
+| celestial_knight | light |
+| star_sentinel | light |
+| lunar_guardian | dark |
+| solar_guardian | light |
+| nebula_guardian | dark |
+| quantum_guardian | physical |
+| titan_starforge | physical |
+| void_walker | dark |
+| cosmic_horror | dark |
+| galactic_serpent | dark |
+| plasma_phantom | lightning |
+| meteor_golem | fire |
+| black_hole_fiend | dark |
+| supernova_drake | fire |
+| comet_wraith | ice |
+| pulsar_knight | lightning |
+| dark_matter_beast | dark |
+| eclipse_specter | dark |
+| gravity_warden | dark |
+| rift_stalker | dark |
+| quasar_fiend | light |
+| star_eater *(boss F75)* | dark |
+| nebula_hydra | water |
+| cosmic_leviathan | water |
+| astral_phoenix | fire |
+| void_kraken | dark |
+| stellar_basilisk | light |
+| galaxy_behemoth | earth |
+| photon_chimera | light |
+| neutron_wyrm | lightning |
+| event_horizon | dark |
+| celestial_archon | light |
+| omega_sentinel | light |
+| chrono_warden | dark |
+| singularity | dark |
+| aether_drake | wind |
+| primeval_star | light |
+| entropy_fiend | dark |
+| genesis_golem | earth |
+| oblivion_wraith | dark |
+| zenith_guardian | light |
+| apocalypse | dark |
+| origin_specter | dark |
+| infinite_void | dark |
+| the_creator | light |
+| the_destroyer | dark |
+| nova_prime *(boss F100)* | light |
+
+---
+
+### 1.7 Update dungeon-battle
+**File:** `dungeon-battle.ts`
+- Ganti hardcode `element: 'physical'` jadi `element: monster.element ?? 'physical` di constructor `BattleEngine`
+- Update call `buildBattleEmbed` di dalam fungsi `updateBattle` — tambah param baru: `monsterElement: Element`
+
+### 1.8 Update dungeon-ui
+- Tambah dua param baru ke interface `buildBattleEmbed`: `monsterElement: Element`
+- Element ditampilkan di bawah HP bar monster
+
+---
+
+### 1.9 Test Manual Phase 1
+```bash
+# Setup test weapon fire
+/eval await db.user.updateOne({discordId:'YOUR_ID'}, {$set:{'equipped.weapon':'inferno_staff'}})
 ```
 
-### 1.6 Test Manual Phase 1
-- `/eval await db.user.updateOne({discordId:'...'}, {$set:{'equipped.weapon':'inferno_staff'}})`
-- `/hunt` vs frost_troll (ice) → damage harus ~1.5x
-- `/hunt` vs lava_slime (fire) → damage ~0.7x
-- Cek log: no TypeScript error
+**Hunt tests:**
 
-Catatan: duplicate query Item di getPlayerStats (sekali di sumEquipmentStats, sekali lagi buat grantsSkill). Nanti bisa di-optimize, tapi untuk Phase 1 biarin dulu biar gak break.
+| Test | Expected |
+|---|---|
+| `/hunt` vs frost_troll (ice) + inferno_staff (fire) | damage ~1.5x, Element field tampil `🔥 FIRE → ❄️💨` |
+| `/hunt` vs lava_slime (fire) + inferno_staff (fire) | damage ~0.7x |
+| `/hunt` default weapon (physical) | damage normal, element tampil |
+
+**Dungeon tests:**
+
+| Test | Expected |
+|---|---|
+| `/dungeon` floor 2 (blue_slime, water) + fire weapon | damage ~1.5x |
+| `/dungeon` floor 3 (red_slime, fire) + water weapon | damage ~1.5x |
+| `/dungeon` floor 4 (gold_slime, light) + physical weapon | damage normal (physical → light: 0.9) |
+| `/dungeon` floor 10 boss (slime_king) | element `🌑 dark` muncul di bawah HP bar |
+| `/dungeon` floor 40 boss (inferno_drake) | element `🔥 fire` muncul, boss indicator tetap tampil |
+| `/dungeon` floor 50 boss (absolute_zero) | element `❄️ ice` muncul |
+| TypeScript build | no errors |
+
+> Catatan: duplicate query Item di `getPlayerStats` (sekali di `sumEquipmentStats`, sekali lagi buat `grantsSkill`). Nanti bisa di-optimize, tapi untuk Phase 1 biarin dulu biar gak break.
+
+---
+
 ## Phase 2 — Stamina sebagai Action Points
 
 ### 2.1 Ubah cost
@@ -152,9 +318,18 @@ Update `getSkillsByClass` sudah filter by level
 - [x] Isi element 15+ weapon di `equipments.ts`
 - [x] Update UI `hunt.ts` tampilkan element
 - [x] Test fire vs ice (1.5x)
-- [ ] Test fire vs fire (0.7x) (dropped, no test needed)
 - [x] Test physical default
 - [x] Commit: `feat(elements): add 9-element system`
+- [x] Hapus `as const` di `DUNGEON_MONSTERS`, ganti explicit type annotation + tambah field `element`
+- [x] Isi element semua ~100 monster dungeon (slime×10, golem×10, specter×10, drake×10, warden×10, guardian×50)
+- [x] Fix `getMonster()` — boss spread `baseData` dulu biar `element` ikut terbawa
+- [x] Update `dungeon-battle.ts` — tambah `ELEMENT_EMOJI` import, ganti hardcode `element: 'physical'` → `monster.element ?? 'physical'`
+- [x] Update call `buildBattleEmbed` di `dungeon-battle.ts` — pass `monsterElement`
+- [x] Update `dungeon-ui.ts` — tambah param `monsterElement`, tampilkan di bawah HP bar monster
+- [x] Test `/dungeon` floor 2 blue_slime (water) + fire weapon → 1.5x
+- [x] Test `/dungeon` floor 3 red_slime (fire) + water weapon → 1.5x
+- [x] Test element muncul di bawah HP bar dungeon (non-boss & boss)
+- [x] Commit: `feat(elements): assign elements to dungeon monsters + dungeon UI`
 
 ### Phase 2 — Stamina AP
 - [ ] Ubah ACTION_COST.hunt 15→5 di `actions.ts`
