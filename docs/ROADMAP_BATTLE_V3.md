@@ -150,11 +150,11 @@ Update `getSkillsByClass` sudah filter by level
 - [x] Tambah field element di `monsters.ts` interface
 - [x] Isi element 18 monster
 - [x] Isi element 15+ weapon di `equipments.ts`
-- [ ] Update UI `hunt.ts` tampilkan element
-- [ ] Test fire vs ice (1.5x)
-- [ ] Test fire vs fire (0.7x)
-- [ ] Test physical default
-- [ ] Commit: `feat(elements): add 9-element system`
+- [x] Update UI `hunt.ts` tampilkan element
+- [x] Test fire vs ice (1.5x)
+- [ ] Test fire vs fire (0.7x) (dropped, no test needed)
+- [x] Test physical default
+- [x] Commit: `feat(elements): add 9-element system`
 
 ### Phase 2 — Stamina AP
 - [ ] Ubah ACTION_COST.hunt 15→5 di `actions.ts`
