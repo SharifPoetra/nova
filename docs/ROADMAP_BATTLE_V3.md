@@ -366,6 +366,13 @@ if (isExhausted) extra += ` 😮‍💨 Exhausted`;
 - [x] TypeScript build sukses
 - [x] Merge feat/battle-v3 → main
 
+### 3.1 Balance tuning
+- [x] Hunt cost 5 → spam rate 10.3/jam (target tercapai)
+- [x] Boss HP smoothing F50+ (3.5→3.35/3.25/3.15) — F75 win rate Warrior 17%→45%
+- [x] Mage buff: fireball 1.5→1.7, stamina 18→16, arcane intellect +0.25→+0.35
+- [x] Rogue nerf: backstab CD 4→5
+- [x] Warrior buff: berserker 1%→1.5% per 10% HP loss
+
 ## Commit Plan
 ```bash
 git add apps/bot/src/lib/rpg/actions.ts apps/bot/src/lib/rpg/battle-engine.ts
