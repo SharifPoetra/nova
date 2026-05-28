@@ -360,7 +360,7 @@ if (isExhausted) extra += ` 😮‍💨 Exhausted`;
 ### Phase 3 — Polish & Balance
 - [x] Monitor hunt spam rate (target 8-12 hunt per jam) → hasil: 10.3/jam
 - [x] Tune regen jika dungeon F30+ terlalu mudah → regen +2 pas, nggak diubah
-- [ ] Hapus duplicate Item query di getPlayerStats → backlog
+- [x] Hapus duplicate Item query di getPlayerStats
 - [ ] Lengkapi element untuk semua equipment → backlog
 - [x] Final QA hunt/dungeon 50x
 - [x] TypeScript build sukses

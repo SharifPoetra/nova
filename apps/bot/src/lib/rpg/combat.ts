@@ -1,6 +1,6 @@
 import { getClass } from './classes';
 import { getPassiveSkills, type SkillData } from './skills';
-import { Item, type Element, type IUser, type IEquipmentStat } from '@nova/db';
+import { Item, type Element, type IUser, type IItem, type IEquipmentStat } from '@nova/db';
 
 export const elementTable: Record<Element, Partial<Record<Element, number>>> = {
   physical: { light: 1.2, dark: 1.2 },
@@ -41,13 +41,14 @@ export interface PlayerStats {
 }
 
 // === HELPER: Gabungin semua stat dari equipment ===
-async function sumEquipmentStats(equipIds: (string | null)[]): Promise<IEquipmentStat> {
+async function sumEquipmentStats(
+  equipIds: (string | null)[],
+): Promise<{ total: IEquipmentStat; items: IItem[] }> {
   const total: IEquipmentStat = { atk: 0, hp: 0, def: 0, critRate: 0, critDmg: 0 };
 
   const validIds = equipIds.filter(Boolean) as string[];
-  if (validIds.length === 0) return total;
+  if (validIds.length === 0) return { total, items: [] };
 
-  // Ambil dari DB, bukan static getEquipment
   const items = await Item.find({ itemId: { $in: validIds } }).lean();
 
   for (const eq of items) {
@@ -62,7 +63,7 @@ async function sumEquipmentStats(equipIds: (string | null)[]): Promise<IEquipmen
       total.element = eq.stats.element;
     }
   }
-  return total;
+  return { total, items };
 }
 
 // === HELPER: Apply buff ke stat, PAKE turnsLeft ===
@@ -242,7 +243,7 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
     tool: null,
   };
   const equipIds = [eq.weapon, eq.helmet, eq.armor, eq.accessory, eq.tool];
-  const eqStats = await sumEquipmentStats(equipIds);
+  const { total: eqStats, items: equippedItems } = await sumEquipmentStats(equipIds);
 
   stats.atk += eqStats.atk ?? 0;
   stats.maxHp += eqStats.hp ?? 0;
@@ -264,7 +265,6 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
     }
   }
 
-  const equippedItems = await Item.find({ itemId: { $in: equipIds.filter(Boolean) } }).lean();
   for (const eq of equippedItems) {
     if (eq?.stats?.grantsSkill) {
       stats.availableSkills.push(eq.stats.grantsSkill);
