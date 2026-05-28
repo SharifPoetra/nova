@@ -1,4 +1,4 @@
-import type { IUser } from '@nova/db';
+import type { IUser, Element } from '@nova/db';
 import { calculateDamage, PlayerStats } from './combat';
 
 export type SkillTarget = 'self' | 'enemy' | 'all_enemies' | 'ally';
@@ -7,7 +7,7 @@ export type SkillEffectType = 'damage' | 'heal' | 'buff' | 'debuff';
 export interface SkillEffect {
   type: SkillEffectType;
   value: number | string;
-  element?: 'phys' | 'fire' | 'ice' | 'light' | 'dark';
+  element?: Element;
   duration?: number;
   chance?: number;
 }
@@ -15,11 +15,10 @@ export interface SkillEffect {
 export interface SkillContext {
   user: IUser;
   stats: PlayerStats;
-  enemy: { hp: number; def: number; element?: string };
+  enemy: { hp: number; def: number; element?: Element };
   t: (key: string, opts?: any) => string;
   addBuff: (type: string, value: number, durationTurns: number) => void;
   addLog: (text: string) => void;
-  // dipakai internal untuk efek battle-only
   stunTurns?: number;
 }
 
@@ -52,7 +51,7 @@ export const SKILLS: Record<string, SkillData> = {
     classLock: ['warrior'],
     effects: [
       { type: 'buff', value: 'buff:atk:0.3', duration: 3 },
-      { type: 'damage', value: '0.8*atk' },
+      { type: 'damage', value: '0.8*atk', element: 'physical' },
     ],
     use: (ctx) => {
       const res = executeEffects(ctx, SKILLS.rage);
@@ -72,7 +71,7 @@ export const SKILLS: Record<string, SkillData> = {
     classLock: ['warrior'],
     requiredLevel: 10,
     effects: [
-      { type: 'damage', value: '1.2*atk', element: 'phys' },
+      { type: 'damage', value: '1.2*atk', element: 'physical' },
       { type: 'debuff', value: 'stun', duration: 1 },
     ],
     use: (ctx) => {
@@ -88,10 +87,10 @@ export const SKILLS: Record<string, SkillData> = {
     emoji: '🔥',
     description: 'Bola api mage. Damage 150% ATK. Cooldown 3 turn.',
     cooldownTurns: 3,
-    staminaCost: 25,
+    staminaCost: 16,
     target: 'enemy',
     classLock: ['mage'],
-    effects: [{ type: 'damage', value: '1.5*atk', element: 'fire' }],
+    effects: [{ type: 'damage', value: '1.7*atk', element: 'fire' }],
     use: (ctx) => {
       const res = executeEffects(ctx, SKILLS.fireball);
       ctx.addLog(`✨ 🔥 Fireball! **${res.damage}**${res.isCrit ? ' 💥CRIT!' : ''}`);
@@ -103,14 +102,14 @@ export const SKILLS: Record<string, SkillData> = {
     id: 'backstab',
     name: 'Backstab',
     emoji: '🗡️',
-    description: 'Tusukan dari belakang. Damage 200% ATK + crit chance naik 20%. Cooldown 4 turn.',
-    cooldownTurns: 4,
+    description: 'Tusukan dari belakang. Damage 200% ATK + crit chance naik 20%. Cooldown 5 turn.',
+    cooldownTurns: 5,
     staminaCost: 15,
     target: 'enemy',
     classLock: ['rogue'],
     effects: [
       { type: 'buff', value: 'buff:critRate:0.2', duration: 0 }, // instant
-      { type: 'damage', value: '2.0*atk', element: 'phys' },
+      { type: 'damage', value: '2.0*atk', element: 'physical' },
     ],
     use: (ctx) => {
       const res = executeEffects(ctx, SKILLS.backstab);
@@ -138,14 +137,14 @@ export const SKILLS: Record<string, SkillData> = {
     id: 'berserker_passive',
     name: 'Berserker Blood',
     emoji: '🩸',
-    description: '+1% ATK per 10% HP lost.',
+    description: '+1.5% ATK per 10% HP lost.',
     cooldownTurns: 0,
     staminaCost: 0,
     target: 'self',
     classLock: ['warrior'],
     passive: true,
     requiredLevel: 10,
-    effects: [{ type: 'buff', value: 'passive:atk_pct:hp_loss:0.01' }],
+    effects: [{ type: 'buff', value: 'passive:atk_pct:hp_loss:0.015' }],
     use: () => ({ damage: 0, heal: 0, isCrit: false }),
   },
 
@@ -198,14 +197,14 @@ export const SKILLS: Record<string, SkillData> = {
     id: 'arcane_intellect',
     name: 'Arcane Intellect',
     emoji: '📖',
-    description: '+25% crit damage when HP >50%',
+    description: '+35% crit damage when HP >50%',
     cooldownTurns: 0,
     staminaCost: 0,
     target: 'self',
     classLock: ['mage'],
     passive: true,
     requiredLevel: 10,
-    effects: [{ type: 'buff', value: 'passive:critDmg:hp>0.5:0.25' }],
+    effects: [{ type: 'buff', value: 'passive:critDmg:hp>0.5:0.35' }],
     use: () => ({ damage: 0, heal: 0, isCrit: false }),
   },
 };
@@ -241,7 +240,7 @@ function executeEffects(ctx: SkillContext, skill: SkillData) {
   let totalDamage = 0;
   let totalHeal = 0;
   let isCrit = false;
-  let tempStats = { ...ctx.stats };
+  const tempStats = { ...ctx.stats };
 
   for (const eff of skill.effects) {
     // chance check
@@ -249,9 +248,14 @@ function executeEffects(ctx: SkillContext, skill: SkillData) {
 
     if (eff.type === 'damage') {
       const mult = parseValue(eff.value, tempStats.atk) / tempStats.atk;
+      const originalElement = tempStats.element;
+      if (eff.element) tempStats.element = eff.element;
+
       const res = calculateDamage(tempStats, ctx.enemy, mult);
       totalDamage += res.damage;
       isCrit = isCrit || res.isCrit;
+
+      tempStats.element = originalElement;
     }
 
     if (eff.type === 'heal') {

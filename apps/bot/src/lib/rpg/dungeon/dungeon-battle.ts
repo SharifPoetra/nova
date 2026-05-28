@@ -4,7 +4,6 @@ import { sleep } from '../../utils';
 import { RunState } from './dungeon-state';
 import { buildBattleEmbed, getBattleButtons } from './dungeon-ui';
 import { getSkillCooldown } from '../combat';
-import { getSkill, type SkillData } from '../skills';
 import { BattleEngine } from '../battle-engine';
 import type { TFunction } from 'i18next';
 import { i18nMonster } from '../../i18n/display';
@@ -28,8 +27,17 @@ export async function runInteractiveBattle(params: BattleParams) {
 
   const baseHp = 50 + floor * 8;
   const baseAtk = 8 + floor * 1.5;
+
+  // Smoothing boss HP F50+
+  let bossHpMult = 3.5;
+  if (floor >= 75)
+    bossHpMult = 3.15; // F75: 2.050, F100: 2.677
+  else if (floor >= 60)
+    bossHpMult = 3.25; // F60: ~1.690
+  else if (floor >= 50) bossHpMult = 3.35; // F50: ~1.507
+
   const monsterMaxHp = Math.floor(
-    isBoss ? baseHp * 3.5 : isElite ? baseHp * 1.8 : baseHp * (0.8 + Math.random() * 0.4),
+    isBoss ? baseHp * bossHpMult : isElite ? baseHp * 1.8 : baseHp * (0.8 + Math.random() * 0.4),
   );
   const monsterAtk = Math.floor(isBoss ? baseAtk * 2.2 : baseAtk);
   const monsterDef = Math.floor(floor * 0.5);
@@ -46,7 +54,7 @@ export async function runInteractiveBattle(params: BattleParams) {
       maxHp: monsterMaxHp,
       atk: monsterAtk,
       def: monsterDef,
-      element: 'phys',
+      element: monster.element ?? 'physical',
       isBoss,
       isElite,
     },
@@ -63,6 +71,7 @@ export async function runInteractiveBattle(params: BattleParams) {
       id: s.id,
       name: s.name,
       cd: getSkillCooldown(player, s.id),
+      canUseSkill: engine.canUseSkill(s.id).ok,
     }));
 
     const embed = buildBattleEmbed({
@@ -70,6 +79,7 @@ export async function runInteractiveBattle(params: BattleParams) {
       monsterEmoji: monster.emoji,
       monsterHp: engine.enemyHp,
       monsterMaxHp,
+      monsterElement: monster.element ?? 'physical',
       playerName: username,
       playerHp: player.hp,
       playerMaxHp: stats.maxHp,

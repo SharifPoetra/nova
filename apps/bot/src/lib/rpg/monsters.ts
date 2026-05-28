@@ -1,5 +1,5 @@
 import type { Rarity } from '../utils';
-import type { EquipmentSlot, IEquipmentStat, IItemEffect } from '@nova/db';
+import type { EquipmentSlot, IEquipmentStat, IItemEffect, Element } from '@nova/db';
 import { EQUIPMENTS } from './equipments';
 
 export interface Drop {
@@ -13,6 +13,7 @@ export interface Drop {
   effects?: IItemEffect[];
   stats?: IEquipmentStat;
 }
+
 export interface BaseMonster {
   id: string;
   emoji: string;
@@ -21,6 +22,7 @@ export interface BaseMonster {
   minLevel: number;
   xp: number;
   drops: Drop[];
+  element: Element;
   level?: number;
 }
 
@@ -32,6 +34,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [8, 15],
     minLevel: 1,
     xp: 18,
+    element: 'earth',
     drops: [
       { id: 'meat', emoji: '🥩', rarity: 'Common', chance: 60, sellPrice: 12, type: 'material' },
       { ...EQUIPMENTS.boar_tusk_helm, chance: 3 },
@@ -53,6 +56,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [5, 12],
     minLevel: 1,
     xp: 15,
+    element: 'physical',
     drops: [
       {
         id: 'goblin_ear',
@@ -73,6 +77,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [10, 18],
     minLevel: 2,
     xp: 22,
+    element: 'water',
     drops: [
       {
         id: 'lizard_meat',
@@ -101,6 +106,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [12, 20],
     minLevel: 3,
     xp: 28,
+    element: 'wind',
     drops: [
       {
         id: 'wolf_meat',
@@ -123,6 +129,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [18, 28],
     minLevel: 5,
     xp: 45,
+    element: 'earth',
     drops: [
       {
         id: 'bear_meat',
@@ -161,6 +168,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [16, 26],
     minLevel: 5,
     xp: 42,
+    element: 'dark',
     drops: [
       { id: 'bone', emoji: '🦴', rarity: 'Common', chance: 52, sellPrice: 18, type: 'material' },
       { ...EQUIPMENTS.rusted_sword, chance: 30 },
@@ -183,6 +191,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [14, 24],
     minLevel: 6,
     xp: 48,
+    element: 'earth',
     drops: [
       {
         id: 'spider_silk',
@@ -227,6 +236,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [17, 27],
     minLevel: 7,
     xp: 52,
+    element: 'wind',
     drops: [
       { id: 'feather', emoji: '🪶', rarity: 'Common', chance: 52, sellPrice: 20, type: 'material' },
       { ...EQUIPMENTS.harpy_bow, chance: 3 },
@@ -258,6 +268,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [20, 32],
     minLevel: 8,
     xp: 60,
+    element: 'fire',
     drops: [
       {
         id: 'orc_tooth',
@@ -288,6 +299,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [22, 34],
     minLevel: 9,
     xp: 65,
+    element: 'dark',
     drops: [
       {
         id: 'panther_pelt',
@@ -333,6 +345,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [18, 30],
     minLevel: 10,
     xp: 70,
+    element: 'fire',
     drops: [
       {
         id: 'slime_core',
@@ -378,6 +391,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [24, 36],
     minLevel: 12,
     xp: 85,
+    element: 'ice',
     drops: [
       {
         id: 'troll_fat',
@@ -416,6 +430,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [26, 40],
     minLevel: 14,
     xp: 95,
+    element: 'earth',
     drops: [
       {
         id: 'worm_meat',
@@ -460,6 +475,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [28, 42],
     minLevel: 15,
     xp: 105,
+    element: 'dark',
     drops: [
       {
         id: 'dark_steel',
@@ -497,6 +513,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [30, 45],
     minLevel: 17,
     xp: 115,
+    element: 'lightning',
     drops: [
       {
         id: 'storm_feather',
@@ -542,6 +559,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [25, 38],
     minLevel: 19,
     xp: 130,
+    element: 'light',
     drops: [
       {
         id: 'crystal_shard',
@@ -579,6 +597,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [32, 48],
     minLevel: 22,
     xp: 160,
+    element: 'water',
     drops: [
       {
         id: 'hydra_scale',
@@ -624,6 +643,7 @@ export const BASE_MONSTERS: BaseMonster[] = [
     dmg: [35, 52],
     minLevel: 25,
     xp: 185,
+    element: 'fire',
     drops: [
       {
         id: 'ash_feather',

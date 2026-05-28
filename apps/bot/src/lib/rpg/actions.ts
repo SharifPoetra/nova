@@ -1,5 +1,5 @@
 export const ACTION_COST = {
-  hunt: 10,
+  hunt: 5,
   explore: 12,
   fish: 8,
   cook: 5,

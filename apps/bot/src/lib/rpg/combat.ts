@@ -1,8 +1,30 @@
 import { getClass } from './classes';
-import { getPassiveSkills, getSkill, SkillData } from './skills';
-import { Item } from '@nova/db';
-import type { IUser, IEquipmentStat } from '@nova/db';
-import { User } from '@nova/db';
+import { getPassiveSkills, type SkillData } from './skills';
+import { Item, type Element, type IUser, type IItem, type IEquipmentStat } from '@nova/db';
+
+export const elementTable: Record<Element, Partial<Record<Element, number>>> = {
+  physical: { light: 1.2, dark: 1.2 },
+  fire: { ice: 1.5, wind: 1.5, physical: 0.8, water: 0.7, earth: 0.7 },
+  water: { fire: 1.5, earth: 1.5, physical: 0.8, lightning: 0.7, wind: 0.7 },
+  earth: { lightning: 1.5, fire: 1.5, physical: 0.8, wind: 0.7, ice: 0.7 },
+  wind: { earth: 1.5, water: 1.5, physical: 0.8, ice: 0.7, lightning: 0.7 },
+  ice: { wind: 1.5, lightning: 1.5, physical: 0.8, fire: 0.7, earth: 0.7 },
+  lightning: { water: 1.5, ice: 1.5, physical: 0.8, earth: 0.7, fire: 0.7 },
+  light: { dark: 1.5, physical: 0.9 },
+  dark: { light: 1.5, physical: 0.9 },
+};
+
+export const ELEMENT_EMOJI: Record<Element, string> = {
+  physical: '⚔️',
+  fire: '🔥',
+  water: '💧',
+  earth: '🌱',
+  wind: '💨',
+  ice: '❄️',
+  lightning: '⚡',
+  light: '✨',
+  dark: '🌑',
+};
 
 export interface PlayerStats {
   hp: number;
@@ -11,7 +33,7 @@ export interface PlayerStats {
   def: number;
   critRate: number; // 0.05 = 5%
   critDmg: number; // 2.0 = 200%
-  element: 'phys' | 'fire' | 'ice' | 'light' | 'dark';
+  element: Element;
   activeBuffs: { type: string; value: number; turnsLeft: number }[];
   availableSkills: string[]; // skill IDs yang bisa dipake
   dodge?: number;
@@ -19,13 +41,14 @@ export interface PlayerStats {
 }
 
 // === HELPER: Gabungin semua stat dari equipment ===
-async function sumEquipmentStats(equipIds: (string | null)[]): Promise<IEquipmentStat> {
+async function sumEquipmentStats(
+  equipIds: (string | null)[],
+): Promise<{ total: IEquipmentStat; items: IItem[] }> {
   const total: IEquipmentStat = { atk: 0, hp: 0, def: 0, critRate: 0, critDmg: 0 };
 
   const validIds = equipIds.filter(Boolean) as string[];
-  if (validIds.length === 0) return total;
+  if (validIds.length === 0) return { total, items: [] };
 
-  // Ambil dari DB, bukan static getEquipment
   const items = await Item.find({ itemId: { $in: validIds } }).lean();
 
   for (const eq of items) {
@@ -40,7 +63,7 @@ async function sumEquipmentStats(equipIds: (string | null)[]): Promise<IEquipmen
       total.element = eq.stats.element;
     }
   }
-  return total;
+  return { total, items };
 }
 
 // === HELPER: Apply buff ke stat, PAKE turnsLeft ===
@@ -112,7 +135,7 @@ export function applyPassives(baseStats: PlayerStats, user: IUser): PlayerStats 
 
       // cek kondisi
       const hpPct = newStats.hp / newStats.maxHp;
-      let active = false;
+      let active: boolean;
       switch (condition) {
         case 'always':
           active = true;
@@ -144,7 +167,7 @@ export function applyPassives(baseStats: PlayerStats, user: IUser): PlayerStats 
         const hpLostPercent = 1 - hpPct;
         const steps = Math.floor(hpLostPercent * 10 + 1e-6); // 0-10 step, tambah epsilon biar 0.9999 jadi 1
 
-        let baseValue = 0;
+        let baseValue: number;
         if (valueRaw.includes('*level')) {
           const base = parseFloat(valueRaw.replace('*level', ''));
           baseValue = base * user.level;
@@ -207,7 +230,7 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
     def: 0,
     critRate: baseCritRate,
     critDmg: 1.5,
-    element: 'phys',
+    element: 'physical',
     activeBuffs: [],
     availableSkills: [],
   };
@@ -220,7 +243,7 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
     tool: null,
   };
   const equipIds = [eq.weapon, eq.helmet, eq.armor, eq.accessory, eq.tool];
-  const eqStats = await sumEquipmentStats(equipIds);
+  const { total: eqStats, items: equippedItems } = await sumEquipmentStats(equipIds);
 
   stats.atk += eqStats.atk ?? 0;
   stats.maxHp += eqStats.hp ?? 0;
@@ -242,7 +265,6 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
     }
   }
 
-  const equippedItems = await Item.find({ itemId: { $in: equipIds.filter(Boolean) } }).lean();
   for (const eq of equippedItems) {
     if (eq?.stats?.grantsSkill) {
       stats.availableSkills.push(eq.stats.grantsSkill);
@@ -270,7 +292,7 @@ export async function getPlayerStats(user: IUser): Promise<PlayerStats> {
 // === DAMAGE CALC ===
 export function calculateDamage(
   attacker: PlayerStats,
-  defender: { def: number; element?: string },
+  defender: { def: number; element?: Element },
   skillMultiplier = 1.0,
   isCrit = false,
 ): { damage: number; isCrit: boolean; elementMult: number } {
@@ -284,13 +306,7 @@ export function calculateDamage(
     dmg *= attacker.critDmg;
   }
 
-  const elementTable: Record<string, Record<string, number>> = {
-    fire: { ice: 1.5, phys: 1.2 },
-    ice: { phys: 1.5 },
-    light: { dark: 1.5 },
-    dark: { light: 1.5 },
-  };
-  const eleMult = elementTable[attacker.element]?.[defender.element ?? 'phys'] ?? 1.0;
+  const eleMult = elementTable[attacker.element]?.[defender.element ?? 'physical'] ?? 1.0;
   dmg *= eleMult;
 
   dmg = Math.max(1, dmg - defender.def);
