@@ -2,6 +2,8 @@ import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'disc
 import { colorBar, ratioBar } from '../../utils';
 import { RunState } from './dungeon-state';
 import type { TFunction } from 'i18next';
+import { elementTable, ELEMENT_EMOJI } from '../combat';
+import type { Element } from '@nova/db';
 
 export function renderMapIcons(state: RunState, isBoss: boolean): string {
   const icons: string[] = [];
@@ -185,6 +187,7 @@ export function buildBattleEmbed(params: {
   monsterEmoji: string;
   monsterHp: number;
   monsterMaxHp: number;
+  monsterElement: Element;
   playerName: string;
   playerHp: number;
   playerMaxHp: number;
@@ -195,18 +198,25 @@ export function buildBattleEmbed(params: {
   t: TFunction;
 }) {
   const { t } = params;
+  const weakTo = Object.entries(elementTable)
+    .filter(([, defs]) => (defs as any)[params.monsterElement] > 1)
+    .map(([e]) => ELEMENT_EMOJI[e as keyof typeof ELEMENT_EMOJI]);
+  const elementInfo = `${ELEMENT_EMOJI[params.monsterElement]} ${params.monsterElement.toUpperCase()}${weakTo.length ? ` → ${weakTo.join('')}` : ''}`;
   return new EmbedBuilder()
     .setTitle(`${params.isElite ? '🌟 ' : ''}${params.isBoss ? '👑 ' : ''}⚔️ ${params.monsterName}`)
     .setDescription(`*${params.lore}*\n\n${params.action}`)
     .addFields(
       {
-        name: `❤️ ${params.playerName}`,
-        value: `${ratioBar(params.playerHp, params.playerMaxHp)} ${params.playerHp}/${params.playerMaxHp}`,
+        name: `${params.monsterEmoji} ${params.monsterName}`,
+        value:
+          `
+          ${ratioBar(Math.max(0, params.monsterHp), params.monsterMaxHp)} ${Math.max(0, params.monsterHp)}/${params.monsterMaxHp}` +
+          `\n**Element:** ${elementInfo}`,
         inline: true,
       },
       {
-        name: `${params.monsterEmoji} ${params.monsterName}`,
-        value: `${ratioBar(Math.max(0, params.monsterHp), params.monsterMaxHp)} ${Math.max(0, params.monsterHp)}/${params.monsterMaxHp}`,
+        name: `❤️ ${params.playerName}`,
+        value: `${ratioBar(params.playerHp, params.playerMaxHp)} ${params.playerHp}/${params.playerMaxHp}`,
         inline: true,
       },
     )
@@ -282,7 +292,10 @@ export function getMainButtons(t: TFunction) {
   );
 }
 
-export function getBattleButtons(skills: { id: string; name: string; cd: number }[], t: TFunction) {
+export function getBattleButtons(
+  skills: { id: string; name: string; cd: number; canUseSkill: boolean }[],
+  t: TFunction,
+) {
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId('atk')
@@ -302,7 +315,7 @@ export function getBattleButtons(skills: { id: string; name: string; cd: number 
           }),
         )
         .setStyle(ButtonStyle.Success)
-        .setDisabled(s.cd > 0),
+        .setDisabled(!s.canUseSkill),
     );
   }
   return row;

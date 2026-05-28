@@ -6,9 +6,10 @@ import {
   getSkillCooldown,
   setSkillCooldown,
   type PlayerStats,
+  ELEMENT_EMOJI,
 } from './combat';
 import { getSkill, type SkillData, type SkillContext } from './skills';
-import type { IUser } from '@nova/db';
+import type { IUser, Element } from '@nova/db';
 
 export interface EnemyStats {
   id: string;
@@ -18,7 +19,7 @@ export interface EnemyStats {
   maxHp: number;
   atk: number;
   def: number;
-  element?: 'phys' | 'fire' | 'ice' | 'light' | 'dark';
+  element?: Element;
   critRate?: number;
   critDmg?: number;
   isBoss?: boolean;
@@ -97,19 +98,41 @@ export class BattleEngine {
   ): Promise<{ damage: number; isCrit: boolean; healed: number }> {
     await this.refreshStats();
 
-    let damage = 0;
-    let isCrit = false;
+    if (this.turn > 0) {
+      const before = this.user.stamina;
+      this.user.stamina = Math.min(this.user.maxStamina, this.user.stamina + 2);
+      const gained = this.user.stamina - before;
+      if (gained > 0) {
+        this.logPush(`⚡ +${gained} Stamina (${this.user.stamina}/${this.user.maxStamina})`);
+      }
+    }
+
+    let damage: number;
+    let isCrit: boolean;
     let healed = 0;
 
     if (!skillId || skillId === 'basic') {
+      const isExhausted = this.user.stamina < 3;
+      const dmgMult = isExhausted ? 0.5 : 1.0;
+
       const result = calculateDamage(
         this.playerStats,
         { def: this.enemy.def, element: this.enemy.element },
-        1.0,
+        dmgMult,
       );
       damage = result.damage;
       isCrit = result.isCrit;
-      this.logPush(`🗡️ You attack **${damage}**${isCrit ? ' 💥CRIT!' : ''}`);
+
+      const mult = result.elementMult;
+      const elemEmoji = ELEMENT_EMOJI[this.playerStats.element];
+      let extra = '';
+      if (mult >= 1.5) extra = ` 💥 **WEAK!** ${elemEmoji}${mult.toFixed(1)}x`;
+      else if (mult <= 0.7) extra = ` 🛡️ Resist ${mult.toFixed(1)}x`;
+      if (isExhausted) extra += ` 😮‍💨 Exhausted`;
+
+      this.logPush(`🗡️ You attack **${damage}**${isCrit ? ' 💥CRIT!' : ''}${extra}`);
+
+      this.user.stamina = Math.max(0, this.user.stamina - 3);
     } else {
       const skill = getSkill(skillId);
       if (!skill) {
@@ -179,7 +202,7 @@ export class BattleEngine {
       def: this.enemy.def,
       critRate: this.enemy.critRate ?? 0.05,
       critDmg: this.enemy.critDmg ?? 1.5,
-      element: this.enemy.element ?? 'phys',
+      element: this.enemy.element ?? 'physical',
       activeBuffs: [],
       availableSkills: [],
     };
