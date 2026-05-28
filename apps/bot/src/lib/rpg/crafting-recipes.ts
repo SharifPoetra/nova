@@ -144,6 +144,19 @@ export const CRAFTING_RECIPES: CraftingRecipe[] = [
     requiredLevel: 18,
   },
   {
+    id: 'craft_inferno_staff',
+    emoji: '🔥',
+    category: 'weapon',
+    result: { itemId: 'inferno_staff', qty: 1 },
+    ingredients: [
+      { id: 'mage_staff', qty: 1 },
+      { id: 'fire_crystal', qty: 3 },
+      { id: 'magma_jelly', qty: 5 },
+      { id: 'berserk_blood', qty: 2 },
+    ],
+    requiredLevel: 22,
+  },
+  {
     id: 'craft_void_crown',
     emoji: '👑🌫️',
     category: 'helmet',

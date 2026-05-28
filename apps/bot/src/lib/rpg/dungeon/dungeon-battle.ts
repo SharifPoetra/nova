@@ -27,8 +27,17 @@ export async function runInteractiveBattle(params: BattleParams) {
 
   const baseHp = 50 + floor * 8;
   const baseAtk = 8 + floor * 1.5;
+
+  // Smoothing boss HP F50+
+  let bossHpMult = 3.5;
+  if (floor >= 75)
+    bossHpMult = 3.15; // F75: 2.050, F100: 2.677
+  else if (floor >= 60)
+    bossHpMult = 3.25; // F60: ~1.690
+  else if (floor >= 50) bossHpMult = 3.35; // F50: ~1.507
+
   const monsterMaxHp = Math.floor(
-    isBoss ? baseHp * 3.5 : isElite ? baseHp * 1.8 : baseHp * (0.8 + Math.random() * 0.4),
+    isBoss ? baseHp * bossHpMult : isElite ? baseHp * 1.8 : baseHp * (0.8 + Math.random() * 0.4),
   );
   const monsterAtk = Math.floor(isBoss ? baseAtk * 2.2 : baseAtk);
   const monsterDef = Math.floor(floor * 0.5);
