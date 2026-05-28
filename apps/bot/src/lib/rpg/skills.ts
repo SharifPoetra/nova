@@ -87,10 +87,10 @@ export const SKILLS: Record<string, SkillData> = {
     emoji: '🔥',
     description: 'Bola api mage. Damage 150% ATK. Cooldown 3 turn.',
     cooldownTurns: 3,
-    staminaCost: 18,
+    staminaCost: 16,
     target: 'enemy',
     classLock: ['mage'],
-    effects: [{ type: 'damage', value: '1.5*atk', element: 'fire' }],
+    effects: [{ type: 'damage', value: '1.7*atk', element: 'fire' }],
     use: (ctx) => {
       const res = executeEffects(ctx, SKILLS.fireball);
       ctx.addLog(`✨ 🔥 Fireball! **${res.damage}**${res.isCrit ? ' 💥CRIT!' : ''}`);
@@ -197,14 +197,14 @@ export const SKILLS: Record<string, SkillData> = {
     id: 'arcane_intellect',
     name: 'Arcane Intellect',
     emoji: '📖',
-    description: '+25% crit damage when HP >50%',
+    description: '+35% crit damage when HP >50%',
     cooldownTurns: 0,
     staminaCost: 0,
     target: 'self',
     classLock: ['mage'],
     passive: true,
     requiredLevel: 10,
-    effects: [{ type: 'buff', value: 'passive:critDmg:hp>0.5:0.25' }],
+    effects: [{ type: 'buff', value: 'passive:critDmg:hp>0.5:0.35' }],
     use: () => ({ damage: 0, heal: 0, isCrit: false }),
   },
 };
