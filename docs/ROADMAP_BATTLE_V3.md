@@ -364,7 +364,7 @@ if (isExhausted) extra += ` 😮‍💨 Exhausted`;
 - [ ] Lengkapi element untuk semua equipment → backlog
 - [x] Final QA hunt/dungeon 50x
 - [x] TypeScript build sukses
-- [ ] Merge feat/battle-v3 → main
+- [x] Merge feat/battle-v3 → main
 
 ## Commit Plan
 ```bash
