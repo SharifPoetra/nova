@@ -219,10 +219,9 @@ export class ShopCommand extends Command {
         });
 
       user.balance = Number(user.balance) - item.price;
-      await user.save();
 
       await addItemToInventory(
-        user.discordId,
+        user,
         {
           itemId: item.id,
           emoji: item.emoji,
@@ -230,6 +229,7 @@ export class ShopCommand extends Command {
         },
         1,
       );
+      await user.save();
 
       const successEmbed = new EmbedBuilder()
         .setColor(0x2ecc71)

@@ -153,7 +153,7 @@ export class CraftSelectHandler extends InteractionHandler {
     // consume
     for (const ing of recipe.ingredients) {
       const it = user.items.find((i) => i.itemId === ing.id)!;
-      await removeItemFromInventory(user.discordId, it.itemId, ing.qty);
+      await removeItemFromInventory(user, it.itemId, ing.qty);
     }
     user.items = user.items.filter((i) => i.qty > 0);
     user.stamina -= ACTION_COST.craft;
@@ -162,7 +162,7 @@ export class CraftSelectHandler extends InteractionHandler {
     const { id, ...equipData } = EQUIPMENTS[result.itemId as keyof typeof EQUIPMENTS];
     if (equipData) {
       await addItemToInventory(
-        user.discordId,
+        user,
         {
           itemId: id,
           ...equipData,
@@ -170,6 +170,8 @@ export class CraftSelectHandler extends InteractionHandler {
         result.qty,
       );
     }
+
+    await user.save();
 
     const display = await getItemDisplay(result.itemId, t);
     const itemName = display?.name ?? result.itemId;

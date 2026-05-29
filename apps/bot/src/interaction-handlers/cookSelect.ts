@@ -211,7 +211,7 @@ export class CookSelectHandler extends InteractionHandler {
 
     // Hapus bahan
     for (const ing of recipe.ingredients) {
-      await removeItemFromInventory(userId, ing.id, ing.qty);
+      await removeItemFromInventory(user, ing.id, ing.qty);
     }
 
     user.stamina -= ACTION_COST.cook;
@@ -221,7 +221,7 @@ export class CookSelectHandler extends InteractionHandler {
     const cookedData = COOKED_ITEMS.find((i) => i.itemId === recipe.resultItemId)!;
 
     await addItemToInventory(
-      userId,
+      user,
       {
         itemId: cookedData.itemId,
         emoji: cookedData.emoji,

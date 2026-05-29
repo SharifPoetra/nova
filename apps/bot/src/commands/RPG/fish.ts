@@ -80,7 +80,7 @@ export class FishCommand extends Command {
     const fishName = i18nFish(fish.id, t);
 
     await addItemToInventory(
-      user.discordId,
+      user,
       {
         itemId: fish.id,
         emoji: fish.emoji,
