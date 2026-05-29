@@ -99,14 +99,15 @@ export class CookSelectHandler extends InteractionHandler {
     applyPassiveRegen(user);
     const stats = await getPlayerStats(user);
 
+    const invMap = new Map(user.items.map((i) => [i.itemId, i.qty]));
+
     // PAGINATION
     if (isPrevButton || isNextButton) {
       const currentPage = parseInt(pageStr, 10);
       const newPage = isPrevButton ? currentPage - 1 : currentPage + 1;
+
       let availableRecipes = RECIPES.filter((recipe) =>
-        recipe.ingredients.every(
-          (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
-        ),
+        recipe.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty),
       );
       availableRecipes = availableRecipes.filter(TIER_FILTERS[tier] || TIER_FILTERS.all);
       const startIndex = newPage * 25;
@@ -196,9 +197,7 @@ export class CookSelectHandler extends InteractionHandler {
       });
     }
 
-    const hasIngredients = recipe.ingredients.every(
-      (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
-    );
+    const hasIngredients = recipe.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty);
     if (!hasIngredients)
       return interaction.editReply({
         embeds: [
