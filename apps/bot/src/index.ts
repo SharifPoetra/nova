@@ -185,8 +185,7 @@ client.logger.write = (level: LogLevel, ...values: readonly unknown[]) => {
       }
     })
     .join(' ');
-
-  const clean = msg.replace(/\u001b\[[0-9;]*m/g, '');
+  const clean = msg.replace(/\u001b\[[0-9;]*m/g, ''); // eslint-disable-line no-control-regex
   fileStream.write(`[${time}] [${levelName}] ${clean}\n`);
 
   if (client.logger.has(level)) {
