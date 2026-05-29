@@ -4,7 +4,6 @@ import {
   ActionRowBuilder,
   StringSelectMenuBuilder,
   EmbedBuilder,
-  ButtonBuilder,
   ButtonStyle,
   AutocompleteInteraction,
   ChatInputCommandInteraction,
@@ -62,11 +61,13 @@ export class CraftCommand extends Command {
     const selectedCategory = interaction.options.getString('category');
     const selectedRecipeId = interaction.options.getString('recipe');
     if (selectedRecipeId) return this.craftDirectly(interaction, selectedRecipeId);
+
+    const invMap = new Map(user.items.map((i) => [i.itemId, i.qty]));
+
     let available = CRAFTING_RECIPES.filter(
       (r) =>
-        r.ingredients.every(
-          (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
-        ) && user.level >= (r.requiredLevel ?? 0),
+        r.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty) &&
+        user.level >= (r.requiredLevel ?? 0),
     );
     if (selectedCategory) available = available.filter(CATEGORY_FILTERS[selectedCategory]);
     if (!available.length)
@@ -171,10 +172,10 @@ export class CraftCommand extends Command {
     const q = interaction.options.getFocused().toLowerCase();
     const t = await fetchT(interaction);
 
+    const invMap = new Map(user.items.map((i) => [i.itemId, i.qty]));
+
     const available = CRAFTING_RECIPES.filter((r) => {
-      const has = r.ingredients.every(
-        (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
-      );
+      const has = r.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty);
       return has && user.level >= (r.requiredLevel ?? 0);
     }).slice(0, 50);
 

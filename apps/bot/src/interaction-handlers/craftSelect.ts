@@ -52,15 +52,16 @@ export class CraftSelectHandler extends InteractionHandler {
     applyPassiveRegen(user);
     const stats = await getPlayerStats(user);
 
+    const invMap = new Map(user.items.map((i) => [i.itemId, i.qty]));
+
     // PAGINATION
     if (isPrev || isNext) {
       const page = parseInt(pageStr, 10);
       const newPage = isPrev ? page - 1 : page + 1;
       let available = CRAFTING_RECIPES.filter(
         (r) =>
-          r.ingredients.every(
-            (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
-          ) && user.level >= (r.requiredLevel ?? 0),
+          r.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty) &&
+          user.level >= (r.requiredLevel ?? 0),
       );
       available = available.filter(CATEGORY_FILTERS[cat] || CATEGORY_FILTERS.all);
       const start = newPage * 25;
@@ -138,9 +139,7 @@ export class CraftSelectHandler extends InteractionHandler {
         components: [],
       });
     }
-    const has = recipe.ingredients.every(
-      (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
-    );
+    const has = recipe.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty);
     if (!has)
       return interaction.editReply({
         embeds: [
