@@ -46,7 +46,13 @@ export class ProfileCommand extends Command {
     await interaction.deferReply();
 
     try {
-      const userData = await this.container.db.user.findOne({ discordId: target.id });
+      const isSelf = target.id === interaction.user.id;
+      const baseSelect =
+        'buffs stamina maxStamina level exp balance bank items class equipped createdAt hp';
+      const userData = isSelf
+        ? await this.container.db.user.findOne({ discordId: target.id }).select(baseSelect)
+        : await this.container.db.user.findOne({ discordId: target.id }).select(baseSelect).lean();
+
       if (!userData) {
         const embed = new EmbedBuilder()
           .setColor(0xe74c3c)
@@ -64,7 +70,6 @@ export class ProfileCommand extends Command {
         return interaction.editReply({ embeds: [embed] });
       }
 
-      const isSelf = target.id === interaction.user.id;
       if (isSelf) {
         applyPassiveRegen(userData);
         await userData.save();
