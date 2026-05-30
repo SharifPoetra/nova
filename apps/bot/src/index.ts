@@ -24,7 +24,8 @@ setGlobalDispatcher(
   }),
 );
 
-if (process.env.NODE_ENV === 'development') {
+const isProd = process.env.NODE_ENV === 'production';
+if (!isProd) {
   const devGuildIds = process.env.DEV_GUILD_IDS?.split(',')
     .map((id) => id.trim())
     .filter(Boolean);
@@ -33,8 +34,6 @@ if (process.env.NODE_ENV === 'development') {
     console.log(`[DEV] Commands registered to ${devGuildIds.length} guilds`);
   }
 }
-
-const isProd = process.env.NODE_ENV === 'production';
 
 // CACHE LANG
 const CACHE_TTL = 5 * 60 * 1000; // 5 menit
