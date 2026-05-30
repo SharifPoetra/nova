@@ -68,7 +68,7 @@ export class ExploreCommand extends Command {
     outcome.exp = expGain;
 
     if (outcome.item) {
-      await addItemToInventory(user.discordId, {
+      await addItemToInventory(user, {
         itemId: outcome.item.id,
         emoji: outcome.item.emoji,
         type: outcome.item.type,

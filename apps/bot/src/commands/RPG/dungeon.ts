@@ -424,10 +424,11 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         if (materials.length && Math.random() < (isBoss ? 1.0 : isElite ? 0.75 : 0.4)) {
           const { id, ...matData } = materials[Math.floor(Math.random() * materials.length)];
           await addItemToInventory(
-            player.discordId,
+            player,
             { itemId: id, ...matData },
             isBoss ? 3 : isElite ? 2 : 1,
           );
+          await player.save();
           const matName = i18nItem('dungeon', id, t);
           runState.log.push(`📦 ${matData.emoji} ${matName} x${isBoss ? 3 : isElite ? 2 : 1}`);
         }
@@ -436,7 +437,8 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
           const weights = { Common: 60, Uncommon: 25, Rare: 10, Epic: 4, Legendary: 1, Mythic: 0 };
           const weighted = equipPool.flatMap((d) => Array(weights[d.rarity] || 1).fill(d));
           const { id, ...dropData } = weighted[Math.floor(Math.random() * weighted.length)];
-          await addItemToInventory(player.discordId, { itemId: id, ...dropData }, 1);
+          await addItemToInventory(player, { itemId: id, ...dropData }, 1);
+          await player.save();
           const dropName = i18nItem('dungeon', id, t);
           runState.log.push(t('commands/dungeon:drop', { emoji: dropData.emoji, name: dropName }));
         }
@@ -452,7 +454,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
           const itemName = i18nItem('dungeon', itemId, t);
 
           await addItemToInventory(
-            player.discordId,
+            player,
             {
               itemId,
               emoji: def.emoji,
@@ -462,6 +464,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
             },
             1,
           );
+          await player.save();
           runState.log.push(t('commands/dungeon:got_item', { emoji: def.emoji, name: itemName }));
         }
       } else if (event.type === 'trap') {

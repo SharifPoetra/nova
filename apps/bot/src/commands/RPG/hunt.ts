@@ -156,7 +156,7 @@ export class HuntCommand extends Command {
     };
 
     await updateBattleEmbed(true);
-    await sleep(1000);
+    await sleep(700);
     // Battle loop using engine
     while (!engine.isBattleOver()) {
       await updateBattleEmbed(true);
@@ -173,7 +173,7 @@ export class HuntCommand extends Command {
         // Auto attack
         await engine.playerAttack('basic');
         await updateBattleEmbed(false);
-        await sleep(850);
+        await sleep(700);
       } else {
         await turn.deferUpdate();
         if (turn.customId === 'hunt_atk') {
@@ -190,19 +190,22 @@ export class HuntCommand extends Command {
       engine.enemyAttack();
       await engine.endTurn();
       await updateBattleEmbed(false);
-      await sleep(850);
+      await sleep(700);
     }
     const result = engine.getResult();
     const battleSummary = result.log.slice(-15).join('\n');
+
     if (!result.victory) {
       const loseExp = Math.floor(getScaledExp(baseMonster.xp, battleUser.level, 'hunt') / 3);
       battleUser.exp += loseExp;
       battleUser.markModified('skillCooldowns');
       battleUser.markModified('buffs');
       await battleUser.save();
+
       const finalStats = await getPlayerStats(battleUser);
       const atkBuff = finalStats.activeBuffs.find((b) => b.type === 'atk');
       const finalBuffInfo = atkBuff ? ` • 🔥 ATK +${Math.floor(atkBuff.value * 100)}%` : '';
+
       embed
         .setColor(0xe74c3c)
         .setTitle(t('commands/hunt:lose_title', { name: enemy.name }))
@@ -230,7 +233,7 @@ export class HuntCommand extends Command {
     });
     if (!selectedDrop) selectedDrop = baseMonster.drops[0];
     await addItemToInventory(
-      battleUser.discordId,
+      battleUser,
       {
         itemId: selectedDrop.id,
         emoji: selectedDrop.emoji,
@@ -243,17 +246,22 @@ export class HuntCommand extends Command {
       },
       1,
     );
+    await battleUser.save();
+
     const user = await db.user.findOne({ discordId: interaction.user.id });
     if (!user) return;
+
     user.hp = battleUser.hp;
     user.stamina = battleUser.stamina;
     user.lastHunt = battleUser.lastHunt;
     user.lastPassive = battleUser.lastPassive;
     user.buffs = battleUser.buffs;
     user.markModified('buffs');
+
     const expGain = getScaledExp(baseMonster.xp, user.level, 'hunt', isElite);
     user.balance += expGain * 2;
     user.exp += expGain;
+
     let levelUpText = '';
     const levelUp = checkLevelUp(user);
     if (levelUp) {
@@ -266,10 +274,12 @@ export class HuntCommand extends Command {
       });
     }
     resetSkillCooldowns(user);
+
     user.buffs = user.buffs.filter((b) => !b.battle);
     user.markModified('skillCooldowns');
     user.markModified('buffs');
     await user.save();
+
     const finalPlayerStats = await getPlayerStats(user);
     const finalAtkBuff = finalPlayerStats.activeBuffs.find((b) => b.type === 'atk');
     const finalBuffInfo = finalAtkBuff ? ` • 🔥 ATK +${Math.floor(finalAtkBuff.value * 100)}%` : '';

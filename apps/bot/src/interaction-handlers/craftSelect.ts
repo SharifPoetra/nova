@@ -52,15 +52,16 @@ export class CraftSelectHandler extends InteractionHandler {
     applyPassiveRegen(user);
     const stats = await getPlayerStats(user);
 
+    const invMap = new Map(user.items.map((i) => [i.itemId, i.qty]));
+
     // PAGINATION
     if (isPrev || isNext) {
       const page = parseInt(pageStr, 10);
       const newPage = isPrev ? page - 1 : page + 1;
       let available = CRAFTING_RECIPES.filter(
         (r) =>
-          r.ingredients.every(
-            (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
-          ) && user.level >= (r.requiredLevel ?? 0),
+          r.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty) &&
+          user.level >= (r.requiredLevel ?? 0),
       );
       available = available.filter(CATEGORY_FILTERS[cat] || CATEGORY_FILTERS.all);
       const start = newPage * 25;
@@ -138,9 +139,7 @@ export class CraftSelectHandler extends InteractionHandler {
         components: [],
       });
     }
-    const has = recipe.ingredients.every(
-      (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
-    );
+    const has = recipe.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty);
     if (!has)
       return interaction.editReply({
         embeds: [
@@ -153,7 +152,7 @@ export class CraftSelectHandler extends InteractionHandler {
     // consume
     for (const ing of recipe.ingredients) {
       const it = user.items.find((i) => i.itemId === ing.id)!;
-      await removeItemFromInventory(user.discordId, it.itemId, ing.qty);
+      await removeItemFromInventory(user, it.itemId, ing.qty);
     }
     user.items = user.items.filter((i) => i.qty > 0);
     user.stamina -= ACTION_COST.craft;
@@ -162,7 +161,7 @@ export class CraftSelectHandler extends InteractionHandler {
     const { id, ...equipData } = EQUIPMENTS[result.itemId as keyof typeof EQUIPMENTS];
     if (equipData) {
       await addItemToInventory(
-        user.discordId,
+        user,
         {
           itemId: id,
           ...equipData,
@@ -170,6 +169,8 @@ export class CraftSelectHandler extends InteractionHandler {
         result.qty,
       );
     }
+
+    await user.save();
 
     const display = await getItemDisplay(result.itemId, t);
     const itemName = display?.name ?? result.itemId;

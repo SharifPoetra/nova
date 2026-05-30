@@ -118,11 +118,10 @@ export class CookCommand extends Command {
       interaction.options.getString('recipe') ?? interaction.options.getString('resep');
     if (selectedRecipeId) return this.cookDirectly(interaction, selectedRecipeId);
 
+    const invMap = new Map(user.items.map((i) => [i.itemId, i.qty]));
+
     let availableRecipes = RECIPES.filter((recipe) =>
-      recipe.ingredients.every(
-        (ingredient) =>
-          (user.items.find((i) => i.itemId === ingredient.id)?.qty || 0) >= ingredient.qty,
-      ),
+      recipe.ingredients.every((ingredient) => (invMap.get(ingredient.id) ?? 0) >= ingredient.qty),
     );
     if (selectedTier) availableRecipes = availableRecipes.filter(TIER_FILTERS[selectedTier]);
     if (!availableRecipes.length)
@@ -242,9 +241,11 @@ export class CookCommand extends Command {
     if (!user) return interaction.respond([]);
     const query = interaction.options.getFocused().toLowerCase();
 
+    const invMap = new Map(user.items.map((i) => [i.itemId, i.qty]));
+
     const availableRecipes = RECIPES.filter((recipe) => {
       const hasIngredients = recipe.ingredients.every(
-        (ing) => (user.items.find((i) => i.itemId === ing.id)?.qty || 0) >= ing.qty,
+        (ing) => (invMap.get(ing.id) ?? 0) >= ing.qty,
       );
       const name = t(`cook/recipes:${recipe.id}.name`, { defaultValue: recipe.id }).toLowerCase();
       const matchesQuery = name.includes(query) || recipe.id.includes(query);

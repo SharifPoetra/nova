@@ -114,11 +114,7 @@ export interface ItemInput {
   effects?: IItemEffect[];
 }
 
-export async function addItemToInventory(
-  discordId: string,
-  itemData: ItemInput,
-  qty = 1,
-): Promise<void> {
+export async function addItemToInventory(user: IUser, itemData: ItemInput, qty = 1): Promise<void> {
   await Item.updateOne(
     { itemId: itemData.itemId },
     {
@@ -131,26 +127,20 @@ export async function addItemToInventory(
     },
     { upsert: true },
   );
-  const user = await User.findOne({ discordId });
-  if (!user) throw new Error('User not found');
   const existing = user.items.find((i) => i.itemId === itemData.itemId);
   if (existing) existing.qty += qty;
   else user.items.push({ itemId: itemData.itemId, qty });
-  await user.save();
 }
 
 export async function removeItemFromInventory(
-  discordId: string,
+  user: IUser,
   itemId: string,
   qty = 1,
 ): Promise<boolean> {
-  const user = await User.findOne({ discordId });
-  if (!user) return false;
   const item = user.items.find((i) => i.itemId === itemId);
   if (!item || item.qty < qty) return false;
   item.qty -= qty;
   if (item.qty <= 0) user.items = user.items.filter((i) => i.itemId !== itemId);
-  await user.save();
   return true;
 }
 
