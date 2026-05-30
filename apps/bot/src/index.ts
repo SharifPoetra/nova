@@ -24,7 +24,8 @@ setGlobalDispatcher(
   }),
 );
 
-if (process.env.NODE_ENV === 'development') {
+const isProd = process.env.NODE_ENV === 'production';
+if (!isProd) {
   const devGuildIds = process.env.DEV_GUILD_IDS?.split(',')
     .map((id) => id.trim())
     .filter(Boolean);
@@ -34,7 +35,16 @@ if (process.env.NODE_ENV === 'development') {
   }
 }
 
-const isProd = process.env.NODE_ENV === 'production';
+// CACHE LANG
+const CACHE_TTL = 5 * 60 * 1000; // 5 menit
+const userLangCache = new Map<string, { lang: string; expires: number }>();
+const guildLangCache = new Map<string, { lang: string; expires: number }>();
+
+// export biar bisa di-invalidate dari /lang
+export function invalidateLangCache(userId?: string, guildId?: string) {
+  if (userId) userLangCache.delete(userId);
+  if (guildId) guildLangCache.delete(guildId);
+}
 
 const client = new SapphireClient({
   baseUserDirectory: __dirname,
@@ -49,17 +59,43 @@ const client = new SapphireClient({
   },
   i18n: {
     fetchLanguage: async (context) => {
+      const now = Date.now();
+      const locale = context.interactionGuildLocale ?? context.interactionLocale;
+      const fallback = locale?.startsWith('id') ? 'id' : 'en-US';
+
       if (context.user?.id) {
+        const cached = userLangCache.get(context.user.id);
+        if (cached) {
+          if (cached.expires > now) return cached.lang;
+          userLangCache.delete(context.user.id);
+        }
+
         const user = await container.db.user.findOne({ discordId: context.user.id }).lean();
-        if (user?.lang) return user.lang;
+        if (user?.lang) {
+          userLangCache.set(context.user.id, { lang: user.lang, expires: now + CACHE_TTL });
+          return user.lang;
+        }
+        userLangCache.set(context.user.id, { lang: fallback, expires: now + CACHE_TTL });
+        return fallback;
       }
+
       if (context.guild?.id) {
+        const cached = guildLangCache.get(context.guild.id);
+        if (cached) {
+          if (cached.expires > now) return cached.lang;
+          guildLangCache.delete(context.guild.id);
+        }
+
         const guild = await container.db.guild.findOne({ guildId: context.guild.id }).lean();
-        if (guild?.lang) return guild.lang;
+        if (guild?.lang) {
+          guildLangCache.set(context.guild.id, { lang: guild.lang, expires: now + CACHE_TTL });
+          return guild.lang;
+        }
+
+        guildLangCache.set(context.guild.id, { lang: fallback, expires: now + CACHE_TTL });
+        return fallback;
       }
-      const discordLocale = context.interactionGuildLocale ?? context.interactionLocale;
-      if (discordLocale?.startsWith('id')) return 'id';
-      return 'en-US'; // default EN
+      return fallback;
     },
     defaultLanguageDirectory: path.join(__dirname, 'locales'),
     defaultName: 'en-US',
@@ -129,15 +165,28 @@ const rotateIfNeeded = () => {
 
 const originalWrite = client.logger.write.bind(client.logger);
 client.logger.write = (level: LogLevel, ...values: readonly unknown[]) => {
-  // 1. tulis ke file SELALU (termasuk DEBUG) - dengan rotasi
+  if (isProd && level < LogLevel.Info) {
+    if (client.logger.has(level)) originalWrite(level, ...values);
+    return;
+  }
+
   rotateIfNeeded();
   const time = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Kuching' });
   const levelName = LogLevel[level].toUpperCase();
-  const msg = values.map((v) => (typeof v === 'object' ? JSON.stringify(v) : String(v))).join(' ');
+
+  const msg = values
+    .map((v) => {
+      if (typeof v !== 'object' || v === null) return String(v);
+      try {
+        return isProd ? '[Object]' : JSON.stringify(v);
+      } catch {
+        return '[Circular]';
+      }
+    })
+    .join(' ');
   const clean = msg.replace(/\u001b\[[0-9;]*m/g, ''); // eslint-disable-line no-control-regex
   fileStream.write(`[${time}] [${levelName}] ${clean}\n`);
 
-  // 2. tulis ke console HANYA kalau level cukup (Info di prod)
   if (client.logger.has(level)) {
     originalWrite(level, ...values);
   }

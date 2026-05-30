@@ -2,6 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { MessageFlags, PermissionFlagsBits } from 'discord.js';
+import { invalidateLangCache } from '../../index';
 
 @ApplyOptions<Command.Options>({
   name: 'lang',
@@ -36,21 +37,23 @@ export class LangCommand extends Command {
     const lang = interaction.options.getString('language', true) as 'id' | 'en-US';
     const isGuild = interaction.options.getBoolean('guild') ?? false;
 
-    if (isGuild) {
+    if (isGuild && interaction.guildId) {
       if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
         return interaction.editReply(t('commands/lang:no_perm'));
       }
       await this.container.db.guild.updateOne(
-        { guildId: interaction.guildId! },
+        { guildId: interaction.guildId },
         { $set: { lang } },
         { upsert: true },
       );
+      invalidateLangCache(undefined, interaction.guildId);
     } else {
       await this.container.db.user.updateOne(
         { discordId: interaction.user.id },
         { $set: { lang } },
         { upsert: true },
       );
+      invalidateLangCache(interaction.user.id, undefined);
     }
 
     return interaction.editReply(t('commands/lang:lang_changed', { lang }));
