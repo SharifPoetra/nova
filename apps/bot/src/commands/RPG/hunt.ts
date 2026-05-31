@@ -1,12 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import {
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ComponentType,
-} from 'discord.js';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { sleep, ratioBar, RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
 import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
@@ -163,8 +157,7 @@ export class HuntCommand extends Command {
       const turn = await interaction.channel
         ?.awaitMessageComponent({
           filter: (i) =>
-            i.user.id === battleUser.discordId &&
-            (i.customId === 'hunt_atk' || i.customId.startsWith('hunt_skl_')),
+            i.user.id === battleUser.discordId && (i.customId === 'hunt_atk' || i.customId.startsWith('hunt_skl_')),
           time: 30_000,
           componentType: ComponentType.Button,
         })
@@ -286,9 +279,7 @@ export class HuntCommand extends Command {
     const dropName = (await getItemDisplay(selectedDrop.id, t))?.name ?? selectedDrop.id;
     embed
       .setColor(RARITY_COLOR[selectedDrop.rarity as keyof typeof RARITY_COLOR])
-      .setTitle(
-        t('commands/hunt:win_title', { name: enemy.name, elite: isElite ? ' **ELITE!**' : '' }),
-      )
+      .setTitle(t('commands/hunt:win_title', { name: enemy.name, elite: isElite ? ' **ELITE!**' : '' }))
       .setDescription(
         t('commands/hunt:win_desc', {
           emoji: enemy.emoji,

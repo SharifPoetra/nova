@@ -89,19 +89,8 @@ describe('Skills', () => {
             const parts = e.value.split(':');
             expect(parts[0]).toBe('passive');
             expect(parts).toHaveLength(4);
-            expect([
-              'atk',
-              'atk_pct',
-              'def',
-              'hp_pct',
-              'critRate',
-              'critDmg',
-              'dodge',
-              'flag',
-            ]).toContain(parts[1]);
-            expect(['always', 'hp>0.7', 'hp>0.5', 'hp<0.5', 'hp<0.3', 'hp_loss']).toContain(
-              parts[2],
-            );
+            expect(['atk', 'atk_pct', 'def', 'hp_pct', 'critRate', 'critDmg', 'dodge', 'flag']).toContain(parts[1]);
+            expect(['always', 'hp>0.7', 'hp>0.5', 'hp<0.5', 'hp<0.3', 'hp_loss']).toContain(parts[2]);
             // value harus parseable KECUALI untuk flag
             if (parts[1] !== 'flag') {
               expect(parseFloat(parts[3])).not.toBeNaN();

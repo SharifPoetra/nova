@@ -1,13 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ComponentType,
-  EmbedBuilder,
-  MessageFlags,
-} from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, MessageFlags } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { sleep, ratioBar, colorBar } from '../../lib/utils';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
@@ -21,12 +14,7 @@ import {
   DUNGEON_MONSTERS,
   BOSSES,
 } from '../../lib/rpg/dungeon/dungeon-data';
-import {
-  rollEvent,
-  getZone,
-  type DungeonEvent,
-  EVENT_ITEM_DEFS,
-} from '../../lib/rpg/dungeon/dungeon-events';
+import { rollEvent, getZone, type DungeonEvent, EVENT_ITEM_DEFS } from '../../lib/rpg/dungeon/dungeon-events';
 import { createRunState, getCheckpoint, RunState } from '../../lib/rpg/dungeon/dungeon-state';
 import {
   buildMainEmbed,
@@ -51,11 +39,7 @@ import { i18nMonster, i18nItem, i18nEvent } from '../../lib/i18n/display';
 export class DungeonCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((builder) =>
-      applyLocalizedBuilder(
-        builder,
-        'commands/names:dungeon',
-        'commands/descriptions:dungeon',
-      ).addStringOption((o) =>
+      applyLocalizedBuilder(builder, 'commands/names:dungeon', 'commands/descriptions:dungeon').addStringOption((o) =>
         o
           .setName('action')
           .setNameLocalizations({ id: 'aksi' })
@@ -89,8 +73,7 @@ export class DungeonCommand extends Command {
     const action = interaction.options.getString('action', true) as 'enter' | 'status' | 'leave';
     const DUNGEON_COST = ACTION_COST.dungeon;
     let player = await userModel.findOne({ discordId: interaction.user.id });
-    if (!player)
-      return interaction.reply({ content: t('common:need_start'), flags: MessageFlags.Ephemeral });
+    if (!player) return interaction.reply({ content: t('common:need_start'), flags: MessageFlags.Ephemeral });
 
     applyPassiveRegen(player);
     await player.save();
@@ -310,9 +293,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
       }
 
       if (player.stamina < DUNGEON_COST) {
-        runState.log.push(
-          t('common:error.low_stamina', { current: player.stamina, need: DUNGEON_COST }),
-        );
+        runState.log.push(t('common:error.low_stamina', { current: player.stamina, need: DUNGEON_COST }));
         dungeonData.inRun = false;
         dungeonData.floorState = null;
         await dungeonData.save();
@@ -324,10 +305,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         });
       }
 
-      await userModel.updateOne(
-        { discordId: player.discordId },
-        { $inc: { stamina: -DUNGEON_COST } },
-      );
+      await userModel.updateOne({ discordId: player.discordId }, { $inc: { stamina: -DUNGEON_COST } });
       runState.current++;
 
       const isLastRoom = runState.current === runState.rooms;
@@ -336,9 +314,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         event = { id: 'boss', type: 'battle', weight: 0 };
       } else {
         const needForcedBattle = !runState.hasBattle && runState.current >= runState.rooms - 1;
-        event = needForcedBattle
-          ? { id: 'forced_battle', type: 'battle', weight: 0 }
-          : rollEvent(currentFloor);
+        event = needForcedBattle ? { id: 'forced_battle', type: 'battle', weight: 0 } : rollEvent(currentFloor);
       }
 
       let currentMonster: any = null;
@@ -388,9 +364,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         player = (await userModel.findOne({ discordId: player.discordId }))!;
 
         if (!battleResult?.victory) {
-          runState.log.push(
-            t('commands/dungeon:defeated', { name: i18nMonster('dungeon', currentMonster.id, t) }),
-          );
+          runState.log.push(t('commands/dungeon:defeated', { name: i18nMonster('dungeon', currentMonster.id, t) }));
           dungeonData.inRun = false;
           dungeonData.floorState = null;
           dungeonData.currentFloor = getCheckpoint(currentFloor);
@@ -411,10 +385,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         const roomExp = getScaledExp(baseExp, player.level, 'dungeon', isElite);
         runState.gold += roomGold;
         runState.exp += roomExp;
-        await userModel.updateOne(
-          { discordId: player.discordId },
-          { $inc: { balance: roomGold, exp: roomExp } },
-        );
+        await userModel.updateOne({ discordId: player.discordId }, { $inc: { balance: roomGold, exp: roomExp } });
 
         const isBoss = currentMonster.isBoss ?? false;
         const pool = isBoss
@@ -423,11 +394,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         const materials = pool.filter((d) => d.type === 'material');
         if (materials.length && Math.random() < (isBoss ? 1.0 : isElite ? 0.75 : 0.4)) {
           const { id, ...matData } = materials[Math.floor(Math.random() * materials.length)];
-          await addItemToInventory(
-            player,
-            { itemId: id, ...matData },
-            isBoss ? 3 : isElite ? 2 : 1,
-          );
+          await addItemToInventory(player, { itemId: id, ...matData }, isBoss ? 3 : isElite ? 2 : 1);
           await player.save();
           const matName = i18nItem('dungeon', id, t);
           runState.log.push(`📦 ${matData.emoji} ${matName} x${isBoss ? 3 : isElite ? 2 : 1}`);
@@ -473,10 +440,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         runState.taken += damage;
         runState.log.push(t('commands/dungeon:trap', { damage }));
         if (event.effect?.stamina) {
-          await userModel.updateOne(
-            { discordId: player.discordId },
-            { $inc: { stamina: event.effect.stamina } },
-          );
+          await userModel.updateOne({ discordId: player.discordId }, { $inc: { stamina: event.effect.stamina } });
         }
       } else if (event.type === 'heal') {
         const heal = event.effect?.hp ?? 30;
@@ -485,10 +449,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         await userModel.updateOne({ discordId: player.discordId }, { $set: { hp: newHp } });
         runState.log.push(t('commands/dungeon:heal', { heal }));
         if (event.effect?.stamina) {
-          await userModel.updateOne(
-            { discordId: player.discordId },
-            { $inc: { stamina: event.effect.stamina } },
-          );
+          await userModel.updateOne({ discordId: player.discordId }, { $inc: { stamina: event.effect.stamina } });
         }
       } else if (event.type === 'puzzle') {
         if (event.effect?.hp) {
@@ -504,10 +465,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         }
       } else if (event.type === 'lore') {
         const loreExp = 3 + Math.floor(currentFloor / 5);
-        await userModel.updateOne(
-          { discordId: player.discordId },
-          { $inc: { exp: loreExp, stamina: DUNGEON_COST } },
-        );
+        await userModel.updateOne({ discordId: player.discordId }, { $inc: { exp: loreExp, stamina: DUNGEON_COST } });
         runState.exp += loreExp;
         runState.log.push(t('commands/dungeon:lore', { text: eventText, exp: loreExp }));
       } else if (event.type === 'merchant') {
@@ -542,10 +500,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         if (choice?.customId === 'buy' && player.balance >= cost) {
           const s2 = await getPlayerStats(player);
           const newHp = Math.min(s2.maxHp, player.hp + heal);
-          await userModel.updateOne(
-            { discordId: player.discordId },
-            { $inc: { balance: -cost }, $set: { hp: newHp } },
-          );
+          await userModel.updateOne({ discordId: player.discordId }, { $inc: { balance: -cost }, $set: { hp: newHp } });
           runState.log.push(t('commands/dungeon:bought', { heal, cost }));
           await sleep(800);
         } else runState.log.push(t('commands/dungeon:skipped', { text: eventText }));
@@ -560,10 +515,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
         const floorExp = 20 + currentFloor * 2;
         runState.gold += floorGold;
         runState.exp += floorExp;
-        await userModel.updateOne(
-          { discordId: player.discordId },
-          { $inc: { balance: floorGold, exp: floorExp } },
-        );
+        await userModel.updateOne({ discordId: player.discordId }, { $inc: { balance: floorGold, exp: floorExp } });
         dungeonData.currentFloor++;
         if (currentFloor > dungeonData.highestFloor) dungeonData.highestFloor = currentFloor;
         const levelUp = checkLevelUp(player);

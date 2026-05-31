@@ -45,9 +45,7 @@ export class InteractionHandlerErrorListener extends Listener {
           class: { $exists: false },
           createdAt: { $gte: new Date(Date.now() - 60000) }, // cuma hapus yang dibuat <1 menit lalu
         });
-        this.container.logger.info(
-          `[${id}] Rollback class selection untuk ${interaction.user.tag}`,
-        );
+        this.container.logger.info(`[${id}] Rollback class selection untuk ${interaction.user.tag}`);
       } catch (e) {
         this.container.logger.error(`[${id}] Rollback class gagal`, e as Error);
       }

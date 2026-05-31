@@ -4,12 +4,7 @@ import path from 'path';
 import { createWriteStream, existsSync, mkdirSync, WriteStream } from 'fs';
 import { setGlobalDispatcher, Agent } from 'undici';
 import { GatewayIntentBits } from 'discord.js';
-import {
-  SapphireClient,
-  container,
-  ApplicationCommandRegistries,
-  LogLevel,
-} from '@sapphire/framework';
+import { SapphireClient, container, ApplicationCommandRegistries, LogLevel } from '@sapphire/framework';
 import { createDatabase, User, Item, Dungeon, Guild } from '@nova/db';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -49,11 +44,7 @@ export function invalidateLangCache(userId?: string, guildId?: string) {
 const client = new SapphireClient({
   baseUserDirectory: __dirname,
   loadMessageCommandListeners: true,
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-  ],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
   logger: {
     level: isProd ? LogLevel.Info : LogLevel.Debug,
   },

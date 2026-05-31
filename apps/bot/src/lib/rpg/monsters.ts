@@ -699,10 +699,7 @@ export const getScaledMonster = (userLevel: number) => {
   return {
     ...base,
     hp: Math.floor(base.hp * hpScale),
-    dmg: [Math.floor(base.dmg[0] * dmgScale), Math.floor(base.dmg[1] * dmgScale)] as [
-      number,
-      number,
-    ],
+    dmg: [Math.floor(base.dmg[0] * dmgScale), Math.floor(base.dmg[1] * dmgScale)] as [number, number],
     xp: Math.floor(base.xp * hpScale),
     level: userLevel,
   };

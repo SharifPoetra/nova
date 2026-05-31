@@ -7,10 +7,7 @@ export type DungeonEvent = {
   effect?: { hp?: number; gold?: number; stamina?: number; item?: string };
 };
 
-export const EVENT_ITEM_DEFS: Record<
-  string,
-  Pick<IItem, 'emoji' | 'sellPrice' | 'type' | 'rarity'>
-> = {
+export const EVENT_ITEM_DEFS: Record<string, Pick<IItem, 'emoji' | 'sellPrice' | 'type' | 'rarity'>> = {
   crystal_shard: { emoji: '🔷', sellPrice: 25, type: 'material', rarity: 'Uncommon' },
   arcane_page: { emoji: '📜', sellPrice: 50, type: 'material', rarity: 'Rare' },
   sky_feather: { emoji: '🪶', sellPrice: 75, type: 'material', rarity: 'Rare' },

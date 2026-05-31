@@ -30,10 +30,7 @@ export class ExploreCommand extends Command {
     const db = this.container.db;
 
     const user = await db.user.findOne({ discordId: interaction.user.id });
-    if (!user)
-      return interaction.editReply(
-        t('common:need_start', { defaultValue: '❌ Use `/start` first.' }),
-      );
+    if (!user) return interaction.editReply(t('common:need_start', { defaultValue: '❌ Use `/start` first.' }));
 
     applyPassiveRegen(user);
 
@@ -53,9 +50,7 @@ export class ExploreCommand extends Command {
     if (user.lastExplore && now - user.lastExplore.getTime() < cd) {
       const s = Math.ceil((cd - (now - user.lastExplore.getTime())) / 1000);
       await user.save();
-      return interaction.editReply(
-        t('common:error.cooldown', { s, defaultValue: `⏳ Wait ${s}s more.` }),
-      );
+      return interaction.editReply(t('common:error.cooldown', { s, defaultValue: `⏳ Wait ${s}s more.` }));
     }
 
     user.stamina -= ACTION_COST.explore;
@@ -90,9 +85,7 @@ export class ExploreCommand extends Command {
     await user.save();
 
     const eventText = i18nEvent('explore', outcome.id, t);
-    const itemName = outcome.item
-      ? ((await getItemDisplay(outcome.item.id, t))?.name ?? outcome.item.id)
-      : '';
+    const itemName = outcome.item ? ((await getItemDisplay(outcome.item.id, t))?.name ?? outcome.item.id) : '';
     const embed = new EmbedBuilder()
       .setColor(RARITY_COLOR[outcome.rarity as keyof typeof RARITY_COLOR])
       .setTitle(

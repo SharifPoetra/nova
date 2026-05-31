@@ -27,9 +27,7 @@ describe('catchFish', () => {
     const withBonus = Array.from({ length: 2000 }, () => catchFish(0.1));
 
     const rareNo = noBonus.filter((f) => ['Rare', 'Epic', 'Legendary'].includes(f.rarity)).length;
-    const rareYes = withBonus.filter((f) =>
-      ['Rare', 'Epic', 'Legendary'].includes(f.rarity),
-    ).length;
+    const rareYes = withBonus.filter((f) => ['Rare', 'Epic', 'Legendary'].includes(f.rarity)).length;
 
     // harus naik minimal 5%
     expect(rareYes).toBeGreaterThan(rareNo);

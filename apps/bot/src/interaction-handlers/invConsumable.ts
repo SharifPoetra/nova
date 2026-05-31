@@ -1,12 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
-import {
-  ButtonInteraction,
-  MessageFlags,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} from 'discord.js';
+import { ButtonInteraction, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { renderConsumablePage } from '../lib/rpg/inventory';
 import { fetchT } from '@sapphire/plugin-i18next';
@@ -43,8 +37,7 @@ export class InvConsumableHandler extends InteractionHandler {
     await user.save();
 
     const isDungeon = interaction.message.components?.some(
-      (row: any) =>
-        'components' in row && row.components?.some((c: any) => c.customId === 'closebag'),
+      (row: any) => 'components' in row && row.components?.some((c: any) => c.customId === 'closebag'),
     );
 
     const renderUser = {
@@ -54,12 +47,7 @@ export class InvConsumableHandler extends InteractionHandler {
       avatar: interaction.user.displayAvatarURL(),
     };
 
-    const { embed, components: baseComponents } = await renderConsumablePage(
-      this.container,
-      renderUser,
-      page,
-      t,
-    );
+    const { embed, components: baseComponents } = await renderConsumablePage(this.container, renderUser, page, t);
     let components = baseComponents;
 
     if (isDungeon) {

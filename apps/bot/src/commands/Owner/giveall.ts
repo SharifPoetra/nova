@@ -23,12 +23,7 @@ export class GiveAllCommand extends Command {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addUserOption((o) => o.setName('target').setDescription('User').setRequired(false))
         .addIntegerOption((o) =>
-          o
-            .setName('qty')
-            .setDescription('Jumlah')
-            .setMinValue(1)
-            .setMaxValue(999)
-            .setRequired(false),
+          o.setName('qty').setDescription('Jumlah').setMinValue(1).setMaxValue(999).setRequired(false),
         ),
     );
   }
@@ -72,9 +67,7 @@ export class GiveAllCommand extends Command {
     // 6. Cooked items
     COOKED_ITEMS.forEach(add);
     // 7. Craft results (biar kebikin di DB juga)
-    CRAFTING_RECIPES.forEach((r) =>
-      add({ id: r.result.itemId, emoji: r.emoji, type: 'equipment' }),
-    );
+    CRAFTING_RECIPES.forEach((r) => add({ id: r.result.itemId, emoji: r.emoji, type: 'equipment' }));
 
     const ALL = [...map.values()];
 
@@ -89,8 +82,6 @@ export class GiveAllCommand extends Command {
     user.items = ALL.map((x) => ({ itemId: x.itemId, qty }));
     await user.save();
 
-    return i.editReply(
-      `✅ ${target.username} dapat ${ALL.length} item x${qty} (semua source sinkron)`,
-    );
+    return i.editReply(`✅ ${target.username} dapat ${ALL.length} item x${qty} (semua source sinkron)`);
   }
 }

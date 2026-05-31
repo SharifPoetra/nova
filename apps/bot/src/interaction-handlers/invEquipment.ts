@@ -145,10 +145,7 @@ export class InvEquipmentHandler extends InteractionHandler {
     }
 
     // UNEQUIP ITEM
-    if (
-      interaction.isStringSelectMenu() &&
-      interaction.customId.startsWith('inv_unequip_select_')
-    ) {
+    if (interaction.isStringSelectMenu() && interaction.customId.startsWith('inv_unequip_select_')) {
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate();
       }

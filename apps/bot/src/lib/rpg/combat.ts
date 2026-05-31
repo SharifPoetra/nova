@@ -41,9 +41,7 @@ export interface PlayerStats {
 }
 
 // === HELPER: Gabungin semua stat dari equipment ===
-async function sumEquipmentStats(
-  equipIds: (string | null)[],
-): Promise<{ total: IEquipmentStat; items: IItem[] }> {
+async function sumEquipmentStats(equipIds: (string | null)[]): Promise<{ total: IEquipmentStat; items: IItem[] }> {
   const total: IEquipmentStat = { atk: 0, hp: 0, def: 0, critRate: 0, critDmg: 0 };
 
   const validIds = equipIds.filter(Boolean) as string[];
