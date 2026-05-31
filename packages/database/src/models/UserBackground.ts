@@ -1,7 +1,7 @@
-import { Schema, model, Document, Types } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 
 export interface IUserBackground extends Document {
-  userId: Types.ObjectId;
+  discordId: string;
   backgroundId: string;
   purchasedAt: Date;
   isActive: boolean;
@@ -13,9 +13,8 @@ export interface IUserBackground extends Document {
 
 const UserBackgroundSchema = new Schema<IUserBackground>(
   {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
+    discordId: {
+      type: String,
       required: true,
       index: true,
     },
@@ -46,9 +45,9 @@ const UserBackgroundSchema = new Schema<IUserBackground>(
 );
 
 // Compound indexes untuk optimasi query
-UserBackgroundSchema.index({ userId: 1, isActive: 1 });
-UserBackgroundSchema.index({ userId: 1, backgroundId: 1 }, { unique: true });
-UserBackgroundSchema.index({ userId: 1, favorited: 1 });
-UserBackgroundSchema.index({ userId: 1, purchasedAt: -1 });
+UserBackgroundSchema.index({ discordId: 1, isActive: 1 });
+UserBackgroundSchema.index({ discordId: 1, backgroundId: 1 }, { unique: true });
+UserBackgroundSchema.index({ discordId: 1, favorited: 1 });
+UserBackgroundSchema.index({ discordId: 1, purchasedAt: -1 });
 
 export const UserBackground = model<IUserBackground>('UserBackground', UserBackgroundSchema);
