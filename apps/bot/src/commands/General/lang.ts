@@ -13,16 +13,9 @@ export class LangCommand extends Command {
     registry.registerChatInputCommand((builder) =>
       applyLocalizedBuilder(builder, 'commands/names:lang', 'commands/descriptions:lang')
         .addStringOption((opt) => {
-          return applyLocalizedBuilder(
-            opt,
-            'commands/lang:option_name',
-            'commands/lang:option_desc',
-          )
+          return applyLocalizedBuilder(opt, 'commands/lang:option_name', 'commands/lang:option_desc')
             .setRequired(true)
-            .addChoices(
-              { name: 'Bahasa Indonesia', value: 'id' },
-              { name: 'English', value: 'en-US' },
-            );
+            .addChoices({ name: 'Bahasa Indonesia', value: 'id' }, { name: 'English', value: 'en-US' });
         })
         .addBooleanOption((opt) => {
           opt.setName('guild').setNameLocalizations({ id: 'guild', 'en-US': 'guild' });
@@ -41,18 +34,10 @@ export class LangCommand extends Command {
       if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
         return interaction.editReply(t('commands/lang:no_perm'));
       }
-      await this.container.db.guild.updateOne(
-        { guildId: interaction.guildId },
-        { $set: { lang } },
-        { upsert: true },
-      );
+      await this.container.db.guild.updateOne({ guildId: interaction.guildId }, { $set: { lang } }, { upsert: true });
       invalidateLangCache(undefined, interaction.guildId);
     } else {
-      await this.container.db.user.updateOne(
-        { discordId: interaction.user.id },
-        { $set: { lang } },
-        { upsert: true },
-      );
+      await this.container.db.user.updateOne({ discordId: interaction.user.id }, { $set: { lang } }, { upsert: true });
       invalidateLangCache(interaction.user.id, undefined);
     }
 

@@ -83,9 +83,7 @@ export class DailyCommand extends Command {
           iconURL: interaction.user.displayAvatarURL(),
         })
         .setTitle(t('commands/daily:title', { defaultValue: '💰 Daily Reward' }))
-        .setDescription(
-          t('commands/daily:desc', { defaultValue: 'Daily reward claimed successfully!' }),
-        )
+        .setDescription(t('commands/daily:desc', { defaultValue: 'Daily reward claimed successfully!' }))
         .addFields(
           {
             name: t('commands/daily:coins', { defaultValue: 'Coins' }),

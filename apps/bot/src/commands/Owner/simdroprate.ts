@@ -31,12 +31,7 @@ export class SimDroprateCommand extends Command {
             ),
         )
         .addIntegerOption((o) =>
-          o
-            .setName('amount')
-            .setDescription('100-10000')
-            .setMinValue(100)
-            .setMaxValue(10000)
-            .setRequired(true),
+          o.setName('amount').setDescription('100-10000').setMinValue(100).setMaxValue(10000).setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     );

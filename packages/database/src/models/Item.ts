@@ -7,16 +7,7 @@ export interface IItemEffect {
 
 export type EquipmentSlot = 'weapon' | 'helmet' | 'armor' | 'accessory' | 'tool';
 
-export type Element =
-  | 'physical'
-  | 'fire'
-  | 'water'
-  | 'earth'
-  | 'wind'
-  | 'ice'
-  | 'lightning'
-  | 'light'
-  | 'dark';
+export type Element = 'physical' | 'fire' | 'water' | 'earth' | 'wind' | 'ice' | 'lightning' | 'light' | 'dark';
 
 export interface IEquipmentStat {
   atk?: number;

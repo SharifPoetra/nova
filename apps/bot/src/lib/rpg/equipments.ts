@@ -456,5 +456,4 @@ export const EQUIPMENTS: Record<string, EquipmentData> = {
 
 export const getEquipment = (id: string) => EQUIPMENTS[id] ?? null;
 export const getAllEquipments = () => Object.values(EQUIPMENTS);
-export const getEquipmentsBySlot = (slot: EquipmentSlot) =>
-  getAllEquipments().filter((e) => e.slot === slot);
+export const getEquipmentsBySlot = (slot: EquipmentSlot) => getAllEquipments().filter((e) => e.slot === slot);

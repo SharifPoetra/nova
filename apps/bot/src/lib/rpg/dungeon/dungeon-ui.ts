@@ -29,19 +29,8 @@ export function buildMainEmbed(params: {
   isBoss: boolean;
   t: TFunction;
 }) {
-  const {
-    floor,
-    state,
-    zone,
-    lore,
-    playerHp,
-    playerMaxHp,
-    playerStamina,
-    playerMaxStamina,
-    highestFloor,
-    isBoss,
-    t,
-  } = params;
+  const { floor, state, zone, lore, playerHp, playerMaxHp, playerStamina, playerMaxStamina, highestFloor, isBoss, t } =
+    params;
   return new EmbedBuilder()
     .setTitle(
       t('commands/dungeon:main_title', {

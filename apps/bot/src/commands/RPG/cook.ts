@@ -31,15 +31,9 @@ const TIER_FILTERS: Record<string, (r: any) => boolean> = {
       'mushroom_soup',
     ].includes(r.resultItemId),
   mid: (r) =>
-    [
-      'cooked_salmon',
-      'cooked_tuna',
-      'spicy_stew',
-      'herbal_tea',
-      'silk_pie',
-      'crispy_harpy',
-      'slime_jelly',
-    ].includes(r.resultItemId),
+    ['cooked_salmon', 'cooked_tuna', 'spicy_stew', 'herbal_tea', 'silk_pie', 'crispy_harpy', 'slime_jelly'].includes(
+      r.resultItemId,
+    ),
   late: (r) =>
     [
       'cooked_bear',
@@ -107,15 +101,13 @@ export class CookCommand extends Command {
     const t = await fetchT(interaction);
     await interaction.deferReply();
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
-    if (!user)
-      return interaction.editReply(t('common:need_start', { defaultValue: 'Use /start first!' }));
+    if (!user) return interaction.editReply(t('common:need_start', { defaultValue: 'Use /start first!' }));
 
     applyPassiveRegen(user);
     await user.save();
 
     const selectedTier = interaction.options.getString('tier');
-    const selectedRecipeId =
-      interaction.options.getString('recipe') ?? interaction.options.getString('resep');
+    const selectedRecipeId = interaction.options.getString('recipe') ?? interaction.options.getString('resep');
     if (selectedRecipeId) return this.cookDirectly(interaction, selectedRecipeId);
 
     const invMap = new Map(user.items.map((i) => [i.itemId, i.qty]));
@@ -244,9 +236,7 @@ export class CookCommand extends Command {
     const invMap = new Map(user.items.map((i) => [i.itemId, i.qty]));
 
     const availableRecipes = RECIPES.filter((recipe) => {
-      const hasIngredients = recipe.ingredients.every(
-        (ing) => (invMap.get(ing.id) ?? 0) >= ing.qty,
-      );
+      const hasIngredients = recipe.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty);
       const name = t(`cook/recipes:${recipe.id}.name`, { defaultValue: recipe.id }).toLowerCase();
       const matchesQuery = name.includes(query) || recipe.id.includes(query);
       return hasIngredients && matchesQuery;

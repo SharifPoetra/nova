@@ -1,18 +1,9 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  StringSelectMenuBuilder,
-  type AnyComponentBuilder,
-} from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, StringSelectMenuBuilder, type AnyComponentBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import {
-  renderInventoryPage,
-  renderConsumablePage,
-  renderEquipmentPage,
-} from '../../lib/rpg/inventory';
+import { renderInventoryPage, renderConsumablePage, renderEquipmentPage } from '../../lib/rpg/inventory';
 
 @ApplyOptions<Command.Options>({
   name: 'inventory',
@@ -31,10 +22,7 @@ export class InventoryCommand extends Command {
     await interaction.deferReply();
 
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
-    if (!user)
-      return interaction.editReply(
-        t('common:need_start', { defaultValue: '❌ Use /start first!' }),
-      );
+    if (!user) return interaction.editReply(t('common:need_start', { defaultValue: '❌ Use /start first!' }));
 
     applyPassiveRegen(user);
     await user.save();
@@ -53,12 +41,7 @@ export class InventoryCommand extends Command {
       avatar: interaction.user.displayAvatarURL(),
     };
 
-    const { embed, components, allItems, totalValue } = await renderInventoryPage(
-      this.container,
-      renderUser,
-      0,
-      t,
-    );
+    const { embed, components, allItems, totalValue } = await renderInventoryPage(this.container, renderUser, 0, t);
 
     embed
       .setAuthor({

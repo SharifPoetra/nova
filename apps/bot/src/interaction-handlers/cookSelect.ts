@@ -32,15 +32,9 @@ const TIER_FILTERS: Record<string, (r: any) => boolean> = {
       'mushroom_soup',
     ].includes(r.resultItemId),
   mid: (r) =>
-    [
-      'cooked_salmon',
-      'cooked_tuna',
-      'spicy_stew',
-      'herbal_tea',
-      'silk_pie',
-      'crispy_harpy',
-      'slime_jelly',
-    ].includes(r.resultItemId),
+    ['cooked_salmon', 'cooked_tuna', 'spicy_stew', 'herbal_tea', 'silk_pie', 'crispy_harpy', 'slime_jelly'].includes(
+      r.resultItemId,
+    ),
   late: (r) =>
     [
       'cooked_bear',
@@ -75,8 +69,7 @@ const TIER_FILTERS: Record<string, (r: any) => boolean> = {
 })
 export class CookSelectHandler extends InteractionHandler {
   public override parse(interaction) {
-    const isCookSelect =
-      interaction.isStringSelectMenu() && interaction.customId.startsWith('cook_');
+    const isCookSelect = interaction.isStringSelectMenu() && interaction.customId.startsWith('cook_');
     const isCookButton = interaction.isButton() && interaction.customId.startsWith('cook');
     return isCookSelect || isCookButton ? this.some() : this.none();
   }
@@ -137,9 +130,7 @@ export class CookSelectHandler extends InteractionHandler {
 
       const selectMenu = new StringSelectMenuBuilder()
         .setCustomId(`cook_${userId}_${newPage}_${tier}`)
-        .setPlaceholder(
-          t('commands/cook:select_placeholder', { page: newPage + 1, total: totalPages }),
-        )
+        .setPlaceholder(t('commands/cook:select_placeholder', { page: newPage + 1, total: totalPages }))
         .addOptions(options);
 
       const components: ActionRowBuilder<any>[] = [

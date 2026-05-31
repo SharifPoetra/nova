@@ -1,10 +1,4 @@
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-  StringSelectMenuBuilder,
-} from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { RARITY_COLOR, RARITY_ORDER } from '../utils';
 import {
   User,
@@ -132,11 +126,7 @@ export async function addItemToInventory(user: IUser, itemData: ItemInput, qty =
   else user.items.push({ itemId: itemData.itemId, qty });
 }
 
-export async function removeItemFromInventory(
-  user: IUser,
-  itemId: string,
-  qty = 1,
-): Promise<boolean> {
+export async function removeItemFromInventory(user: IUser, itemId: string, qty = 1): Promise<boolean> {
   const item = user.items.find((i) => i.itemId === itemId);
   if (!item || item.qty < qty) return false;
   item.qty -= qty;
@@ -152,9 +142,7 @@ export async function renderInventoryPage(
   t: TFunction,
   messageId?: string,
 ) {
-  const cache = messageId
-    ? (container.invCache?.get(messageId) as CachedInv | undefined)
-    : undefined;
+  const cache = messageId ? (container.invCache?.get(messageId) as CachedInv | undefined) : undefined;
   let allItems: CachedInv['allItems'];
   let totalValue: number;
   let locale = 'en-US';
@@ -243,12 +231,7 @@ export async function renderInventoryPage(
   return { embed, components, allItems, totalValue };
 }
 
-export async function renderConsumablePage(
-  container: any,
-  user: RenderUser,
-  page = 0,
-  t: TFunction,
-) {
+export async function renderConsumablePage(container: any, user: RenderUser, page = 0, t: TFunction) {
   const itemMap = await getItemsMap(
     container,
     user.items.map((i) => i.itemId),
@@ -257,17 +240,12 @@ export async function renderConsumablePage(
     .map((inv) => ({ inv, data: itemMap.get(inv.itemId) }))
     .filter((x) => x.data?.type === 'consumable')
     .sort(
-      (a, b) =>
-        RARITY_ORDER.indexOf(a.data!.rarity) - RARITY_ORDER.indexOf(b.data!.rarity) ||
-        b.inv.qty - a.inv.qty,
+      (a, b) => RARITY_ORDER.indexOf(a.data!.rarity) - RARITY_ORDER.indexOf(b.data!.rarity) || b.inv.qty - a.inv.qty,
     );
 
   const totalPages = Math.max(1, Math.ceil(consumables.length / ITEMS_PER_PAGE_CONSUMABLE));
   page = Math.max(0, Math.min(page, totalPages - 1));
-  const pageItems = consumables.slice(
-    page * ITEMS_PER_PAGE_CONSUMABLE,
-    (page + 1) * ITEMS_PER_PAGE_CONSUMABLE,
-  );
+  const pageItems = consumables.slice(page * ITEMS_PER_PAGE_CONSUMABLE, (page + 1) * ITEMS_PER_PAGE_CONSUMABLE);
 
   const lines = await Promise.all(
     pageItems.map(async ({ inv, data }) => {
@@ -290,10 +268,7 @@ export async function renderConsumablePage(
   const components: ActionRowBuilder<any>[] = [];
   components.push(
     new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`inv_back_${user.discordId}`)
-        .setStyle(ButtonStyle.Secondary)
-        .setEmoji('↩️'),
+      new ButtonBuilder().setCustomId(`inv_back_${user.discordId}`).setStyle(ButtonStyle.Secondary).setEmoji('↩️'),
       new ButtonBuilder()
         .setCustomId(`inv_consumable_view_${user.discordId}_${page - 1}`)
         .setEmoji('◀')
@@ -330,12 +305,7 @@ export async function renderConsumablePage(
   return { embed, components };
 }
 
-export async function renderEquipmentPage(
-  container: any,
-  user: RenderUser,
-  page = 0,
-  t: TFunction,
-) {
+export async function renderEquipmentPage(container: any, user: RenderUser, page = 0, t: TFunction) {
   const SLOT_LABEL = getSlotLabels(t);
   const stats = await getPlayerStats(user as any);
   const itemMap = await getItemsMap(
@@ -402,10 +372,7 @@ export async function renderEquipmentPage(
   const components: ActionRowBuilder<any>[] = [];
   components.push(
     new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`inv_back_${user.discordId}`)
-        .setStyle(ButtonStyle.Secondary)
-        .setEmoji('↩️'),
+      new ButtonBuilder().setCustomId(`inv_back_${user.discordId}`).setStyle(ButtonStyle.Secondary).setEmoji('↩️'),
       new ButtonBuilder()
         .setCustomId(`inv_equip_view_${user.discordId}_${page - 1}`)
         .setLabel('◀')
@@ -425,8 +392,7 @@ export async function renderEquipmentPage(
         return {
           label: `${display?.name ?? inv.itemId} x${inv.qty}`.slice(0, 100),
           value: `${data.slot}:${inv.itemId}`,
-          description:
-            `${SLOT_LABEL[data.slot!]} • ${data.rarity} • ${formatStats(data.stats)}`.slice(0, 100),
+          description: `${SLOT_LABEL[data.slot!]} • ${data.rarity} • ${formatStats(data.stats)}`.slice(0, 100),
           emoji: sanitizeEmoji(data.emoji),
         };
       }),
@@ -448,17 +414,13 @@ export async function renderEquipmentPage(
     );
   }
 
-  const unequipped = (['weapon', 'armor', 'helmet', 'accessory', 'tool'] as const).filter(
-    (s) => user.equipped?.[s],
-  );
+  const unequipped = (['weapon', 'armor', 'helmet', 'accessory', 'tool'] as const).filter((s) => user.equipped?.[s]);
   if (unequipped.length) {
     components.push(
       new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
         new StringSelectMenuBuilder()
           .setCustomId(`inv_unequip_select_${user.discordId}`)
-          .setPlaceholder(
-            t('commands/equipment:unequip_placeholder', { defaultValue: 'Unequip...' }),
-          )
+          .setPlaceholder(t('commands/equipment:unequip_placeholder', { defaultValue: 'Unequip...' }))
           .addOptions(
             unequipped.map((s) => ({
               label: SLOT_LABEL[s],

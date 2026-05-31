@@ -31,16 +31,9 @@ export class EvalCommand extends Command {
         .setDescription(this.description)
         .addStringOption((o) => o.setName('code').setDescription('JS code').setRequired(true))
         .addIntegerOption((o) =>
-          o
-            .setName('depth')
-            .setDescription('Inspect depth (0-5)')
-            .setMinValue(0)
-            .setMaxValue(5)
-            .setRequired(false),
+          o.setName('depth').setDescription('Inspect depth (0-5)').setMinValue(0).setMaxValue(5).setRequired(false),
         )
-        .addBooleanOption((o) =>
-          o.setName('ephemeral').setDescription('Hide output').setRequired(false),
-        ),
+        .addBooleanOption((o) => o.setName('ephemeral').setDescription('Hide output').setRequired(false)),
     );
   }
 
@@ -100,14 +93,10 @@ export class EvalCommand extends Command {
         return fn(ctx, code);
       })();
 
-      let output =
-        typeof result === 'string' ? result : util.inspect(result, { depth, colors: false });
+      let output = typeof result === 'string' ? result : util.inspect(result, { depth, colors: false });
 
       // bersihin token
-      output = output.replace(
-        /[A-Za-z0-9_-]{24}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{27}/g,
-        '[TOKEN_REDACTED]',
-      );
+      output = output.replace(/[A-Za-z0-9_-]{24}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{27}/g, '[TOKEN_REDACTED]');
       output = output.replace(/mongodb\+srv:\/\/[^@\s]+@[^\s]+/gi, '[MONGO_URI]');
 
       const took = Date.now() - start;
