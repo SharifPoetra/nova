@@ -55,6 +55,7 @@ export interface ProfileData {
   buffs: string[];
   itemCount: number;
   nextUnlock: string;
+  backgroundId: string;
 }
 
 const LAYOUT = {
@@ -300,9 +301,8 @@ async function drawAvatar(ctx: SKRSContext2D, data: ProfileData) {
 
 async function drawBackground(ctx: SKRSContext2D, data: ProfileData) {
   const { baseW, baseH } = LAYOUT;
-  // sementara hardcode, nanti ganti ke data.background
-  const bgName = (data as any).background || 'mesh-sakura';
   const defaultName = 'default';
+  const bgName = data.backgroundId || defaultName;
 
   let bgPath = findBgPath(bgName) || findBgPath(defaultName);
 
