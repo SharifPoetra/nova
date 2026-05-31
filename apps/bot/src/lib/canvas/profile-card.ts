@@ -3,6 +3,7 @@ import { join } from 'path';
 import { existsSync } from 'fs';
 
 const fontDir = join(__dirname, '../../../assets/fonts');
+const bgDir = join(__dirname, '../../../assets/backgrounds');
 
 const FONTS: Array<[string, string]> = [
   ['NotoRegular.ttf', 'NotoRegular'],
@@ -287,19 +288,34 @@ async function drawAvatar(ctx: SKRSContext2D, data: ProfileData) {
   );
 }
 
-function drawBackground(ctx: SKRSContext2D, data: ProfileData) {
+async function drawBackground(ctx: SKRSContext2D, data: ProfileData) {
   const { baseW, baseH } = LAYOUT;
+  const customBgPath = join(bgDir, 'mesh-sakura.png'); // initial custom backgrounds implementation
+  const defaultBgPath = join(bgDir, 'default.png');
 
-  const bg = ctx.createLinearGradient(0, 0, baseW, baseH);
-  bg.addColorStop(0, '#0f0c29');
-  bg.addColorStop(0.5, '#1b183a');
-  bg.addColorStop(1, '#14142a');
-  ctx.fillStyle = bg;
+  try {
+    const bgPath = existsSync(customBgPath) ? customBgPath : defaultBgPath;
+    const bgImage = await loadImage(bgPath);
+    ctx.drawImage(bgImage, 0, 0, baseW, baseH);
+  } catch {
+    const bg = ctx.createLinearGradient(0, 0, baseW, baseH);
+    bg.addColorStop(0, '#0f0c29');
+    bg.addColorStop(0.5, '#1b183a');
+    bg.addColorStop(1, '#14142a');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, baseW, baseH);
+  }
+
+  const vignette = ctx.createRadialGradient(300, 300, 150, 300, 300, 350);
+  vignette.addColorStop(0, 'rgba(0,0,0,0)');
+  vignette.addColorStop(1, 'rgba(0,0,0,0.6)');
+  ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, baseW, baseH);
 
   ctx.save();
-  ctx.globalAlpha = 0.04;
+  ctx.globalAlpha = 0.03;
   const gridSize = 20;
+  ctx.fillStyle = '#fff';
   for (let x = 0; x < baseW; x += gridSize) ctx.fillRect(x, 0, 1, baseH);
   for (let y = 0; y < baseH; y += gridSize) ctx.fillRect(0, y, baseW, 1);
   ctx.restore();
@@ -311,14 +327,6 @@ function drawBackground(ctx: SKRSContext2D, data: ProfileData) {
   ctx.fillStyle = orb1;
   ctx.beginPath();
   ctx.arc(450, 130, 180, 0, Math.PI * 2);
-  ctx.fill();
-
-  const orb2 = ctx.createRadialGradient(140, 150, 0, 140, 150, 120);
-  orb2.addColorStop(0, hexToRgba(data.classColor, 0.12));
-  orb2.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = orb2;
-  ctx.beginPath();
-  ctx.arc(140, 150, 120, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -551,7 +559,7 @@ export async function renderProfileCard(data: ProfileData): Promise<Buffer> {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
 
-  drawBackground(ctx, data);
+  await drawBackground(ctx, data);
 
   const left = LAYOUT.panelLeft;
   drawRoundedRect(ctx, left.x, left.y, left.w, left.h, 16, COLORS.panel, COLORS.border);
