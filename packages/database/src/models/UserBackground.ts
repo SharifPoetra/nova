@@ -5,10 +5,10 @@ export interface IUserBackground extends Document {
   backgroundId: string;
   purchasedAt: Date;
   isActive: boolean;
-  favorited?: boolean;
+  favorited: boolean;
   customName?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const UserBackgroundSchema = new Schema<IUserBackground>(
@@ -16,22 +16,20 @@ const UserBackgroundSchema = new Schema<IUserBackground>(
     discordId: {
       type: String,
       required: true,
-      index: true,
-      ref: 'User', // Reference ke User model via discordId
     },
     backgroundId: {
       type: String,
       required: true,
-      index: true,
+      trim: true,
+      lowercase: true,
     },
     purchasedAt: {
       type: Date,
-      default: Date.now,
+      default: () => new Date(),
     },
     isActive: {
       type: Boolean,
       default: false,
-      index: true,
     },
     favorited: {
       type: Boolean,
@@ -39,16 +37,18 @@ const UserBackgroundSchema = new Schema<IUserBackground>(
     },
     customName: {
       type: String,
-      default: undefined,
     },
   },
   { timestamps: true },
 );
 
 // Compound indexes untuk optimasi query
-UserBackgroundSchema.index({ discordId: 1, isActive: 1 });
+UserBackgroundSchema.index(
+  { discordId: 1, isActive: 1 },
+  { unique: true, partialFilterExpression: { isActive: true } },
+);
 UserBackgroundSchema.index({ discordId: 1, backgroundId: 1 }, { unique: true });
-UserBackgroundSchema.index({ discordId: 1, favorited: 1 });
+UserBackgroundSchema.index({ discordId: 1, favorited: 1 }, { partialFilterExpression: { favorited: true } });
 UserBackgroundSchema.index({ discordId: 1, purchasedAt: -1 });
 
 export const UserBackground = model<IUserBackground>('UserBackground', UserBackgroundSchema);
