@@ -99,12 +99,8 @@ describe('dungeon-events', () => {
   });
 
   it('summit has highest gold rewards', () => {
-    const summitGold = DUNGEON_EVENTS.summit
-      .filter((e) => e.effect?.gold)
-      .map((e) => e.effect!.gold!);
-    const ruinsGold = DUNGEON_EVENTS.ruins
-      .filter((e) => e.effect?.gold)
-      .map((e) => e.effect!.gold!);
+    const summitGold = DUNGEON_EVENTS.summit.filter((e) => e.effect?.gold).map((e) => e.effect!.gold!);
+    const ruinsGold = DUNGEON_EVENTS.ruins.filter((e) => e.effect?.gold).map((e) => e.effect!.gold!);
 
     expect(Math.max(...summitGold)).toBeGreaterThan(Math.max(...ruinsGold));
   });

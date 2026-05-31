@@ -28,25 +28,24 @@ const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0
 export class SellCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((b) =>
-      applyLocalizedBuilder(b, 'commands/names:sell', 'commands/descriptions:sell').addStringOption(
-        (o) =>
-          o
-            .setName('type')
-            .setDescription(sellEn.option_desc)
-            .setDescriptionLocalizations({ id: sellId.option_desc, 'en-US': sellEn.option_desc })
-            .setRequired(false)
-            .addChoices(
-              {
-                name: sellEn.choice_all,
-                value: 'all',
-                name_localizations: { id: sellId.choice_all },
-              },
-              { name: 'Common', value: 'Common', name_localizations: { id: 'Common' } },
-              { name: 'Uncommon', value: 'Uncommon', name_localizations: { id: 'Uncommon' } },
-              { name: 'Rare', value: 'Rare', name_localizations: { id: 'Rare' } },
-              { name: 'Epic', value: 'Epic', name_localizations: { id: 'Epic' } },
-              { name: 'Legendary', value: 'Legendary', name_localizations: { id: 'Legendary' } },
-            ),
+      applyLocalizedBuilder(b, 'commands/names:sell', 'commands/descriptions:sell').addStringOption((o) =>
+        o
+          .setName('type')
+          .setDescription(sellEn.option_desc)
+          .setDescriptionLocalizations({ id: sellId.option_desc, 'en-US': sellEn.option_desc })
+          .setRequired(false)
+          .addChoices(
+            {
+              name: sellEn.choice_all,
+              value: 'all',
+              name_localizations: { id: sellId.choice_all },
+            },
+            { name: 'Common', value: 'Common', name_localizations: { id: 'Common' } },
+            { name: 'Uncommon', value: 'Uncommon', name_localizations: { id: 'Uncommon' } },
+            { name: 'Rare', value: 'Rare', name_localizations: { id: 'Rare' } },
+            { name: 'Epic', value: 'Epic', name_localizations: { id: 'Epic' } },
+            { name: 'Legendary', value: 'Legendary', name_localizations: { id: 'Legendary' } },
+          ),
       ),
     );
   }
@@ -85,9 +84,7 @@ export class SellCommand extends Command {
     }
 
     if (type === 'select') {
-      const displays = await Promise.all(
-        items.slice(0, 25).map((i) => getItemDisplay(i.itemId, t)),
-      );
+      const displays = await Promise.all(items.slice(0, 25).map((i) => getItemDisplay(i.itemId, t)));
 
       const select = new StringSelectMenuBuilder()
         .setCustomId('sell_select')
@@ -101,11 +98,7 @@ export class SellCommand extends Command {
             return {
               label: `${name} x${it.qty}`.slice(0, 100),
               value: it.itemId,
-              description:
-                `${it.data!.rarity} • ${it.data!.sellPrice} ${t('commands/sell:coins')}`.slice(
-                  0,
-                  100,
-                ),
+              description: `${it.data!.rarity} • ${it.data!.sellPrice} ${t('commands/sell:coins')}`.slice(0, 100),
               emoji: sanitizeEmoji(it.data!.emoji),
             };
           }),
@@ -247,10 +240,7 @@ export class SellCommand extends Command {
               return {
                 label: `${name}`.slice(0, 100),
                 value: it.itemId,
-                description: t('commands/sell:current', { cur: current, max: it.qty }).slice(
-                  0,
-                  100,
-                ),
+                description: t('commands/sell:current', { cur: current, max: it.qty }).slice(0, 100),
                 emoji: sanitizeEmoji(it.data!.emoji),
               };
             }),
@@ -368,15 +358,11 @@ export class SellCommand extends Command {
           const submitted = await i
             .awaitModalSubmit({
               time: 60000,
-              filter: (m) =>
-                m.user.id === interaction.user.id && m.customId === `sell_qty_${itemId}`,
+              filter: (m) => m.user.id === interaction.user.id && m.customId === `sell_qty_${itemId}`,
             })
             .catch(() => null);
           if (submitted) {
-            const qty = Math.max(
-              0,
-              Math.min(item.qty, parseInt(submitted.fields.getTextInputValue('qty')) || 0),
-            );
+            const qty = Math.max(0, Math.min(item.qty, parseInt(submitted.fields.getTextInputValue('qty')) || 0));
             sellCart.set(itemId, qty);
             await submitted.deferUpdate();
             await interaction.editReply({

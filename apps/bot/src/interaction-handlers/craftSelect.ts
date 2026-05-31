@@ -44,8 +44,7 @@ export class CraftSelectHandler extends InteractionHandler {
     const [, userId, pageStr, cat = 'all'] = interaction.customId.split('_');
     const isPrev = interaction.customId.startsWith('craftprev');
     const isNext = interaction.customId.startsWith('craftnext');
-    if (interaction.user.id !== userId)
-      return interaction.reply({ content: 'Not your forge 😅', ephemeral: true });
+    if (interaction.user.id !== userId) return interaction.reply({ content: 'Not your forge 😅', ephemeral: true });
     await interaction.deferUpdate();
     const user = await this.container.db.user.findOne({ discordId: userId });
     if (!user) return;
@@ -60,8 +59,7 @@ export class CraftSelectHandler extends InteractionHandler {
       const newPage = isPrev ? page - 1 : page + 1;
       let available = CRAFTING_RECIPES.filter(
         (r) =>
-          r.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty) &&
-          user.level >= (r.requiredLevel ?? 0),
+          r.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty) && user.level >= (r.requiredLevel ?? 0),
       );
       available = available.filter(CATEGORY_FILTERS[cat] || CATEGORY_FILTERS.all);
       const start = newPage * 25;

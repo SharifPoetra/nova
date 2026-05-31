@@ -1,12 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ComponentType,
-  EmbedBuilder,
-} from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import type { TFunction } from 'i18next';
 import type { IUser } from '@nova/db';
@@ -57,29 +51,28 @@ const SHOP_ITEMS = [
 export class ShopCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((b) =>
-      applyLocalizedBuilder(b, 'commands/names:shop', 'commands/descriptions:shop').addStringOption(
-        (o) =>
-          o
-            .setName('item')
-            .setNameLocalizations({ id: 'item', 'en-US': 'item' })
-            .setDescription(shopEn.option_desc)
-            .setDescriptionLocalizations({
-              id: shopId.option_desc,
-              'en-US': shopEn.option_desc,
-              'en-GB': shopEnGb.option_desc,
-            })
-            .setRequired(false)
-            .addChoices(
-              ...SHOP_ITEMS.map((i) => ({
-                name: `${i.emoji} ${shopEn[`item_${i.key}_name`]} - ${i.price} coins`,
-                value: i.id,
-                name_localizations: {
-                  id: `${i.emoji} ${shopId[`item_${i.key}_name`]} - ${i.price} koin`,
-                  'en-US': `${i.emoji} ${shopEn[`item_${i.key}_name`]} - ${i.price} coins`,
-                  'en-GB': `${i.emoji} ${shopEnGb[`item_${i.key}_name`]} - ${i.price} coins`,
-                },
-              })),
-            ),
+      applyLocalizedBuilder(b, 'commands/names:shop', 'commands/descriptions:shop').addStringOption((o) =>
+        o
+          .setName('item')
+          .setNameLocalizations({ id: 'item', 'en-US': 'item' })
+          .setDescription(shopEn.option_desc)
+          .setDescriptionLocalizations({
+            id: shopId.option_desc,
+            'en-US': shopEn.option_desc,
+            'en-GB': shopEnGb.option_desc,
+          })
+          .setRequired(false)
+          .addChoices(
+            ...SHOP_ITEMS.map((i) => ({
+              name: `${i.emoji} ${shopEn[`item_${i.key}_name`]} - ${i.price} coins`,
+              value: i.id,
+              name_localizations: {
+                id: `${i.emoji} ${shopId[`item_${i.key}_name`]} - ${i.price} koin`,
+                'en-US': `${i.emoji} ${shopEn[`item_${i.key}_name`]} - ${i.price} coins`,
+                'en-GB': `${i.emoji} ${shopEnGb[`item_${i.key}_name`]} - ${i.price} coins`,
+              },
+            })),
+          ),
       ),
     );
   }

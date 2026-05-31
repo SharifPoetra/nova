@@ -74,9 +74,7 @@ export class BattleEngine {
   }
 
   getPlayerSkills(): SkillData[] {
-    return this.playerStats.availableSkills
-      .map((id) => getSkill(id))
-      .filter(Boolean) as SkillData[];
+    return this.playerStats.availableSkills.map((id) => getSkill(id)).filter(Boolean) as SkillData[];
   }
 
   canUseSkill(skillId: string): { ok: boolean; reason?: string } {
@@ -93,9 +91,7 @@ export class BattleEngine {
     return { ok: true };
   }
 
-  async playerAttack(
-    skillId?: string,
-  ): Promise<{ damage: number; isCrit: boolean; healed: number }> {
+  async playerAttack(skillId?: string): Promise<{ damage: number; isCrit: boolean; healed: number }> {
     await this.refreshStats();
 
     if (this.turn > 0) {
@@ -115,11 +111,7 @@ export class BattleEngine {
       const isExhausted = this.user.stamina < 3;
       const dmgMult = isExhausted ? 0.5 : 1.0;
 
-      const result = calculateDamage(
-        this.playerStats,
-        { def: this.enemy.def, element: this.enemy.element },
-        dmgMult,
-      );
+      const result = calculateDamage(this.playerStats, { def: this.enemy.def, element: this.enemy.element }, dmgMult);
       damage = result.damage;
       isCrit = result.isCrit;
 

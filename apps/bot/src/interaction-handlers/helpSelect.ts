@@ -1,12 +1,6 @@
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import {
-  StringSelectMenuInteraction,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  MessageFlags,
-} from 'discord.js';
+import { StringSelectMenuInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
 import type { HelpCommand } from '../commands/General/help';
 

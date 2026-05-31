@@ -17,13 +17,7 @@ export const uniBar = (current: number, max: number, size = 10) => {
  * colorBar(stamina, maxStamina, 10, '🟨', '⬛')  // stamina kuning
  * colorBar(exp, expNeeded, 12, '🟦', '⬜')  // exp biru
  **/
-export const colorBar = (
-  current: number,
-  max: number,
-  size = 10,
-  filledEmoji = '🟩',
-  emptyEmoji = '⬜',
-) => {
+export const colorBar = (current: number, max: number, size = 10, filledEmoji = '🟩', emptyEmoji = '⬜') => {
   const safeMax = Math.max(1, max ?? 1);
   const safeCurrent = Math.max(0, current ?? 0);
 

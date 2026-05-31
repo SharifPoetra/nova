@@ -30,10 +30,7 @@ export class FishCommand extends Command {
     await interaction.deferReply();
 
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
-    if (!user)
-      return interaction.editReply(
-        t('common:need_start', { defaultValue: '❌ Use /start first.' }),
-      );
+    if (!user) return interaction.editReply(t('common:need_start', { defaultValue: '❌ Use /start first.' }));
 
     applyPassiveRegen(user);
     const now = Date.now();

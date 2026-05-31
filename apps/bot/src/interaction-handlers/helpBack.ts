@@ -9,9 +9,7 @@ import type { HelpCommand } from '../commands/General/help';
 })
 export class HelpBackHandler extends InteractionHandler {
   public override parse(interaction) {
-    return interaction.isButton() && interaction.customId.startsWith('help_back_')
-      ? this.some()
-      : this.none();
+    return interaction.isButton() && interaction.customId.startsWith('help_back_') ? this.some() : this.none();
   }
 
   public async run(interaction: ButtonInteraction) {
@@ -27,8 +25,7 @@ export class HelpBackHandler extends InteractionHandler {
       if (cmd.name === 'help') continue;
       const perms = (cmd.options as any).requiredUserPermissions;
       const preconditions = (cmd.options.preconditions as string[]) || [];
-      if (preconditions.includes('OwnerOnly') && interaction.user.id !== process.env.OWNER_ID)
-        continue;
+      if (preconditions.includes('OwnerOnly') && interaction.user.id !== process.env.OWNER_ID) continue;
       if (!perms?.length) usable.push(cmd);
       else if (interaction.memberPermissions?.has(perms)) usable.push(cmd);
     }

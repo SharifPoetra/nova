@@ -1,12 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
-import {
-  StringSelectMenuInteraction,
-  MessageFlags,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} from 'discord.js';
+import { StringSelectMenuInteraction, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { getPlayerStats } from '../lib/rpg/combat';
 import { getItemDisplay } from '../lib/rpg/item-registry';
@@ -48,8 +42,7 @@ export class InvUseHandler extends InteractionHandler {
 
     // DETECT DUNGEON MODE
     const isDungeon = interaction.message.components?.some(
-      (row: any) =>
-        'components' in row && row.components?.some((c: any) => c.customId === 'closebag'),
+      (row: any) => 'components' in row && row.components?.some((c: any) => c.customId === 'closebag'),
     );
 
     const refreshBag = async () => {

@@ -41,8 +41,7 @@ export class HelpCommand extends Command {
   private async canUse(cmd: Command, interaction: ChatInputCommandInteraction) {
     const perms = (cmd.options as any).requiredUserPermissions as bigint[] | undefined;
     const preconditions = (cmd.options.preconditions as string[]) || [];
-    if (preconditions.includes('OwnerOnly') && interaction.user.id !== process.env.OWNER_ID)
-      return false;
+    if (preconditions.includes('OwnerOnly') && interaction.user.id !== process.env.OWNER_ID) return false;
     if (perms?.length) return interaction.memberPermissions?.has(perms) ?? false;
     return true;
   }
@@ -101,10 +100,7 @@ export class HelpCommand extends Command {
       embed.addFields({
         name: `${emojis[cat.toLowerCase()] || '📁'} ${t(`common:categories.${cat.toLowerCase()}`, { defaultValue: cat.toUpperCase() })}`,
         value: list
-          .map(
-            (c) =>
-              `\`/${c.name}\` — ${t(`commands/descriptions:${c.name}`, { defaultValue: c.description })}`,
-          )
+          .map((c) => `\`/${c.name}\` — ${t(`commands/descriptions:${c.name}`, { defaultValue: c.description })}`)
           .join('\n'),
       });
     }
@@ -135,9 +131,7 @@ export class HelpCommand extends Command {
     const menu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId(`help_select_${interaction.user.id}`)
-        .setPlaceholder(
-          t('commands/help:select_placeholder', { defaultValue: 'Select command for details' }),
-        )
+        .setPlaceholder(t('commands/help:select_placeholder', { defaultValue: 'Select command for details' }))
         .addOptions(
           usable.slice(0, 25).map((c) => ({
             label: `/${c.name}`,
@@ -174,10 +168,7 @@ export class HelpCommand extends Command {
     const all = [...this.container.stores.get('commands').values()] as Command[];
     const list: Command[] = [];
     for (const cmd of all)
-      if (cmd.name.includes(focused) && (await this.canUse(cmd, interaction as any)))
-        list.push(cmd);
-    await interaction.respond(
-      list.slice(0, 25).map((c) => ({ name: `/${c.name}`, value: c.name })),
-    );
+      if (cmd.name.includes(focused) && (await this.canUse(cmd, interaction as any))) list.push(cmd);
+    await interaction.respond(list.slice(0, 25).map((c) => ({ name: `/${c.name}`, value: c.name })));
   }
 }
