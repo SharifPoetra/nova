@@ -1,17 +1,17 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { EmbedBuilder } from 'discord.js';
+import { AttachmentBuilder } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
 import { getClass } from '../../lib/rpg/classes';
 import { BASE_MONSTERS } from '../../lib/rpg/monsters';
 import { getExpNeeded } from '../../lib/rpg/leveling';
-import { colorBar } from '../../lib/utils';
 import { getPlayerStats } from '../../lib/rpg/combat';
 import { SKILLS } from '../../lib/rpg/skills';
 import { localized } from '../../lib/i18n/localize';
 import { i18nMonster } from '../../lib/i18n/display';
 import { getItemDisplay } from '../../lib/rpg/item-registry';
+import { renderProfileCard } from '../../lib/canvas/profile-card';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',
@@ -47,36 +47,29 @@ export class ProfileCommand extends Command {
 
     try {
       const isSelf = target.id === interaction.user.id;
-      const baseSelect =
-        'buffs stamina maxStamina level exp balance bank items class equipped createdAt hp';
+      const baseSelect = 'buffs stamina maxStamina level exp balance bank items class equipped createdAt hp';
       const userData = isSelf
         ? await this.container.db.user.findOne({ discordId: target.id }).select(baseSelect)
         : await this.container.db.user.findOne({ discordId: target.id }).select(baseSelect).lean();
 
       if (!userData) {
-        const embed = new EmbedBuilder()
-          .setColor(0xe74c3c)
-          .setAuthor({ name: target.username, iconURL: target.displayAvatarURL() })
-          .setDescription(
-            target.id === interaction.user.id
-              ? t('commands/profile:not_registered_self', {
-                  defaultValue: '❌ You are not registered! Use `/start`.',
-                })
-              : t('commands/profile:not_registered_other', {
-                  user: target.username,
-                  defaultValue: `❌ **${target.username}** hasn't started yet.`,
-                }),
-          );
-        return interaction.editReply({ embeds: [embed] });
+        return interaction.editReply(
+          target.id === interaction.user.id
+            ? t('commands/profile:not_registered_self', {
+                defaultValue: '❌ You are not registered! Use `/start`.',
+              })
+            : t('commands/profile:not_registered_other', {
+                user: target.username,
+                defaultValue: `❌ **${target.username}** hasn't started yet.`,
+              }),
+        );
       }
 
       if (isSelf) {
         applyPassiveRegen(userData);
         await userData.save();
       } else {
-        userData.buffs = (userData.buffs || []).filter(
-          (b) => new Date(b.expires ?? 0) > new Date(),
-        );
+        userData.buffs = (userData.buffs || []).filter((b) => new Date(b.expires ?? 0) > new Date());
       }
 
       const stats = await getPlayerStats(userData);
@@ -88,7 +81,6 @@ export class ProfileCommand extends Command {
       const level = userData.level ?? 1;
       const exp = userData.exp ?? 0;
       const expNeeded = getExpNeeded(level);
-      const expNext = expNeeded - exp;
       const balance = userData.balance ?? 0;
       const bank = userData.bank ?? 0;
       const itemCount = userData.items?.reduce((a, b) => a + b.qty, 0) || 0;
@@ -99,33 +91,9 @@ export class ProfileCommand extends Command {
         defaultValue: classData?.name ?? 'Adventurer',
       });
 
-      const bonusAtk = getAtkBuff(userData); // desimal 0.3
-      const activeBuffs = (userData.buffs || []).filter(
-        (b) => new Date(b.expires ?? 0) > new Date(),
-      );
-
-      const buffText = activeBuffs.length
-        ? activeBuffs
-            .map((b) => {
-              const mins = Math.max(
-                0,
-                Math.ceil((new Date(b.expires ?? 0).getTime() - now) / 60000),
-              );
-              const icon = b.type === 'atk' ? '⚔️' : b.type === 'stamina_regen' ? '⚡' : '✨';
-              const label = t(`commands/profile:buff_${b.type}`, { defaultValue: b.type });
-              // Ubah value jadi persen untuk display
-              const displayValue =
-                b.type === 'atk' || b.type === 'hp' || b.type === 'def'
-                  ? `${Math.round(b.value * 100)}%`
-                  : `+${b.value}`;
-              return `${icon} ${label} ${displayValue} (${mins}m)`;
-            })
-            .join('\n')
-        : t('commands/profile:no_buffs', { defaultValue: 'None' });
-
+      const bonusAtk = getAtkBuff(userData);
       const bonusAtkPercent = Math.round(bonusAtk * 100);
-      const atkDisplay =
-        bonusAtk > 0 ? `**${stats.atk}** (+${bonusAtkPercent}%) 🔥` : `**${stats.atk}**`;
+      const activeBuffs = (userData.buffs || []).filter((b) => new Date(b.expires ?? 0) > new Date());
 
       const equippedIds = [
         userData.equipped?.weapon,
@@ -140,156 +108,75 @@ export class ProfileCommand extends Command {
         : [];
       const eqMap = new Map(equippedData.map((i) => [i.itemId, i]));
 
-      const weapon = userData.equipped?.weapon ? eqMap.get(userData.equipped.weapon) : null;
-      const armor = userData.equipped?.armor ? eqMap.get(userData.equipped.armor) : null;
-      const helmet = userData.equipped?.helmet ? eqMap.get(userData.equipped.helmet) : null;
-      const accessory = userData.equipped?.accessory
-        ? eqMap.get(userData.equipped.accessory)
-        : null;
-      const tool = userData.equipped?.tool ? eqMap.get(userData.equipped.tool) : null;
+      const getEquip = async (id?: string | null) => {
+        if (!id) return null;
+        const item = eqMap.get(id);
+        if (!item) return null;
+        const display = await getItemDisplay(item.itemId, t);
+        return { emoji: item.emoji ?? '📦', name: display?.name ?? item.itemId };
+      };
 
-      const weaponName = weapon ? (await getItemDisplay(weapon.itemId, t))?.name : null;
-      const armorName = armor ? (await getItemDisplay(armor.itemId, t))?.name : null;
-      const helmetName = helmet ? (await getItemDisplay(helmet.itemId, t))?.name : null;
-      const accessoryName = accessory ? (await getItemDisplay(accessory.itemId, t))?.name : null;
-      const toolName = tool ? (await getItemDisplay(tool.itemId, t))?.name : null;
+      const equipment = (
+        await Promise.all([
+          getEquip(userData.equipped?.weapon),
+          getEquip(userData.equipped?.armor),
+          getEquip(userData.equipped?.helmet),
+          getEquip(userData.equipped?.accessory),
+          getEquip(userData.equipped?.tool),
+        ])
+      ).filter(Boolean) as { emoji: string; name: string }[];
 
-      const equipText =
-        [
-          weapon ? `${weapon.emoji} ${weaponName}` : null,
-          armor ? `${armor.emoji} ${armorName}` : null,
-          helmet ? `${helmet.emoji} ${helmetName}` : null,
-          accessory ? `${accessory.emoji} ${accessoryName}` : null,
-          tool ? `${tool.emoji} ${toolName}` : null,
-        ]
-          .filter(Boolean)
-          .join(' • ') || t('commands/profile:no_equipment', { defaultValue: 'None' });
+      const skills = stats.availableSkills.slice(0, 3).map((id) => {
+        const s = SKILLS[id];
+        return { emoji: s?.emoji ?? '✨', name: s?.name ?? id };
+      });
 
-      const skillText = stats.availableSkills.length
-        ? stats.availableSkills
-            .map((id) => {
-              const s = SKILLS[id];
-              return s ? `${s.emoji ?? '✨'} **${s.name}**` : null;
-            })
-            .filter(Boolean)
-            .join(' • ')
-        : t('commands/profile:no_skills', { defaultValue: 'None' });
+      const buffs = activeBuffs.slice(0, 4).map((b) => {
+        const mins = Math.max(0, Math.ceil((new Date(b.expires ?? 0).getTime() - now) / 60000));
+        const label = t(`commands/profile:buff_${b.type}`, { defaultValue: b.type });
+        const value = ['atk', 'def', 'hp'].includes(b.type) ? `${Math.round(b.value * 100)}%` : `+${b.value}`;
+        return `${label} ${value}`;
+      });
 
-      const nextUnlock = BASE_MONSTERS.filter((m) => m.minLevel > level).sort(
-        (a, b) => a.minLevel - b.minLevel,
-      )[0];
+      const nextUnlock = BASE_MONSTERS.filter((m) => m.minLevel > level).sort((a, b) => a.minLevel - b.minLevel)[0];
       const nextUnlockName = nextUnlock ? i18nMonster('hunt', nextUnlock.id, t) : '';
+      const nextUnlockText = nextUnlock ? `${nextUnlockName} Lv.${nextUnlock.minLevel}` : 'MAX';
 
-      const footerText = nextUnlock
-        ? t('commands/profile:footer_next', {
-            name: nextUnlockName,
-            level: nextUnlock.minLevel,
-            exp: expNext,
-            defaultValue: `🎯 ${nextUnlockName} unlocks at Lv.${nextUnlock.minLevel} • ${expNext} EXP left`,
-          })
-        : t('commands/profile:footer_max', {
-            defaultValue: '🏆 All monsters unlocked! You are a Nova legend',
-          });
+      const profileData = {
+        username: target.username,
+        avatarURL: target.displayAvatarURL({ extension: 'png', size: 128 }),
+        level,
+        exp,
+        expNeeded,
+        balance,
+        bank,
+        hp,
+        maxHp,
+        stamina,
+        maxStamina,
+        atk: stats.atk,
+        def: stats.def,
+        critRate: stats.critRate * 100,
+        critDmg: stats.critDmg * 100,
+        bonusAtk: bonusAtkPercent,
+        className,
+        classEmoji,
+        classColor: `#${color.toString(16).padStart(6, '0')}`,
+        equipment,
+        skills,
+        buffs,
+        itemCount,
+        nextUnlock: nextUnlockText,
+      };
 
-      const embed = new EmbedBuilder()
-        .setAuthor({
-          name: t('commands/profile:author', {
-            user: target.username,
-            defaultValue: `Nova Chronicles — ${target.username}`,
-          }),
-          iconURL: target.displayAvatarURL(),
-        })
-        .setThumbnail(target.displayAvatarURL({ size: 256 }))
-        .setColor(color)
-        .setDescription(
-          t('commands/profile:quote', {
-            defaultValue: '*“Every step in Nova Tower writes destiny.”*',
-          }),
-        )
-        .addFields(
-          {
-            name: t('commands/profile:wallet', { defaultValue: '💰 Wallet' }),
-            value: `**${balance.toLocaleString(interaction.locale)}**`,
-            inline: true,
-          },
-          {
-            name: t('commands/profile:bank', { defaultValue: '🏦 Bank' }),
-            value: `**${bank.toLocaleString(interaction.locale)}**`,
-            inline: true,
-          },
-          {
-            name: t('commands/profile:inventory', { defaultValue: '🎒 Inventory' }),
-            value: t('commands/profile:inventory_value', {
-              count: itemCount,
-              defaultValue: `${itemCount} items`,
-            }),
-            inline: true,
-          },
-          {
-            name: `${classEmoji} ${className} — Lv.${level}`,
-            value: `${colorBar(exp, expNeeded, 10, '🟦', '⬜')} \`${exp}/${expNeeded} EXP\` • **${t('commands/profile:exp_left', { exp: expNext, defaultValue: `${expNext} left` })}**`,
-            inline: false,
-          },
-          {
-            name: t('commands/profile:vitality', { defaultValue: '❤️ Vitality' }),
-            value: `${colorBar(hp, maxHp, 10, '🟥', '⬛')} \`${hp}/${maxHp}\``,
-            inline: true,
-          },
-          {
-            name: t('commands/profile:stamina', { defaultValue: '⚡ Stamina' }),
-            value: `${colorBar(stamina, maxStamina, 10, '🟨', '⬛')} \`${stamina}/${maxStamina}\``,
-            inline: true,
-          },
-          {
-            name: t('commands/profile:attack', { defaultValue: '🗡️ Attack' }),
-            value: atkDisplay,
-            inline: true,
-          },
-          {
-            name: '🛡️ DEF',
-            value: `**${stats.def}**`,
-            inline: true,
-          },
-          {
-            name: '💥 Crit',
-            value: `**${(stats.critRate * 100).toFixed(0)}%** / **${(stats.critDmg * 100).toFixed(0)}%**`,
-            inline: true,
-          },
-          {
-            name: '\u200b',
-            value: '\u200b',
-            inline: true,
-          },
-          {
-            name: t('commands/profile:equipment', { defaultValue: '⚔️ Equipment' }),
-            value: equipText,
-            inline: false,
-          },
-          {
-            name: '✨ Skills',
-            value: skillText,
-            inline: false,
-          },
-          {
-            name: t('commands/profile:buffs', { defaultValue: '✨ Active Buffs' }),
-            value: buffText,
-            inline: false,
-          },
-          {
-            name: t('commands/profile:joined', { defaultValue: '📅 Joined' }),
-            value: `<t:${Math.floor(new Date(userData.createdAt).getTime() / 1000)}:D>`,
-            inline: true,
-          },
-        )
-        .setFooter({ text: footerText });
+      const buffer = await renderProfileCard(profileData);
+      const attachment = new AttachmentBuilder(buffer, { name: 'profile.png' });
 
-      return interaction.editReply({ embeds: [embed] });
+      return interaction.editReply({ files: [attachment] });
     } catch (error) {
       this.container.logger.error(error);
       const t = await fetchT(interaction);
-      return interaction.editReply(
-        t('commands/profile:error', { defaultValue: '❌ Error fetching data.' }),
-      );
+      return interaction.editReply(t('commands/profile:error', { defaultValue: '❌ Error fetching data.' }));
     }
   }
 }
