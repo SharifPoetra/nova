@@ -67,9 +67,7 @@ const UserSchema = new Schema<IUser>(
     stamina: { type: Number, default: 100 },
     maxStamina: { type: Number, default: 100 },
     items: {
-      type: [
-        { itemId: { type: String, required: true }, qty: { type: Number, default: 0, min: 0 } },
-      ],
+      type: [{ itemId: { type: String, required: true }, qty: { type: Number, default: 0, min: 0 } }],
       default: [],
     },
     buffs: {
