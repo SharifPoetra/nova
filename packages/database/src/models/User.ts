@@ -42,6 +42,7 @@ export interface IUser extends Document {
   buffs: IBuff[];
   equipped: IEquipped;
   skillCooldowns: Map<string, number>;
+  activeBackgroundId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -93,6 +94,7 @@ const UserSchema = new Schema<IUser>(
       default: { weapon: null, helmet: null, armor: null, accessory: null, tool: null },
     },
     skillCooldowns: { type: Map, of: Number, default: {} },
+    activeBackgroundId: { type: String, default: 'default', index: true },
   },
   { timestamps: true },
 );
