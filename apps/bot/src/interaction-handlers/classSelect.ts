@@ -32,9 +32,7 @@ export class ClassSelectHandler extends InteractionHandler {
       const embed = new EmbedBuilder()
         .setAuthor({ name: i.user.username, iconURL: i.user.displayAvatarURL() })
         .setTitle(t('commands/start:already_title'))
-        .setDescription(
-          t('commands/start:already_desc', { class: existingClass?.name ?? exists.class }),
-        )
+        .setDescription(t('commands/start:already_desc', { class: existingClass?.name ?? exists.class }))
         .setColor(0x95a5a6)
         .setFooter({ text: t('commands/start:already_footer') });
       return i.update({ embeds: [embed], components: [] });
@@ -122,10 +120,7 @@ export class ClassSelectHandler extends InteractionHandler {
               {
                 name: '🔮 Passive',
                 value: passives
-                  .map(
-                    (p) =>
-                      `${p.emoji} **${p.name}** — Lv.${p.requiredLevel ?? 1}\n*${p.description}*`,
-                  )
+                  .map((p) => `${p.emoji} **${p.name}** — Lv.${p.requiredLevel ?? 1}\n*${p.description}*`)
                   .join('\n\n'),
                 inline: false,
               },

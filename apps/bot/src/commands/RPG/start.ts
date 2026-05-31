@@ -30,9 +30,7 @@ export class StartCommand extends Command {
           name: interaction.user.username,
           iconURL: interaction.user.displayAvatarURL(),
         })
-        .setTitle(
-          t('commands/start:already_title', { defaultValue: '😅 You Already Have a Class' }),
-        )
+        .setTitle(t('commands/start:already_title', { defaultValue: '😅 You Already Have a Class' }))
         .setDescription(
           t('commands/start:already_desc', {
             class: existing?.name ?? user.class,
@@ -50,9 +48,7 @@ export class StartCommand extends Command {
     const BASE_STAMINA = 100;
 
     const embed = new EmbedBuilder()
-      .setTitle(
-        t('commands/start:title', { defaultValue: '🛡️ Nova Chronicles — Choose Your Destiny' }),
-      )
+      .setTitle(t('commands/start:title', { defaultValue: '🛡️ Nova Chronicles — Choose Your Destiny' }))
       .setDescription(
         t('commands/start:welcome', {
           username: interaction.user.username,
@@ -71,9 +67,8 @@ export class StartCommand extends Command {
           const dummyUser = { class: key, level: 99 } as any;
           const passives = getPassiveSkills(dummyUser);
           const passiveText =
-            passives
-              .map((p) => `• ${p.emoji} **${p.name}** (Lv.${p.requiredLevel}) — ${p.description}`)
-              .join('\n') || 'None';
+            passives.map((p) => `• ${p.emoji} **${p.name}** (Lv.${p.requiredLevel}) — ${p.description}`).join('\n') ||
+            'None';
 
           const critPercent = (c.baseCritRate * 100).toFixed(0);
           return {
@@ -111,11 +106,7 @@ export class StartCommand extends Command {
           .setLabel(t(`commands/start:class_${key}`, { defaultValue: c.name }))
           .setEmoji(c.emoji)
           .setStyle(
-            key === 'warrior'
-              ? ButtonStyle.Danger
-              : key === 'mage'
-                ? ButtonStyle.Primary
-                : ButtonStyle.Success,
+            key === 'warrior' ? ButtonStyle.Danger : key === 'mage' ? ButtonStyle.Primary : ButtonStyle.Success,
           ),
       ),
     );

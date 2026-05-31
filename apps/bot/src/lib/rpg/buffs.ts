@@ -10,9 +10,7 @@ export function applyPassiveRegen(user: IUser) {
   }
 
   // 1. Ambil semua buff regen yang pernah aktif sejak last
-  const regenBuffs = (user.buffs || []).filter(
-    (b) => b.type === 'stamina_regen' && new Date(b.expires ?? 0) > last,
-  );
+  const regenBuffs = (user.buffs || []).filter((b) => b.type === 'stamina_regen' && new Date(b.expires ?? 0) > last);
 
   let totalRegen = 0;
   let furthestProcessed = last;

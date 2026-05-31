@@ -102,8 +102,7 @@ export async function runInteractiveBattle(params: BattleParams) {
 
     const turn = await msg
       .awaitMessageComponent({
-        filter: (i) =>
-          i.user.id === player.discordId && (i.customId === 'atk' || i.customId.startsWith('skl_')),
+        filter: (i) => i.user.id === player.discordId && (i.customId === 'atk' || i.customId.startsWith('skl_')),
         time: 30_000,
         componentType: ComponentType.Button,
       })

@@ -45,9 +45,7 @@ export class CraftCommand extends Command {
               { name: 'Armor', value: 'armor' },
             ),
         )
-        .addStringOption((option) =>
-          option.setName('recipe').setDescription('Type recipe name').setAutocomplete(true),
-        ),
+        .addStringOption((option) => option.setName('recipe').setDescription('Type recipe name').setAutocomplete(true)),
     );
   }
 
@@ -55,8 +53,7 @@ export class CraftCommand extends Command {
     const t = await fetchT(interaction);
     await interaction.deferReply();
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
-    if (!user)
-      return interaction.editReply(t('common:need_start', { defaultValue: 'Use /start first!' }));
+    if (!user) return interaction.editReply(t('common:need_start', { defaultValue: 'Use /start first!' }));
     applyPassiveRegen(user);
     await user.save();
     const selectedCategory = interaction.options.getString('category');
@@ -66,9 +63,7 @@ export class CraftCommand extends Command {
     const invMap = new Map(user.items.map((i) => [i.itemId, i.qty]));
 
     let available = CRAFTING_RECIPES.filter(
-      (r) =>
-        r.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty) &&
-        user.level >= (r.requiredLevel ?? 0),
+      (r) => r.ingredients.every((ing) => (invMap.get(ing.id) ?? 0) >= ing.qty) && user.level >= (r.requiredLevel ?? 0),
     );
     if (selectedCategory) available = available.filter(CATEGORY_FILTERS[selectedCategory]);
     if (!available.length)
@@ -80,13 +75,7 @@ export class CraftCommand extends Command {
     return this.sendPage(interaction, user, available, 0, selectedCategory || 'all');
   }
 
-  private async sendPage(
-    interaction: ChatInputCommandInteraction,
-    user: any,
-    list: any[],
-    page: number,
-    cat: string,
-  ) {
+  private async sendPage(interaction: ChatInputCommandInteraction, user: any, list: any[], page: number, cat: string) {
     const t = await fetchT(interaction);
     const stats = await getPlayerStats(user);
     const start = page * 25;
@@ -189,9 +178,7 @@ export class CraftCommand extends Command {
     );
 
     const filtered = results
-      .filter(
-        ({ name, recipe }) => name.toLowerCase().includes(q) || recipe.id.toLowerCase().includes(q),
-      )
+      .filter(({ name, recipe }) => name.toLowerCase().includes(q) || recipe.id.toLowerCase().includes(q))
       .slice(0, 25);
 
     return interaction.respond(

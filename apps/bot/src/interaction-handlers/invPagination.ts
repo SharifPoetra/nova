@@ -11,9 +11,7 @@ import { fetchT } from '@sapphire/plugin-i18next';
 })
 export class InvPaginationHandler extends InteractionHandler {
   public override parse(i) {
-    return i.customId?.startsWith('inv_prev_') || i.customId?.startsWith('inv_next_')
-      ? this.some()
-      : this.none();
+    return i.customId?.startsWith('inv_prev_') || i.customId?.startsWith('inv_next_') ? this.some() : this.none();
   }
 
   public override async run(interaction: ButtonInteraction) {

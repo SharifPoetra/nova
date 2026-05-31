@@ -214,18 +214,13 @@ export function getSkill(id: string): SkillData | null {
 }
 
 export function getSkillsByClass(className: 'warrior' | 'mage' | 'rogue'): SkillData[] {
-  return Object.values(SKILLS).filter(
-    (s) => !s.passive && (!s.classLock || s.classLock.includes(className)),
-  );
+  return Object.values(SKILLS).filter((s) => !s.passive && (!s.classLock || s.classLock.includes(className)));
 }
 
 export function getPassiveSkills(user: IUser): SkillData[] {
   if (!user.class) return [];
   return Object.values(SKILLS).filter(
-    (s) =>
-      s.passive &&
-      s.classLock?.includes(user.class!) &&
-      (!s.requiredLevel || user.level >= s.requiredLevel),
+    (s) => s.passive && s.classLock?.includes(user.class!) && (!s.requiredLevel || user.level >= s.requiredLevel),
   );
 }
 

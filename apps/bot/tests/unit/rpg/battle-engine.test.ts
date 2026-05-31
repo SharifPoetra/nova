@@ -3,9 +3,7 @@ import { BattleEngine, type EnemyStats } from '../../../src/lib/rpg/battle-engin
 import type { IUser } from '@nova/db';
 
 vi.mock('../../../src/lib/rpg/combat', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/lib/rpg/combat')>(
-    '../../../src/lib/rpg/combat',
-  );
+  const actual = await vi.importActual<typeof import('../../../src/lib/rpg/combat')>('../../../src/lib/rpg/combat');
   return {
     ...actual,
     getPlayerStats: vi.fn(async (user: IUser) => ({
@@ -34,9 +32,7 @@ vi.mock('../../../src/lib/rpg/combat', async () => {
 });
 
 vi.mock('../../../src/lib/rpg/skills', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/lib/rpg/skills')>(
-    '../../../src/lib/rpg/skills',
-  );
+  const actual = await vi.importActual<typeof import('../../../src/lib/rpg/skills')>('../../../src/lib/rpg/skills');
   return {
     ...actual,
     getSkill: vi.fn((id: string) => {

@@ -1,12 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ComponentType,
-  EmbedBuilder,
-} from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { FISHES } from '../../lib/rpg/fishes';
 import { EXPLORES } from '../../lib/rpg/explorations';
@@ -32,11 +26,7 @@ const groupByRarity = <T extends { rarity: string }>(arr: T[]) => {
 export class DroprateCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((b) =>
-      applyLocalizedBuilder(
-        b,
-        'commands/names:droprate',
-        'commands/descriptions:droprate',
-      ).addStringOption((o) =>
+      applyLocalizedBuilder(b, 'commands/names:droprate', 'commands/descriptions:droprate').addStringOption((o) =>
         o
           .setName('type')
           .setNameLocalizations({ id: 'tipe' })
@@ -54,8 +44,7 @@ export class DroprateCommand extends Command {
 
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     const t = await fetchT(interaction);
-    const tipe =
-      interaction.options.getString('type', true) ?? interaction.options.getString('tipe', true)!;
+    const tipe = interaction.options.getString('type', true) ?? interaction.options.getString('tipe', true)!;
 
     if (tipe === 'fish') {
       const total = FISHES.reduce((a, f) => a + f.chance, 0);
@@ -75,9 +64,7 @@ export class DroprateCommand extends Command {
         embeds: [
           new EmbedBuilder()
             .setColor(RARITY_COLOR.Rare)
-            .setTitle(
-              t('commands/droprate:fish_title', { defaultValue: '🎣 Drop Rate Detail — Fish' }),
-            )
+            .setTitle(t('commands/droprate:fish_title', { defaultValue: '🎣 Drop Rate Detail — Fish' }))
             .setDescription(desc)
             .addFields({
               name: t('commands/droprate:rarity', { defaultValue: '📊 Rarity' }),
@@ -153,9 +140,7 @@ export class DroprateCommand extends Command {
           .join('\n\n');
         return new EmbedBuilder()
           .setColor(RARITY_COLOR.Legendary)
-          .setTitle(
-            t('commands/droprate:hunt_title', { defaultValue: '⚔️ Drop Rate Detail — Hunt' }),
-          )
+          .setTitle(t('commands/droprate:hunt_title', { defaultValue: '⚔️ Drop Rate Detail — Hunt' }))
           .setDescription(desc)
           .setFooter({ text: `Page ${p + 1}/${pages} • ${BASE_MONSTERS.length} monsters` });
       };

@@ -14,8 +14,7 @@ const tx = (
   return t(`${domain}/${category}:${id}.${field}`, { defaultValue: id });
 };
 
-export const i18nMonster = (domain: 'dungeon' | 'hunt', id: string, t: TFunction) =>
-  tx(domain, 'monsters', id, t);
+export const i18nMonster = (domain: 'dungeon' | 'hunt', id: string, t: TFunction) => tx(domain, 'monsters', id, t);
 
 export const i18nItem = (
   domain: 'dungeon' | 'shop' | 'hunt' | 'cook' | 'explore' | 'craft',
