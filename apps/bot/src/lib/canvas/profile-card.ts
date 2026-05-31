@@ -71,6 +71,16 @@ const COLORS = {
   border: 'rgba(255, 255, 255, 0.06)',
 };
 
+const BG_EXTS = ['.png', '.jpg', '.jpeg', '.webp'];
+
+function findBgPath(name: string): string | null {
+  for (const ext of BG_EXTS) {
+    const p = join(bgDir, name + ext);
+    if (existsSync(p)) return p;
+  }
+  return null;
+}
+
 function drawRoundedRect(
   ctx: SKRSContext2D,
   x: number,
@@ -223,7 +233,7 @@ async function drawAvatar(ctx: SKRSContext2D, data: ProfileData) {
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.clip();
   try {
-    const avatar = await loadImage(data.avatarURL + '?size=128');
+    const avatar = await loadImage(data.avatarURL);
     ctx.drawImage(avatar, x - r, y - r, r * 2, r * 2);
   } catch {
     ctx.fillStyle = '#111827';
@@ -290,13 +300,19 @@ async function drawAvatar(ctx: SKRSContext2D, data: ProfileData) {
 
 async function drawBackground(ctx: SKRSContext2D, data: ProfileData) {
   const { baseW, baseH } = LAYOUT;
-  const customBgPath = join(bgDir, 'mesh-sakura.png'); // initial custom backgrounds implementation
-  const defaultBgPath = join(bgDir, 'default.png');
+  // sementara hardcode, nanti ganti ke data.background
+  const bgName = (data as any).background || 'mesh-sakura';
+  const defaultName = 'default';
+
+  let bgPath = findBgPath(bgName) || findBgPath(defaultName);
 
   try {
-    const bgPath = existsSync(customBgPath) ? customBgPath : defaultBgPath;
-    const bgImage = await loadImage(bgPath);
-    ctx.drawImage(bgImage, 0, 0, baseW, baseH);
+    if (bgPath) {
+      const bgImage = await loadImage(bgPath);
+      ctx.drawImage(bgImage, 0, 0, baseW, baseH);
+    } else {
+      throw new Error('No bg file');
+    }
   } catch {
     const bg = ctx.createLinearGradient(0, 0, baseW, baseH);
     bg.addColorStop(0, '#0f0c29');
@@ -314,10 +330,9 @@ async function drawBackground(ctx: SKRSContext2D, data: ProfileData) {
 
   ctx.save();
   ctx.globalAlpha = 0.03;
-  const gridSize = 20;
   ctx.fillStyle = '#fff';
-  for (let x = 0; x < baseW; x += gridSize) ctx.fillRect(x, 0, 1, baseH);
-  for (let y = 0; y < baseH; y += gridSize) ctx.fillRect(0, y, baseW, 1);
+  for (let x = 0; x < baseW; x += 20) ctx.fillRect(x, 0, 1, baseH);
+  for (let y = 0; y < baseH; y += 20) ctx.fillRect(0, y, baseW, 1);
   ctx.restore();
 
   const glow = hexToRgba(data.classColor, 0.25);
