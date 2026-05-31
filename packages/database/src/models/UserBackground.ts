@@ -17,6 +17,7 @@ const UserBackgroundSchema = new Schema<IUserBackground>(
       type: String,
       required: true,
       index: true,
+      ref: 'User', // Reference ke User model via discordId
     },
     backgroundId: {
       type: String,
