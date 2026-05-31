@@ -1,6 +1,7 @@
 import { createCanvas, loadImage, SKRSContext2D, GlobalFonts } from '@napi-rs/canvas';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { getBackgroundInfo } from './backgrounds';
 
 const fontDir = join(__dirname, '../../../assets/fonts');
 const bgDir = join(__dirname, '../../../assets/backgrounds');
@@ -71,16 +72,6 @@ const COLORS = {
   panel: 'rgba(12, 14, 28, 0.65)',
   border: 'rgba(255, 255, 255, 0.06)',
 };
-
-const BG_EXTS = ['.png', '.jpg', '.jpeg', '.webp'];
-
-function findBgPath(name: string): string | null {
-  for (const ext of BG_EXTS) {
-    const p = join(bgDir, name + ext);
-    if (existsSync(p)) return p;
-  }
-  return null;
-}
 
 function drawRoundedRect(
   ctx: SKRSContext2D,
@@ -299,12 +290,15 @@ async function drawAvatar(ctx: SKRSContext2D, data: ProfileData) {
   );
 }
 
+function findBgPath(file: string): string | null {
+  const p = join(bgDir, file);
+  return existsSync(p) ? p : null;
+}
+
 async function drawBackground(ctx: SKRSContext2D, data: ProfileData) {
   const { baseW, baseH } = LAYOUT;
-  const defaultName = 'default';
-  const bgName = data.backgroundId || defaultName;
-
-  let bgPath = findBgPath(bgName) || findBgPath(defaultName);
+  const background = getBackgroundInfo(data.backgroundId);
+  const bgPath = findBgPath(background.file) ?? findBgPath('default.png');
 
   try {
     if (bgPath) {
