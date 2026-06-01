@@ -72,6 +72,13 @@ export function getShopItems(category: ShopCategory): ShopItem[] {
 }
 
 /**
+ * Get a specific item by ID from a category
+ */
+export function getItemById(category: ShopCategory, id: string): ShopItem | undefined {
+  return getShopItems(category).find((i) => i.id === id);
+}
+
+/**
  * Get potion items (for legacy compatibility)
  */
 export function getPotionItems(): ShopItem[] {
