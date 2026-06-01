@@ -192,7 +192,7 @@ export class ShopPreviewHandler extends InteractionHandler {
           .setLabel(t('commands/shop:confirm_buy', { defaultValue: 'Confirm & Buy' }))
           .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
-          .setCustomId(`shop_item_${userId}_backgrounds_${pageStr}`)
+          .setCustomId(`shop_cat_${userId}_backgrounds_${pageStr}`)
           .setLabel(t('common:ui.cancel', { defaultValue: 'Cancel' }))
           .setStyle(ButtonStyle.Secondary),
       ];

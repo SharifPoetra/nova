@@ -142,7 +142,7 @@ export class ShopConfirmHandler extends InteractionHandler {
 
       const buttons = [
         new ButtonBuilder()
-          .setCustomId(`shop_cat_${userId}_${category}_0`)
+          .setCustomId(`shop_cat_${userId}_${category}_${pageStr}`)
           .setLabel(t('commands/shop:continue_shopping', { defaultValue: 'Continue Shopping' }))
           .setStyle(ButtonStyle.Primary),
       ];
