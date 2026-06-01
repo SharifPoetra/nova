@@ -33,7 +33,7 @@ export class ShopCategorySelectHandler extends InteractionHandler {
     const t = await fetchT(interaction);
     const customIdParts = interaction.customId.split('_');
     const userId = customIdParts[2];
-    const category = customIdParts[3] as ShopCategory;
+    let category = customIdParts[3] as ShopCategory;
     const pageStr = customIdParts[4] || '0';
     const page = parseInt(pageStr, 10) || 0;
 
@@ -60,6 +60,20 @@ export class ShopCategorySelectHandler extends InteractionHandler {
       // Apply passive regen
       applyPassiveRegen(user);
       await user.save();
+      
+      if (!SHOP_CATEGORIES[category]) {
+      // customId = shop_cat_{userId}_main, ambil category dari values
+        if (interaction.isStringSelectMenu() && interaction.values?.length) {
+          category = interaction.values[0] as ShopCategory;
+        } else {
+          // fallback kalau dipanggil dari button back
+          return interaction.editReply({
+            content: t('commands/shop:select_category', { defaultValue: 'Please select a category with /shop' }),
+            embeds: [],
+            components: [],
+          });
+        }
+      }
 
       // Get items dari kategori
       let items = getShopItems(category);
@@ -67,7 +81,7 @@ export class ShopCategorySelectHandler extends InteractionHandler {
       // Filter backgrounds: hanya show yang belum dimiliki
       if (category === 'backgrounds') {
         const ownedBackgrounds = await this.container.db.userBackground
-          ?.find({ discordId: userId })
+          .find({ discordId: userId })
           .select('backgroundId')
           .lean();
 
