@@ -60,9 +60,9 @@ export class ShopCategorySelectHandler extends InteractionHandler {
       // Apply passive regen
       applyPassiveRegen(user);
       await user.save();
-      
+
       if (!SHOP_CATEGORIES[category]) {
-      // customId = shop_cat_{userId}_main, ambil category dari values
+        // customId = shop_cat_{userId}_main, ambil category dari values
         if (interaction.isStringSelectMenu() && interaction.values?.length) {
           category = interaction.values[0] as ShopCategory;
         } else {
@@ -123,11 +123,13 @@ export class ShopCategorySelectHandler extends InteractionHandler {
       return this.renderCategoryPage(interaction, userId, category, user, items, page, t);
     } catch (error) {
       this.container.logger.error(error);
-      await interaction.editReply({
-        content: t('commands/shop:error', { defaultValue: '❌ An error occurred.' }),
-        embeds: [],
-        components: [],
-      }).catch(() => {});
+      await interaction
+        .editReply({
+          content: t('commands/shop:error', { defaultValue: '❌ An error occurred.' }),
+          embeds: [],
+          components: [],
+        })
+        .catch(() => {});
     }
   }
 

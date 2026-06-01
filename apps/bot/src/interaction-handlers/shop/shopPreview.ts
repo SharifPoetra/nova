@@ -1,6 +1,13 @@
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import { ButtonInteraction, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
+import {
+  ButtonInteraction,
+  AttachmentBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+} from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
 import { renderProfileCard } from '../../lib/canvas/profile-card';
 import { getPlayerStats } from '../../lib/rpg/combat';
@@ -174,7 +181,9 @@ export class ShopPreviewHandler extends InteractionHandler {
         )
         .setImage('attachment://preview.png')
         .setFooter({
-          text: t('commands/shop:preview_footer', { defaultValue: 'This is how your profile will look with this background' }),
+          text: t('commands/shop:preview_footer', {
+            defaultValue: 'This is how your profile will look with this background',
+          }),
         });
 
       const buttons = [
@@ -197,9 +206,11 @@ export class ShopPreviewHandler extends InteractionHandler {
       });
     } catch (error) {
       this.container.logger.error(error);
-      await interaction.editReply({
-        content: t('commands/shop:error', { defaultValue: '❌ An error occurred.' }),
-      }).catch(() => {});
+      await interaction
+        .editReply({
+          content: t('commands/shop:error', { defaultValue: '❌ An error occurred.' }),
+        })
+        .catch(() => {});
     }
   }
 }

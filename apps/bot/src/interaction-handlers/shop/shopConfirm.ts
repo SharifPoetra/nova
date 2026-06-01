@@ -6,7 +6,6 @@ import { getItemById, type ShopCategory } from '../../lib/shop/categories';
 import { COLORS, formatNumber } from '../../lib/utils';
 import { addItemToInventory } from '../../lib/rpg/inventory';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { UserBackground } from '@nova/db';
 
 @ApplyOptions({
   name: 'shopConfirm',
@@ -22,8 +21,8 @@ export class ShopConfirmHandler extends InteractionHandler {
     const customIdParts = interaction.customId.split('_');
     const userId = customIdParts[2];
     const category = customIdParts[3] as ShopCategory;
-    const itemId = customIdParts[4];
-    const pageStr = customIdParts[5] || '0';
+    const pageStr = customIdParts[customIdParts.length - 1];
+    const itemId = customIdParts.slice(4, -1).join('_');
 
     // User validation
     if (interaction.user.id !== userId) {
@@ -62,12 +61,10 @@ export class ShopConfirmHandler extends InteractionHandler {
         const embed = new EmbedBuilder()
           .setColor(COLORS.error)
           .setTitle(t('commands/shop:insufficient_title', { defaultValue: '❌ Insufficient Balance' }))
-          .setDescription(
-            `You need **${formatNumber(item.price - user.balance)}** more coins to buy this item.`,
-          );
+          .setDescription(`You need **${formatNumber(item.price - user.balance)}** more coins to buy this item.`);
 
         const backButton = new ButtonBuilder()
-          .setCustomId(`shop_item_${userId}_${category}_${pageStr}`)
+          .setCustomId(`shop_cat_${userId}_${category}_${pageStr}`)
           .setLabel(t('common:ui.back', { defaultValue: 'Back' }))
           .setStyle(ButtonStyle.Secondary);
 
@@ -93,9 +90,7 @@ export class ShopConfirmHandler extends InteractionHandler {
             rarity: item.rarity || 'Common',
             sellPrice: Math.floor(item.price * 0.5), // Sell price 50% dari harga beli
             effects: [
-              item.id === 'potion_hp'
-                ? { type: 'heal' as const, value: 50 }
-                : { type: 'stamina' as const, value: 30 },
+              item.id === 'potion_hp' ? { type: 'heal' as const, value: 50 } : { type: 'stamina' as const, value: 30 },
             ],
           },
           1,
@@ -105,10 +100,10 @@ export class ShopConfirmHandler extends InteractionHandler {
         const bgId = item.id.replace('bg_', '');
 
         // Set semua background user jadi non-active dulu
-        await UserBackground.updateMany({ discordId: userId }, { isActive: false });
+        await this.container.db.userBackground.updateMany({ discordId: userId }, { isActive: false });
 
         // Create/update background record
-        await UserBackground.findOneAndUpdate(
+        await this.container.db.userBackground.findOneAndUpdate(
           { discordId: userId, backgroundId: bgId },
           {
             discordId: userId,
@@ -160,11 +155,13 @@ export class ShopConfirmHandler extends InteractionHandler {
       });
     } catch (error) {
       this.container.logger.error(error);
-      await interaction.editReply({
-        content: t('commands/shop:error', { defaultValue: '❌ An error occurred.' }),
-        embeds: [],
-        components: [],
-      }).catch(() => {});
+      await interaction
+        .editReply({
+          content: t('commands/shop:error', { defaultValue: '❌ An error occurred.' }),
+          embeds: [],
+          components: [],
+        })
+        .catch(() => {});
     }
   }
 }

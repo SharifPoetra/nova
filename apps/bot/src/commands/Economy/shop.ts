@@ -1,12 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import {
-  ActionRowBuilder,
-  StringSelectMenuBuilder,
-  EmbedBuilder,
-  ButtonBuilder,
-  ButtonStyle
-} from 'discord.js';
+import { ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { SHOP_CATEGORIES } from '../../lib/shop/categories';
@@ -20,7 +14,7 @@ import { formatNumber } from '../../lib/utils';
 export class ShopCommand extends Command {
   public override registerApplicationCommands(registry: Command.Registry) {
     registry.registerChatInputCommand((b) =>
-      applyLocalizedBuilder(b, 'commands/names:shop', 'commands/descriptions:shop')
+      applyLocalizedBuilder(b, 'commands/names:shop', 'commands/descriptions:shop'),
     );
   }
 
@@ -31,7 +25,7 @@ export class ShopCommand extends Command {
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
     if (!user) {
       return interaction.editReply({
-        content: t('common:need_start', { defaultValue: '❌ You need to start first. Use `/start`.' })
+        content: t('common:need_start', { defaultValue: '❌ You need to start first. Use `/start`.' }),
       });
     }
 
@@ -44,36 +38,34 @@ export class ShopCommand extends Command {
       .setTitle(t('commands/shop:title', { defaultValue: '🏪 Nova Shop' }))
       .setDescription(
         t('commands/shop:welcome', {
-          defaultValue: 'Welcome to the Nova Shop! Select a category below to browse items.'
-        })
+          defaultValue: 'Welcome to the Nova Shop! Select a category below to browse items.',
+        }),
       )
       .addFields(
         Object.entries(SHOP_CATEGORIES).map(([key, cat]) => ({
           name: `${cat.emoji} ${cat.name}`,
           value: cat.description,
-          inline: true
-        }))
+          inline: true,
+        })),
       )
       .setFooter({
         text: t('commands/shop:balance_footer', {
           balance: formatNumber(user.balance),
-          defaultValue: `Your balance: ${formatNumber(user.balance)} coins`
-        })
+          defaultValue: `Your balance: ${formatNumber(user.balance)} coins`,
+        }),
       });
 
     // Category select menu - matches shopCategorySelect handler
     const categorySelect = new StringSelectMenuBuilder()
       .setCustomId(`shop_cat_${interaction.user.id}_main`)
-      .setPlaceholder(
-        t('commands/shop:select_category', { defaultValue: 'Select a category...' })
-      )
+      .setPlaceholder(t('commands/shop:select_category', { defaultValue: 'Select a category...' }))
       .addOptions(
         Object.entries(SHOP_CATEGORIES).map(([key, cat]) => ({
           label: cat.name,
           value: key,
           description: cat.description.slice(0, 100),
-          emoji: cat.emoji
-        }))
+          emoji: cat.emoji,
+        })),
       );
 
     const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(categorySelect);
@@ -88,12 +80,12 @@ export class ShopCommand extends Command {
       new ButtonBuilder()
         .setCustomId('shop_close')
         .setLabel(t('commands/shop:close', { defaultValue: 'Close' }))
-        .setStyle(ButtonStyle.Secondary)
+        .setStyle(ButtonStyle.Secondary),
     );
 
     await interaction.editReply({
       embeds: [embed],
-      components: [selectRow, buttons]
+      components: [selectRow, buttons],
     });
   }
 }

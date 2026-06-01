@@ -1,10 +1,18 @@
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import { ButtonInteraction, StringSelectMenuInteraction, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import {
+  ButtonInteraction,
+  StringSelectMenuInteraction,
+  EmbedBuilder,
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
 import { getAllBackgrounds } from '../../lib/canvas/backgrounds';
+import { getRarityEmoji } from '../../lib/shop/categories';
 import { RARITY_COLOR, COLORS, formatNumber } from '../../lib/utils';
-import { UserBackground } from '@nova/db';
 
 const ITEMS_PER_PAGE = 25;
 
@@ -24,10 +32,34 @@ export class ShopOwnedListHandler extends InteractionHandler {
 
   public async run(interaction: ButtonInteraction | StringSelectMenuInteraction) {
     const t = await fetchT(interaction);
-    const customIdParts = interaction.customId.split('_');
-    const userId = customIdParts[2];
-    let bgId = customIdParts[3] || null;
-    let pageStr = customIdParts[4] || '0';
+    const parts = interaction.customId.split('_');
+
+    let userId = '';
+    let bgId: string | null = null;
+    let pageStr = '0';
+
+    // shop_owned_{userId}_{page}
+    if (parts[1] === 'owned' && parts[2] !== 'select' && parts[2] !== 'prev' && parts[2] !== 'next') {
+      userId = parts[2];
+      pageStr = parts[3] || '0';
+    }
+    // shop_owned_select_{userId}_{page}
+    else if (parts[1] === 'owned' && parts[2] === 'select') {
+      userId = parts[3];
+      pageStr = parts[4] || '0';
+      // bgId diambil dari interaction.values[0] nanti, bukan dari customId
+    }
+    // shop_owned_prev_{userId}_{page} atau shop_owned_next_
+    else if (parts[1] === 'owned' && (parts[2] === 'prev' || parts[2] === 'next')) {
+      userId = parts[3];
+      pageStr = parts[4] || '0';
+    }
+    // shop_set_active_{userId}_{bgId}_{page}
+    else if (parts[1] === 'set') {
+      userId = parts[3];
+      bgId = parts[4];
+      pageStr = parts[5] || '0';
+    }
 
     // User validation
     if (interaction.user.id !== userId) {
@@ -51,15 +83,11 @@ export class ShopOwnedListHandler extends InteractionHandler {
 
       // HANDLE SET ACTIVE
       if (interaction.customId.startsWith('shop_set_active_')) {
-        const setActiveBgId = customIdParts[3];
-        pageStr = customIdParts[4] || '0';
-
         // Set semua jadi non-active
-        await UserBackground.updateMany({ discordId: userId }, { isActive: false });
-
+        await this.container.db.userBackground.updateMany({ discordId: userId }, { isActive: false });
         // Set selected jadi active
-        await UserBackground.findOneAndUpdate(
-          { discordId: userId, backgroundId: setActiveBgId },
+        await this.container.db.userBackground.findOneAndUpdate(
+          { discordId: userId, backgroundId: bgId! },
           { isActive: true },
         );
 
@@ -86,9 +114,8 @@ export class ShopOwnedListHandler extends InteractionHandler {
       const isNextButton = interaction.customId.startsWith('shop_owned_next_');
 
       if (isPrevButton || isNextButton) {
-        const currentPage = parseInt(customIdParts[3], 10) || 0;
-        const newPage = isPrevButton ? currentPage - 1 : currentPage + 1;
-        pageStr = newPage.toString();
+        const currentPage = parseInt(pageStr, 10) || 0;
+        pageStr = String(isPrevButton ? currentPage - 1 : currentPage + 1);
       }
 
       // SELECT MENU ACTION
@@ -97,10 +124,10 @@ export class ShopOwnedListHandler extends InteractionHandler {
         bgId = selectedBgId;
 
         // Set semua jadi non-active
-        await UserBackground.updateMany({ discordId: userId }, { isActive: false });
+        await this.container.db.userBackground.updateMany({ discordId: userId }, { isActive: false });
 
         // Set selected jadi active
-        await UserBackground.findOneAndUpdate(
+        await this.container.db.userBackground.findOneAndUpdate(
           { discordId: userId, backgroundId: selectedBgId },
           { isActive: true },
         );
@@ -127,30 +154,49 @@ export class ShopOwnedListHandler extends InteractionHandler {
       return this.renderOwnedList(interaction, userId, parseInt(pageStr, 10), t);
     } catch (error) {
       this.container.logger.error(error);
-      await interaction.editReply({
-        content: t('commands/shop:error', { defaultValue: '❌ An error occurred.' }),
-        embeds: [],
-        components: [],
-      }).catch(() => {});
+      await interaction
+        .editReply({
+          content: t('commands/shop:error', { defaultValue: '❌ An error occurred.' }),
+          embeds: [],
+          components: [],
+        })
+        .catch(() => {});
     }
   }
 
-  private async renderOwnedList(interaction: ButtonInteraction | StringSelectMenuInteraction, userId: string, page: number, t: any) {
+  private async renderOwnedList(
+    interaction: ButtonInteraction | StringSelectMenuInteraction,
+    userId: string,
+    page: number,
+    t: any,
+  ) {
     try {
       // Get owned backgrounds
-      const ownedBackgrounds = await UserBackground.find({ discordId: userId }).lean();
+      const ownedBackgrounds = await this.container.db.userBackground.find({ discordId: userId }).lean();
+
+      // tambah default secara virtual kalau belum ada
+      if (!ownedBackgrounds.some((b) => b.backgroundId === 'default')) {
+        ownedBackgrounds.unshift({
+          discordId: userId,
+          backgroundId: 'default',
+          isActive: !ownedBackgrounds.some((b) => b.isActive), // aktif kalau belum ada yang aktif
+          purchasedAt: new Date(0),
+        } as any);
+      }
 
       if (!ownedBackgrounds.length) {
         return interaction.editReply({
-          content: t('commands/shop:no_owned_backgrounds', { defaultValue: '📭 You don\'t own any backgrounds yet!' }),
+          content: t('commands/shop:no_owned_backgrounds', { defaultValue: "📭 You don't own any backgrounds yet!" }),
           embeds: [],
           components: [],
         });
       }
 
-      // Get background info
+      // Get background info - INCLUDE DEFAULT
       const allBgs = getAllBackgrounds();
-      const bgMap = new Map(allBgs.map((bg) => [bg.id, bg]));
+      const bgMap = new Map(
+        allBgs.map((bg) => [bg.id, { ...bg, emoji: bg.id === 'default' ? '📌' : getRarityEmoji(bg.rarity) }]),
+      );
 
       // Combine owned + info
       const ownedWithInfo = ownedBackgrounds
@@ -162,7 +208,7 @@ export class ShopOwnedListHandler extends InteractionHandler {
 
       if (!ownedWithInfo.length) {
         return interaction.editReply({
-          content: t('commands/shop:no_owned_backgrounds', { defaultValue: '📭 You don\'t own any backgrounds yet!' }),
+          content: t('commands/shop:no_owned_backgrounds', { defaultValue: "📭 You don't own any backgrounds yet!" }),
           embeds: [],
           components: [],
         });

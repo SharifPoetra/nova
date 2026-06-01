@@ -95,7 +95,7 @@ export function getBackgroundItems(): ShopItem[] {
 /**
  * Map rarity to emoji
  */
-function getRarityEmoji(rarity: Rarity): string {
+export function getRarityEmoji(rarity: Rarity): string {
   const emojiMap: Record<Rarity, string> = {
     Common: '🖼️',
     Uncommon: '🌸',

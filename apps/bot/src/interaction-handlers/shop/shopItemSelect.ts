@@ -12,7 +12,9 @@ import { applyPassiveRegen } from '../../lib/rpg/buffs';
 })
 export class ShopItemSelectHandler extends InteractionHandler {
   public override parse(interaction) {
-    return interaction.isStringSelectMenu() && interaction.customId.startsWith('shop_item_') ? this.some() : this.none();
+    return interaction.isStringSelectMenu() && interaction.customId.startsWith('shop_item_')
+      ? this.some()
+      : this.none();
   }
 
   public async run(interaction: StringSelectMenuInteraction) {
@@ -66,11 +68,13 @@ export class ShopItemSelectHandler extends InteractionHandler {
       }
     } catch (error) {
       this.container.logger.error(error);
-      await interaction.editReply({
-        content: t('commands/shop:error', { defaultValue: '❌ An error occurred.' }),
-        embeds: [],
-        components: [],
-      }).catch(() => {});
+      await interaction
+        .editReply({
+          content: t('commands/shop:error', { defaultValue: '❌ An error occurred.' }),
+          embeds: [],
+          components: [],
+        })
+        .catch(() => {});
     }
   }
 
@@ -144,9 +148,7 @@ export class ShopItemSelectHandler extends InteractionHandler {
         .setColor(COLORS.primary)
         .setTitle(t('commands/shop:already_owned_title', { defaultValue: '✨ Already Owned' }))
         .setDescription(
-          `${item.emoji} **${item.name}**\n\n` +
-            `${item.description}\n\n` +
-            `You already own this background!`,
+          `${item.emoji} **${item.name}**\n\n` + `${item.description}\n\n` + `You already own this background!`,
         );
 
       if (ownedBg.isActive) {
