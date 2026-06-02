@@ -28,7 +28,8 @@ export class ShopCategorySelectHandler extends InteractionHandler {
     const isShopBack = interaction.isButton() && interaction.customId.startsWith('shop_back_');
     const isShopPrev = interaction.isButton() && interaction.customId.startsWith('shop_prev_');
     const isShopNext = interaction.isButton() && interaction.customId.startsWith('shop_next_');
-    return isShopCategory || isShopBack || isShopPrev || isShopNext ? this.some() : this.none();
+    const isShopClose = interaction.isButton() && interaction.customId.startsWith('shop_close_');
+    return isShopCategory || isShopBack || isShopPrev || isShopNext || isShopClose ? this.some() : this.none();
   }
 
   public async run(interaction: StringSelectMenuInteraction | ButtonInteraction) {
@@ -38,7 +39,6 @@ export class ShopCategorySelectHandler extends InteractionHandler {
     let category = customIdParts[3];
     const pageStr = customIdParts[4] || '0';
     const page = parseInt(pageStr, 10) || 0;
-    console.log(customIdParts);
 
     // User validation
     if (interaction.user.id !== userId) {
@@ -57,6 +57,15 @@ export class ShopCategorySelectHandler extends InteractionHandler {
           content: t('common:need_start', { defaultValue: '❌ You need to start first. Use `/start`.' }),
           embeds: [],
           components: [],
+        });
+      }
+
+      if (interaction.customId.startsWith('shop_close_')) {
+        return interaction.editReply({
+          content: t('commands/shop:shop_closed', { defaultValue: 'Shop closed.' }),
+          embeds: [],
+          components: [],
+          files: [],
         });
       }
 
