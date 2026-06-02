@@ -48,7 +48,7 @@ export interface IUser extends Document {
 
 const UserSchema = new Schema<IUser>(
   {
-    discordId: { type: String, required: true, unique: true, index: true },
+    discordId: { type: String, required: true, unique: true },
     username: { type: String, required: true },
     lang: { type: String, default: null },
     balance: { type: Number, default: 1000 },
@@ -73,7 +73,7 @@ const UserSchema = new Schema<IUser>(
     buffs: {
       type: [
         {
-          type: { type: String, enum: BUFF_TYPES, required: true },
+          type: { type: String, required: true },
           value: { type: Number, required: true },
           expires: { type: Date, required: false },
           turnsLeft: { type: Number, required: false },
@@ -92,7 +92,7 @@ const UserSchema = new Schema<IUser>(
       },
       default: { weapon: null, helmet: null, armor: null, accessory: null, tool: null },
     },
-    skillCooldowns: { type: Map, of: Number, default: {} },
+    skillCooldowns: { type: Map, of: Number, default: () => new Map() },
   },
   { timestamps: true },
 );

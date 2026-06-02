@@ -4,6 +4,7 @@ export * from './models/User.js';
 export * from './models/Item.js';
 export * from './models/Dungeon.js';
 export * from './models/Guild.js';
+export * from './models/UserBackground.js';
 
 export const createDatabase = async (connectionString: string) => {
   try {

@@ -65,6 +65,13 @@ export class ProfileCommand extends Command {
         );
       }
 
+      const activeBg = await this.container.db.userBackground
+        ?.findOne({ discordId: target.id, isActive: true })
+        .select('backgroundId')
+        .lean();
+
+      const backgroundId = activeBg?.backgroundId || 'default';
+
       if (isSelf) {
         applyPassiveRegen(userData);
         await userData.save();
@@ -167,6 +174,7 @@ export class ProfileCommand extends Command {
         buffs,
         itemCount,
         nextUnlock: nextUnlockText,
+        backgroundId,
       };
 
       const buffer = await renderProfileCard(profileData);
