@@ -5,7 +5,7 @@ import { createWriteStream, existsSync, mkdirSync, WriteStream } from 'fs';
 import { setGlobalDispatcher, Agent } from 'undici';
 import { GatewayIntentBits } from 'discord.js';
 import { SapphireClient, container, ApplicationCommandRegistries, LogLevel } from '@sapphire/framework';
-import { createDatabase, User, Item, Dungeon, Guild } from '@nova/db';
+import { createDatabase, User, UserBackground, Item, Dungeon, Guild } from '@nova/db';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -192,6 +192,7 @@ async function main() {
     const conn = await createDatabase(mongoUri);
     container.db = {
       user: User,
+      userBackground: UserBackground,
       item: Item,
       dungeon: Dungeon,
       guild: Guild,
