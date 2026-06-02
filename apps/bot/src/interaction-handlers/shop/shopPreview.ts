@@ -46,7 +46,7 @@ export class ShopPreviewHandler extends InteractionHandler {
       });
     }
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferUpdate();
 
     try {
       const user = await this.container.db.user.findOne({ discordId: userId });

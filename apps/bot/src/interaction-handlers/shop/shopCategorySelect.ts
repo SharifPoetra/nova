@@ -13,6 +13,7 @@ import { fetchT } from '@sapphire/plugin-i18next';
 import { SHOP_CATEGORIES, getShopItems, type ShopCategory } from '../../lib/shop/categories';
 import { RARITY_COLOR, COLORS, formatNumber } from '../../lib/utils';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
+import { buildShopMain } from '../../lib/shop/ui';
 
 const ITEMS_PER_PAGE = 25;
 
@@ -34,9 +35,10 @@ export class ShopCategorySelectHandler extends InteractionHandler {
     const t = await fetchT(interaction);
     const customIdParts = interaction.customId.split('_');
     const userId = customIdParts[2];
-    let category = customIdParts[3] as ShopCategory;
+    let category = customIdParts[3];
     const pageStr = customIdParts[4] || '0';
     const page = parseInt(pageStr, 10) || 0;
+    console.log(customIdParts);
 
     // User validation
     if (interaction.user.id !== userId) {
@@ -58,16 +60,22 @@ export class ShopCategorySelectHandler extends InteractionHandler {
         });
       }
 
-      // Apply passive regen
+      if (interaction.customId.startsWith('shop_back_')) {
+        const shopMain = buildShopMain(userId, user.balance, t);
+        return interaction.editReply(shopMain);
+      }
+
       applyPassiveRegen(user);
       await user.save();
 
-      if (!SHOP_CATEGORIES[category]) {
-        // customId = shop_cat_{userId}_main, ambil category dari values
+      if (!SHOP_CATEGORIES[category as ShopCategory]) {
         if (interaction.isStringSelectMenu() && interaction.values?.length) {
           category = interaction.values[0] as ShopCategory;
+        } else if (category === 'main' || interaction.customId.includes('_main')) {
+          // dari button Continue atau dari /shop
+          const shopMain = buildShopMain(userId, user.balance, t);
+          return interaction.editReply(shopMain);
         } else {
-          // fallback kalau dipanggil dari button back
           return interaction.editReply({
             content: t('commands/shop:select_category', { defaultValue: 'Please select a category with /shop' }),
             embeds: [],
@@ -77,7 +85,7 @@ export class ShopCategorySelectHandler extends InteractionHandler {
       }
 
       // Get items dari kategori
-      let items = getShopItems(category);
+      let items = getShopItems(category as ShopCategory);
 
       // Filter backgrounds: hanya show yang belum dimiliki
       if (category === 'backgrounds') {
@@ -113,15 +121,11 @@ export class ShopCategorySelectHandler extends InteractionHandler {
 
       if (isPrevButton || isNextButton) {
         const newPage = isPrevButton ? page - 1 : page + 1;
-        const startIndex = newPage * ITEMS_PER_PAGE;
-        const pageItems = items.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-        const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
-
-        return this.renderCategoryPage(interaction, userId, category, user, items, newPage, t);
+        return this.renderCategoryPage(interaction, userId, category as ShopCategory, user, items, newPage, t);
       }
 
       // Initial category view
-      return this.renderCategoryPage(interaction, userId, category, user, items, page, t);
+      return this.renderCategoryPage(interaction, userId, category as ShopCategory, user, items, page, t);
     } catch (error) {
       this.container.logger.error(error);
       await interaction
@@ -143,6 +147,7 @@ export class ShopCategorySelectHandler extends InteractionHandler {
     page: number,
     t: any,
   ) {
+    page = Math.max(0, Math.min(page, Math.ceil(items.length / ITEMS_PER_PAGE) - 1));
     const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
     const startIndex = page * ITEMS_PER_PAGE;
     const pageItems = items.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -202,7 +207,7 @@ export class ShopCategorySelectHandler extends InteractionHandler {
         .addOptions(selectOptions),
     );
 
-    const components: ActionRowBuilder<any>[] = [selectMenu];
+    const components: ActionRowBuilder<StringSelectMenuBuilder | ButtonBuilder>[] = [selectMenu];
 
     // Pagination buttons jika items > 25
     if (items.length > ITEMS_PER_PAGE) {
@@ -245,6 +250,7 @@ export class ShopCategorySelectHandler extends InteractionHandler {
     await interaction.editReply({
       embeds: [embed],
       components,
+      files: [],
     });
   }
 }

@@ -152,6 +152,7 @@ export class ShopConfirmHandler extends InteractionHandler {
       await interaction.editReply({
         embeds: [embed],
         components: [row],
+        files: [],
       });
     } catch (error) {
       this.container.logger.error(error);

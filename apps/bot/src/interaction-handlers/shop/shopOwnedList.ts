@@ -12,7 +12,7 @@ import {
 import { fetchT } from '@sapphire/plugin-i18next';
 import { getAllBackgrounds } from '../../lib/canvas/backgrounds';
 import { getRarityEmoji } from '../../lib/shop/categories';
-import { RARITY_COLOR, COLORS, formatNumber } from '../../lib/utils';
+import { COLORS } from '../../lib/utils';
 
 const ITEMS_PER_PAGE = 25;
 

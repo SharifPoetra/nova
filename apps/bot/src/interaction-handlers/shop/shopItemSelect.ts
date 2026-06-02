@@ -3,7 +3,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { StringSelectMenuInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
 import { getItemById, type ShopCategory } from '../../lib/shop/categories';
-import { RARITY_COLOR, COLORS, formatNumber } from '../../lib/utils';
+import { COLORS, formatNumber } from '../../lib/utils';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 
 @ApplyOptions({
