@@ -1,5 +1,5 @@
 import { ApplyOptions } from '@sapphire/decorators';
-import { Listener, Events, type ChatInputCommandErrorPayload } from '@sapphire/framework';
+import { Listener, Events, type ChatInputCommandErrorPayload, UserError } from '@sapphire/framework';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
 
@@ -10,6 +10,18 @@ import { fetchT } from '@sapphire/plugin-i18next';
 export class ChatInputCommandErrorListener extends Listener {
   public override async run(error: Error, { interaction, command }: ChatInputCommandErrorPayload) {
     const t = await fetchT(interaction);
+
+    if (error instanceof UserError && error.identifier === 'OwnerOnly') {
+      const msg = error.message || t('common:error.precondition_owner_only');
+      try {
+        if (interaction.deferred || interaction.replied) await interaction.editReply({ content: `🚫 ${msg}` });
+        else await interaction.reply({ content: `🚫 ${msg}`, flags: MessageFlags.Ephemeral });
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+
     const id = Math.random().toString(36).slice(2, 8).toUpperCase();
 
     this.container.logger.error(

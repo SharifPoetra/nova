@@ -1,47 +1,43 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { PermissionFlagsBits, MessageFlags } from 'discord.js';
+import { PermissionFlagsBits, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-
+import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand';
 import resetEn from '../../locales/en-US/commands/reset.json';
 import resetId from '../../locales/id/commands/reset.json';
 
 @ApplyOptions<Command.Options>({
   name: 'reset',
-  description: 'Reset RPG data (owner only)',
-  preconditions: ['OwnerOnly'],
-  fullCategory: ['Owner'],
+  description: 'Reset database (Owner only)',
 })
-export class ResetCommand extends Command {
-  public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((b) =>
-      applyLocalizedBuilder(b, 'commands/names:reset', 'commands/descriptions:reset')
-        .addStringOption((o) =>
-          o
-            .setName('target')
-            .setDescription(resetEn.option_desc)
-            .setDescriptionLocalizations({ id: resetId.option_desc, 'en-US': resetEn.option_desc })
-            .setRequired(true)
-            .addChoices(
-              {
-                name: resetEn.choice_items,
-                value: 'items',
-                name_localizations: { id: resetId.choice_items },
-              },
-              {
-                name: resetEn.choice_users,
-                value: 'users',
-                name_localizations: { id: resetId.choice_users },
-              },
-              {
-                name: resetEn.choice_all,
-                value: 'all',
-                name_localizations: { id: resetId.choice_all },
-              },
-            ),
-        )
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    );
+export class ResetCommand extends OwnerDevCommand {
+  protected configure(builder: SlashCommandBuilder) {
+    return applyLocalizedBuilder(builder, 'commands/names:reset', 'commands/descriptions:reset')
+      .addStringOption((o) =>
+        o
+          .setName('target')
+          .setDescription(resetEn.option_desc)
+          .setDescriptionLocalizations({ id: resetId.option_desc, 'en-US': resetEn.option_desc })
+          .setRequired(true)
+          .addChoices(
+            {
+              name: resetEn.choice_items,
+              value: 'items',
+              name_localizations: { id: resetId.choice_items },
+            },
+            {
+              name: resetEn.choice_users,
+              value: 'users',
+              name_localizations: { id: resetId.choice_users },
+            },
+            {
+              name: resetEn.choice_all,
+              value: 'all',
+              name_localizations: { id: resetId.choice_all },
+            },
+          ),
+      )
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
