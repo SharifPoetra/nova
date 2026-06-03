@@ -15,7 +15,7 @@ import { RARITY_COLOR, COLORS, formatNumber } from '../../lib/utils';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { buildShopMain } from '../../lib/shop/ui';
 
-const ITEMS_PER_PAGE = 25;
+const ITEMS_PER_PAGE = 10;
 
 @ApplyOptions({
   name: 'shopCategorySelect',
