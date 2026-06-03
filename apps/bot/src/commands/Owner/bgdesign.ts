@@ -177,7 +177,8 @@ export class BgDesignCommand extends OwnerDevCommand {
               const angle = (Math.PI / 3) * i;
               const px = x + size * Math.cos(angle);
               const py = y + size * Math.sin(angle) + (x % 2 === 0 ? 0 : size * 0.75);
-              i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+              if (i === 0) ctx.moveTo(px, py);
+              else ctx.lineTo(px, py);
             }
             ctx.closePath();
             ctx.stroke();
@@ -221,11 +222,10 @@ export class BgDesignCommand extends OwnerDevCommand {
     const file = new AttachmentBuilder(buf, { name: filename });
 
     // === SAVE TO DISK JIKA DIMINTA ===
-    let savedPath = '';
     if (save) {
       const saveDir = join(__dirname, '../../../assets/backgrounds');
       if (!existsSync(saveDir)) mkdirSync(saveDir, { recursive: true });
-      savedPath = join(saveDir, filename);
+      const savedPath = join(saveDir, filename);
       writeFileSync(savedPath, buf);
     }
 
