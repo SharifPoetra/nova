@@ -44,12 +44,21 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: type=raw,value=pr-${{ github.event.number }}
+
       - name: Build Docker image
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
           push: false
-          tags: ghcr.io/${{ github.repository }}:pr-${{ github.event.number }}
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
