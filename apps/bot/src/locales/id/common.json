@@ -35,5 +35,7 @@
     "exp": "EXP",
     "gold": "Emas"
   },
-  "levelup": "🎉 **LEVEL UP → Lv.{{level}}**"
+  "status": {
+    "levelup": "🎉 **NAIK LEVEL → Lv.{{level}}**"
+  }
 }

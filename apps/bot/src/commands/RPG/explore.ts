@@ -79,7 +79,7 @@ export class ExploreCommand extends Command {
       const stats = await getPlayerStats(user);
       user.hp = stats.maxHp;
       user.stamina = user.maxStamina;
-      levelUpText = `\n\n${t('common:levelup', { level: user.level, defaultValue: `🎉 **LEVEL UP → Lv.${user.level}**` })}`;
+      levelUpText = `\n\n${t('common:status.levelup', { level: user.level, defaultValue: `🎉 **LEVEL UP → Lv.${user.level}**` })}`;
     }
 
     await user.save();

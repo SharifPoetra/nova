@@ -525,7 +525,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
             { discordId: player.discordId },
             { $set: { hp: newStats.maxHp, stamina: player.maxStamina } },
           );
-          runState.log.push(t('common:levelup', { level: levelUp.level }));
+          runState.log.push(t('common:status.levelup', { level: levelUp.level }));
         }
         dungeonData.inRun = false;
         dungeonData.floorState = null;

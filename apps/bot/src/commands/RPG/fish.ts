@@ -94,7 +94,7 @@ export class FishCommand extends Command {
       const stats = await getPlayerStats(user);
       user.hp = stats.maxHp;
       user.stamina = user.maxStamina;
-      levelUpText = `${t('common:levelup', { level: user.level })}`;
+      levelUpText = `${t('common:status.levelup', { level: user.level })}`;
     }
 
     await user.save();

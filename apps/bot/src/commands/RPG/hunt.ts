@@ -261,7 +261,7 @@ export class HuntCommand extends Command {
       const newStats = await getPlayerStats(user);
       user.hp = newStats.maxHp;
       user.stamina = user.maxStamina;
-      levelUpText = t('common:levelup', {
+      levelUpText = t('common:status.levelup', {
         level: user.level,
         defaultValue: `🎉 LEVEL UP → ${levelUp.level}!`,
       });
