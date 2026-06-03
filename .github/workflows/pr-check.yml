@@ -11,6 +11,7 @@ on:
       - 'packages/**'
       - 'package*.json'
       - 'tsconfig*.json'
+      - '.github/workflows/**'
 
 jobs:
   test:
