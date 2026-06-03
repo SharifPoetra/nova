@@ -29,7 +29,7 @@ jobs:
         run: npm ci
 
       - name: Build packages & apps
-        run: npm run build --workspaces
+        run: npm run build
 
       - name: Lint
         run: npm run lint --if-present
