@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { PermissionFlagsBits } from 'discord.js';
+import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand';
 import { BASE_MONSTERS } from '../../lib/rpg/monsters';
 import { EXPLORES } from '../../lib/rpg/explorations';
 import { FISHES } from '../../lib/rpg/fishes';
@@ -11,25 +12,22 @@ import { CRAFTING_RECIPES } from '../../lib/rpg/crafting-recipes';
 
 @ApplyOptions({
   name: 'giveall',
-  description: 'Owner: kasih semua item',
-  preconditions: ['OwnerOnly'],
+  description: 'Give all available items (Owner only)',
 })
-export class GiveAllCommand extends Command {
-  public override registerApplicationCommands(r: Command.Registry) {
-    r.registerChatInputCommand((b) =>
-      b
-        .setName(this.name)
-        .setDescription(this.description)
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-        .addUserOption((o) => o.setName('target').setDescription('User').setRequired(false))
-        .addIntegerOption((o) =>
-          o.setName('qty').setDescription('Jumlah').setMinValue(1).setMaxValue(999).setRequired(false),
-        ),
-    );
+export class GiveAllCommand extends OwnerDevCommand {
+  protected configure(builder: SlashCommandBuilder) {
+    return builder
+      .setName(this.name)
+      .setDescription(this.description)
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+      .addUserOption((o) => o.setName('target').setDescription('User').setRequired(false))
+      .addIntegerOption((o) =>
+        o.setName('qty').setDescription('Jumlah').setMinValue(1).setMaxValue(999).setRequired(false),
+      );
   }
 
-  public async chatInputRun(i) {
-    await i.deferReply({ ephemeral: true });
+  public async chatInputRun(i: Command.ChatInputCommandInteraction) {
+    await i.deferReply({ flags: MessageFlags.Ephemeral });
     const target = i.options.getUser('target') ?? i.user;
     const qty = i.options.getInteger('qty') ?? 99;
     const map = new Map<string, any>();
