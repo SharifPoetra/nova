@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { EmbedBuilder, MessageFlags, PermissionFlagsBits } from 'discord.js';
+import { EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand';
 import { fetchT } from '@sapphire/plugin-i18next';
 import { catchFish } from '../../lib/rpg/fishes';
 import { rollExplore } from '../../lib/rpg/explorations';
@@ -11,30 +12,27 @@ import { i18nFish, i18nMonster, i18nEvent } from '../../lib/i18n/display';
 @ApplyOptions<Command.Options>({
   name: 'simdroprate',
   description: 'Run drop rate simulation (Owner only)',
-  preconditions: ['OwnerOnly'],
 })
-export class SimDroprateCommand extends Command {
-  public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand((b) =>
-      b
-        .setName(this.name)
-        .setDescription(this.description)
-        .addStringOption((o) =>
-          o
-            .setName('type')
-            .setDescription('fish/explore/hunt')
-            .setRequired(true)
-            .addChoices(
-              { name: 'Fish', value: 'fish' },
-              { name: 'Explore', value: 'explore' },
-              { name: 'Hunt', value: 'hunt' },
-            ),
-        )
-        .addIntegerOption((o) =>
-          o.setName('amount').setDescription('100-10000').setMinValue(100).setMaxValue(10000).setRequired(true),
-        )
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    );
+export class SimDroprateCommand extends OwnerDevCommand {
+  protected configure(builder: SlashCommandBuilder) {
+    return builder
+      .setName(this.name)
+      .setDescription(this.description)
+      .addStringOption((o) =>
+        o
+          .setName('type')
+          .setDescription('fish/explore/hunt')
+          .setRequired(true)
+          .addChoices(
+            { name: 'Fish', value: 'fish' },
+            { name: 'Explore', value: 'explore' },
+            { name: 'Hunt', value: 'hunt' },
+          ),
+      )
+      .addIntegerOption((o) =>
+        o.setName('amount').setDescription('100-10000').setMinValue(100).setMaxValue(10000).setRequired(true),
+      )
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
   }
 
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {

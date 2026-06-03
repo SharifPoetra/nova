@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { codeBlock, EmbedBuilder, MessageFlags } from 'discord.js';
+import { codeBlock, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
+import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand';
 import util from 'node:util';
 
 const SENSITIVE_PATTERNS = [
@@ -21,20 +22,17 @@ const SENSITIVE_PATTERNS = [
 @ApplyOptions<Command.Options>({
   name: 'eval',
   description: 'Owner eval (free access, filtered)',
-  preconditions: ['OwnerOnly'],
 })
-export class EvalCommand extends Command {
-  public override registerApplicationCommands(r: Command.Registry) {
-    r.registerChatInputCommand((b) =>
-      b
-        .setName(this.name)
-        .setDescription(this.description)
-        .addStringOption((o) => o.setName('code').setDescription('JS code').setRequired(true))
-        .addIntegerOption((o) =>
-          o.setName('depth').setDescription('Inspect depth (0-5)').setMinValue(0).setMaxValue(5).setRequired(false),
-        )
-        .addBooleanOption((o) => o.setName('ephemeral').setDescription('Hide output').setRequired(false)),
-    );
+export class EvalCommand extends OwnerDevCommand {
+  protected configure(builder: SlashCommandBuilder) {
+    return builder
+      .setName(this.name)
+      .setDescription(this.description)
+      .addStringOption((o) => o.setName('code').setDescription('JS code').setRequired(true))
+      .addIntegerOption((o) =>
+        o.setName('depth').setDescription('Inspect depth (0-5)').setMinValue(0).setMaxValue(5).setRequired(false),
+      )
+      .addBooleanOption((o) => o.setName('ephemeral').setDescription('Hide output').setRequired(false));
   }
 
   public async chatInputRun(i: Command.ChatInputCommandInteraction) {
