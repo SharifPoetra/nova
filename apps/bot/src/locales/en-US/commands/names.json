@@ -1,4 +1,6 @@
 {
+  "explore": "explore",
+  "giveall": "giveall",
   "reset": "reset",
   "daily": "daily",
   "shop": "shop",
@@ -10,6 +12,7 @@
   "simdroprate": "simdroprate",
   "droprate": "droprate",
   "cook": "cook",
+  "craft": "craft",
   "profile": "profile",
   "ping": "ping",
   "hunt": "hunt",

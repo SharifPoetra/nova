@@ -11,11 +11,13 @@
   "simdroprate": "Jalankan simulasi drop rate (Owner only)",
   "droprate": "Lihat drop rate detail untuk fish, explore, dan hunt",
   "cook": "Masak untuk heal atau buff",
+  "craft": "Membuat equipment dari bahan-bahan",
   "profile": "Melihat profil lengkap Ekonomi dan RPG kamu di Nova",
   "ping": "Cek respon bot Nova",
   "help": "Lihat semua command Nova",
   "hunt": "Berburu monster",
   "lang": "Ubah bahasa bot untuk kamu atau server",
+  "giveall": "Berikan semua item yang tersedia (Owner only)",
   
   "help_option_command": "Lihat detail command",
   "profile_option_user": "User yang ingin dilihat"

@@ -22,7 +22,7 @@ export class InvConsumableHandler extends InteractionHandler {
 
     if (interaction.user.id !== userId)
       return interaction.reply({
-        content: t('errors:not_your_inventory', { defaultValue: 'Not your inventory!' }),
+        content: t('common:error.not_yours', { defaultValue: 'Not your inventory!' }),
         flags: MessageFlags.Ephemeral,
       });
 

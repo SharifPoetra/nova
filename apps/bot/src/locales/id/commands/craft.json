@@ -1,4 +1,7 @@
 {
+  "extended_help": "Buka Nova Forge untuk membuat equipment dari material yang kamu kumpulkan.\n\n**Cara pakai:**\n• `/craft` — Lihat semua resep yang bisa dibuat\n• `/craft category:weapon` — Filter berdasarkan kategori\n• `/craft recipe:iron_sword` — Langsung craft (ada autocomplete)\n\n**Syarat:**\n• Punya material yang cukup di inventory (dari /explore atau /hunt)\n• Level memenuhi syarat\n• Menghabiskan {{cost}} stamina setiap craft\n\nTip: Pakai menu dropdown untuk cek bahan sebelum craft.",
+  "usage": "/craft [category] [recipe]",
+  "examples": "/craft\n/craft category:tool\n/craft recipe:wooden_rod",
   "choose": "Pilih resep — Halaman {{page}}/{{total}}",
   "none": "📦 Gak ada yang bisa di-craft! Cari bahan di /explore atau /hunt",
   "need_stamina": "⚡ Butuh {{cost}} stamina",

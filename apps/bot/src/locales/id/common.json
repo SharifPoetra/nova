@@ -26,7 +26,9 @@
 
     "handler_failed_title": "❌ Terjadi Error",
     "handler_failed_desc": "Handler `{{handler}}` gagal dijalankan.\n\n**Error ID:** `{{id}}`",
-    "handler_failed_footer": "Laporkan ID ini ke developer"
+    "handler_failed_footer": "Laporkan ID ini ke developer",
+
+    "precondition_owner_only": "Hanya owner yang boleh menggunakan command ini."
   },
   "resource": {
     "coins": "Koin",

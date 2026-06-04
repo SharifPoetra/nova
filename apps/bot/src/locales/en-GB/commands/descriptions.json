@@ -11,11 +11,13 @@
   "simdroprate": "Run drop rate simulation (Owner only)",
   "droprate": "View detailed drop rates for fish, explore, and hunt",
   "cook": "Cook food to heal or buff",
+  "craft": "Craft equipment from materials",
   "profile": "View your Nova RPG profile",
   "ping": "Check Nova bot response",
   "help": "View all Nova commands",
   "hunt": "Hunt monsters",
   "lang": "Change bot language for you or the server",
+  "giveall": "Give all available items (Owner only)",
 
   "help_option_command": "View command details",
   "profile_option_user": "User to view"

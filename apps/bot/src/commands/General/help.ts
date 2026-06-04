@@ -10,6 +10,7 @@ import {
 } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
 import { localized } from '../../lib/i18n/localize';
+import { ACTION_COST } from '../../lib/rpg/actions';
 
 @ApplyOptions<Command.Options>({
   name: 'help',
@@ -52,7 +53,12 @@ export class HelpCommand extends Command {
 
     return new EmbedBuilder()
       .setTitle(`/${cmd.name}`)
-      .setDescription(t(`${key}:extended_help`, { defaultValue: cmd.description }))
+      .setDescription(
+        t(`${key}:extended_help`, {
+          cost: ACTION_COST[cmd.name as keyof typeof ACTION_COST] ?? 0,
+          defaultValue: cmd.description,
+        }),
+      )
       .setColor(0x5865f2)
       .addFields(
         {

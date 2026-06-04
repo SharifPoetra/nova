@@ -26,7 +26,9 @@
 
     "handler_failed_title": "❌ Error Occurred",
     "handler_failed_desc": "Handler `{{handler}}` failed to execute.\n\n**Error ID:** `{{id}}`",
-    "handler_failed_footer": "Report this ID to the developer"
+    "handler_failed_footer": "Report this ID to the developer",
+
+    "precondition_owner_only": "Only the owner can use this command."
   },
   "resource": {
     "coins": "Coins",
