@@ -8,6 +8,8 @@
   "exhausted": " 😮‍💨 Exhausted",
   "skill_not_found": "❌ Skill not found",
   "skill_cooldown": "⏳ {{name}}: {{reason}}",
+  "cooldown_turns": "Cooldown {{cd}} turns",
+  "low_stamina_skill": "Low stamina ({{current}}/{{need}})",
   "dodge": "💨 You dodged!",
   "stunned": "💫 {{name}} is stunned!",
   "mana_shield": "🔮 Mana Shield absorbed {{amount}}!",

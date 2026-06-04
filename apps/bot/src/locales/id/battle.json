@@ -8,6 +8,8 @@
   "exhausted": " 😮‍💨 Kelelahan",
   "skill_not_found": "❌ Skill tidak ditemukan",
   "skill_cooldown": "⏳ {{name}}: {{reason}}",
+  "cooldown_turns": "Cooldown {{cd}} turn",
+  "low_stamina_skill": "Stamina rendah ({{current}}/{{need}})",
   "dodge": "💨 Kamu menghindar!",
   "stunned": "💫 {{name}} terkena stun!",
   "mana_shield": "🔮 Mana Shield menyerap {{amount}}!",
