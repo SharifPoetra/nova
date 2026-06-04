@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = process.cwd();
-const SRC = path.join(ROOT, 'src');
+const SRC = fs.existsSync(path.join(ROOT, 'apps/bot/src')) ? path.join(ROOT, 'apps/bot/src') : path.join(ROOT, 'src');
 const LOCALES_DIR = path.join(SRC, 'locales');
 const SUPPORTED = ['en-US', 'en-GB', 'id'] as const;
 
@@ -111,8 +111,8 @@ function loadLocale(locale: string) {
             }
           };
           flatten(json);
-        } catch {
-          /* ignore */
+        } catch (e: any) {
+          console.error(`${c.red}✗ Failed to parse ${path.relative(ROOT, p)}: ${e.message}${c.reset}`);
         }
       }
     }
