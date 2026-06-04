@@ -216,10 +216,8 @@ export const ITEM_I18N: Record<string, { ns: string; origin: string; dup?: boole
   worm_sushi: { ns: 'cook/items', origin: 'cook' },
 
   // ===== SHOP (4) - crafting-recipes.ts sisa =====
-  drake_claw: { ns: 'shop/items', origin: 'shop' },
-  root: { ns: 'shop/items', origin: 'shop' },
-  silk: { ns: 'shop/items', origin: 'shop' },
-  soul_wisp: { ns: 'shop/items', origin: 'shop' },
+  potion_stamina: { ns: 'shop/items', origin: 'shop' },
+  potion_hp: { ns: 'shop/items', origin: 'shop' },
 };
 
 export async function getItemDisplay(itemId: string, t: TFunction) {

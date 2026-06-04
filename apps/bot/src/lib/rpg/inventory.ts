@@ -10,7 +10,7 @@ import {
   type IUser,
 } from '@nova/db';
 import type { TFunction } from 'i18next';
-import { getItemDisplay } from './item-registry';
+import { getItemDisplay } from '../i18n/item-registry';
 import { getPlayerStats } from './combat';
 
 const ITEMS_PER_PAGE = 10;
