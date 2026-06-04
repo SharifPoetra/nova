@@ -2,6 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { codeBlock, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand';
+import { fetchT } from '@sapphire/plugin-i18next';
 import util from 'node:util';
 
 const SENSITIVE_PATTERNS = [
@@ -36,6 +37,7 @@ export class EvalCommand extends OwnerDevCommand {
   }
 
   public async chatInputRun(i: Command.ChatInputCommandInteraction) {
+    const t = await fetchT(i);
     const code = i.options.getString('code', true);
     const depth = i.options.getInteger('depth') ?? 1;
     const ephemeral = i.options.getBoolean('ephemeral') ?? true;
@@ -55,6 +57,7 @@ export class EvalCommand extends OwnerDevCommand {
         container: this.container,
         interaction: i,
         i,
+        t,
         guild: i.guild,
         channel: i.channel,
         user: i.user,
