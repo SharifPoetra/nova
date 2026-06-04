@@ -12,13 +12,9 @@
   "prev": "◀ Previous",
   "next": "Next ▶",
   "no_ingredients": "📦 No ingredients! Try /explore, /hunt, or /fish.",
-  "low_stamina": "⚡ Not enough stamina ({{current}}/{{need}})",
   "missing": "❌ Missing ingredients",
   "success_title": "🍳 Cooked {{name}}!",
   "success_desc": "cooked successfully!",
-  "buff_atk": "ATK",
-  "buff_def": "DEF",
-  "buff_stamina_regen": "Regen",
   "not_yours": "This is not your stove 😅",
   "added": "Added to inventory",
   "when_used": "when used"

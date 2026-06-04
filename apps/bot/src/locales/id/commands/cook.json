@@ -12,13 +12,9 @@
   "prev": "◀ Sebelumnya",
   "next": "Berikutnya ▶",
   "no_ingredients": "📦 Tidak ada bahan! Coba /explore, /hunt, atau /fish.",
-  "low_stamina": "⚡ Stamina tidak cukup ({{current}}/{{need}})",
   "missing": "❌ Bahan kurang",
   "success_title": "🍳 Berhasil masak {{name}}!",
   "success_desc": "berhasil dimasak!",
-  "buff_atk": "ATK",
-  "buff_def": "DEF",
-  "buff_stamina_regen": "Regen",
   "not_yours": "Ini bukan kompor kamu 😅",
   "added": "Ditambahkan ke inventory",
   "when_used": "saat digunakan"
