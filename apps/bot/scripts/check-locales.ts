@@ -100,7 +100,7 @@ function findKeys(): Map<string, { file: string; line: number }[]> {
     add(`commands/descriptions:${name}`, dummyFile, '', 0);
   }
 
-  const reg = path.join(SRC, 'lib/rpg/item-registry.ts');
+  const reg = path.join(SRC, 'lib/i18n/item-registry.ts');
   if (fs.existsSync(reg)) {
     const txt = fs.readFileSync(reg, 'utf8');
     const re = /^\s*([a-z0-9_]+):\s*\{\s*ns:\s*['"`]([^'"`]+)['"`]/gm;

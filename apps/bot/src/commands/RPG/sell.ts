@@ -15,7 +15,7 @@ import {
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT, TFunction } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { getItemDisplay } from '../../lib/rpg/item-registry';
+import { getItemDisplay } from '../../lib/i18n/item-registry';
 
 import sellEn from '../../locales/en-US/commands/sell.json';
 import sellId from '../../locales/id/commands/sell.json';

@@ -16,7 +16,7 @@ import { BASE_MONSTERS } from '../../lib/rpg/monsters';
 import { getExpNeeded } from '../../lib/rpg/leveling';
 import { SKILLS } from '../../lib/rpg/skills';
 import { i18nMonster } from '../../lib/i18n/display';
-import { getItemDisplay } from '../../lib/rpg/item-registry';
+import { getItemDisplay } from '../../lib/i18n/item-registry';
 import { getBackgroundInfo } from '../../lib/canvas/backgrounds';
 import { COLORS, formatNumber } from '../../lib/utils';
 import { getItemById } from '../../lib/shop/categories';

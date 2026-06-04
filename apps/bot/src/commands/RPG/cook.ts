@@ -10,7 +10,7 @@ import {
   ChatInputCommandInteraction,
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { getItemDisplay } from '../../lib/rpg/item-registry';
+import { getItemDisplay } from '../../lib/i18n/item-registry';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { RECIPES, COOKED_ITEMS } from '../../lib/rpg/cooking-recipes';
 import { ACTION_COST } from '../../lib/rpg/actions';

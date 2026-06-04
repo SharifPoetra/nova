@@ -10,7 +10,7 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 import { getPlayerStats, resetSkillCooldowns } from '../../lib/rpg/combat';
 import { addItemToInventory } from '../../lib/rpg/inventory';
 import { i18nMonster } from '../../lib/i18n/display';
-import { getItemDisplay } from '../../lib/rpg/item-registry';
+import { getItemDisplay } from '../../lib/i18n/item-registry';
 import { BattleEngine, type EnemyStats } from '../../lib/rpg/battle-engine';
 import { elementTable, ELEMENT_EMOJI } from '../../lib/rpg/combat';
 
