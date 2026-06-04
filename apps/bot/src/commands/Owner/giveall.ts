@@ -81,6 +81,6 @@ export class GiveAllCommand extends OwnerDevCommand {
 
     user.items = ALL.map((x) => ({ itemId: x.itemId, qty }));
     await user.save();
-    return i.editReply(t('commands/giveall:succes', { username: target.username, count: ALL.length, qty }));
+    return i.editReply(t('commands/giveall:success', { username: target.username, count: ALL.length, qty }));
   }
 }
