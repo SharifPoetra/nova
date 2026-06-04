@@ -43,7 +43,7 @@ function findCommandNames(): string[] {
   const names = new Set<string>();
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf8');
-    const re = /@ApplyOptions\(\s*\{[^}]*?name\s*:\s*['"`]([a-z0-9_-]+)['"`]/gi;
+    const re = /@ApplyOptions(?:<[^>]+>)?\(\s*\{[\s\S]*?name\s*:\s*['"`]([a-z0-9_-]+)['"`]/gi;
     let m;
     while ((m = re.exec(content))) names.add(m[1].toLowerCase());
   }
@@ -87,6 +87,18 @@ function findKeys(): Map<string, { file: string; line: number }[]> {
     while ((m = re2.exec(content))) add(`${m[1]}/items:${m[2]}.name`, file, content, m.index);
     const re3 = /i18nItemDesc\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
     while ((m = re3.exec(content))) add(`${m[1]}/items:${m[2]}.desc`, file, content, m.index);
+    const re4 = /i18nFish(?:Desc)?\s*\(\s*['"`]([^'"`]+)['"`]/g;
+    while ((m = re4.exec(content))) {
+      add(`fish/species:${m[1]}.name`, file, content, m.index);
+      add(`fish/species:${m[1]}.desc`, file, content, m.index);
+    }
+    const re5 = /i18nEvent\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
+    while ((m = re5.exec(content))) add(`${m[1]}/events:${m[2]}.text`, file, content, m.index);
+
+    const reLiteral = /['"`]([a-z]+\/[a-z]+:[a-z0-9_.]+)['"`]/g;
+    while ((m = reLiteral.exec(content))) {
+      add(m[1], file, content, m.index);
+    }
   }
 
   const cmdNames = findCommandNames();
@@ -103,7 +115,7 @@ function findKeys(): Map<string, { file: string; line: number }[]> {
   const reg = path.join(SRC, 'lib/i18n/item-registry.ts');
   if (fs.existsSync(reg)) {
     const txt = fs.readFileSync(reg, 'utf8');
-    const re = /^\s*([a-z0-9_]+):\s*\{\s*ns:\s*['"`]([^'"`]+)['"`]/gm;
+    const re = /([a-z0-9_]+)\s*:\s*\{\s*ns\s*:\s*['"`]([^'"`]+)['"`]/g;
     let m;
     while ((m = re.exec(txt))) {
       add(`${m[2]}:${m[1]}.name`, reg, txt, m.index);
