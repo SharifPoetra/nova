@@ -133,6 +133,7 @@ const client = new SapphireClient({
         'commands/daily',
         'commands/reset',
         'commands/craft',
+        'commands/bgdesign',
       ],
     },
   },

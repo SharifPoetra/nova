@@ -1,10 +1,12 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { AttachmentBuilder, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import { createCanvas } from '@napi-rs/canvas';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand';
+import { localized } from '../../lib/i18n/localize';
+import { fetchT } from '@sapphire/plugin-i18next';
 
 type Palette = { c1: string; c2: string; accent: string };
 
@@ -28,7 +30,23 @@ const PALETTES: Record<string, Palette> = {
   description: 'Advanced background designer for profile cards (Owner only)',
 })
 export class BgDesignCommand extends OwnerDevCommand {
+  public override registerApplicationCommands(registry: Command.Registry) {
+    const name = localized('commands/names:bgdesign');
+    const description = localized('commands/descriptions:bgdesign');
+
+    registry.registerChatInputCommand((builder) =>
+      this.configure(
+        builder
+          .setName(name.default)
+          .setNameLocalizations(name.localizations)
+          .setDescription(description.default)
+          .setDescriptionLocalizations(description.localizations),
+      ),
+    );
+  }
+
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    const t = await fetchT(interaction);
     const style = interaction.options.getString('style', true);
     const paletteName = interaction.options.getString('palette', true);
     const pattern = interaction.options.getString('pattern') || 'none';
@@ -215,48 +233,54 @@ export class BgDesignCommand extends OwnerDevCommand {
     }
 
     const buf = format === 'jpg' ? await canvas.encode('jpeg', 85) : await canvas.encode('png');
-
     const baseName =
       style === 'default' ? 'default' : `${style}-${paletteName}${pattern !== 'none' ? `-${pattern}` : ''}`;
     const filename = `${baseName}.${format}`;
     const file = new AttachmentBuilder(buf, { name: filename });
 
-    // === SAVE TO DISK JIKA DIMINTA ===
     if (save) {
       const saveDir = join(__dirname, '../../../assets/backgrounds');
       if (!existsSync(saveDir)) mkdirSync(saveDir, { recursive: true });
-      const savedPath = join(saveDir, filename);
-      writeFileSync(savedPath, buf);
+      writeFileSync(join(saveDir, filename), buf);
     }
 
     const sizeKB = (buf.length / 1024).toFixed(1);
-    const sizeStatus = buf.length > 300 * 1024 ? '⚠️ Large' : buf.length > 200 * 1024 ? '⚡ Medium' : '✅ Optimized';
+    const sizeStatus =
+      buf.length > 300 * 1024
+        ? t('commands/bgdesign:size_large')
+        : buf.length > 200 * 1024
+          ? t('commands/bgdesign:size_medium')
+          : t('commands/bgdesign:size_opt');
 
     const embed = new EmbedBuilder()
-      .setTitle(style === 'default' ? 'Nova Default Background' : `Preview: ${style} / ${paletteName}`)
+      .setTitle(
+        style === 'default'
+          ? t('commands/bgdesign:default_title')
+          : t('commands/bgdesign:preview_title', { style, palette: paletteName }),
+      )
       .setDescription(
         style === 'default'
-          ? 'Original gradient #0f0c29 → #1b183a → #14142a'
-          : `**Pattern:** ${pattern} | **Intensity:** ${intensity}/10`,
+          ? t('commands/bgdesign:default_desc')
+          : t('commands/bgdesign:pattern_info', { pattern, intensity }),
       )
       .addFields(
-        { name: '📐 Dimensions', value: '`600×600`', inline: true },
-        { name: '💾 File Size', value: `\`${sizeKB} KB\` ${sizeStatus}`, inline: true },
-        { name: '🎨 Format', value: `\`${format.toUpperCase()}\``, inline: true },
-        ...(save ? [{ name: '✅ Saved', value: `\`assets/backgrounds/${filename}\``, inline: false }] : []),
+        { name: t('commands/bgdesign:dimensions'), value: '`600×600`', inline: true },
+        { name: t('commands/bgdesign:filesize'), value: `\`${sizeKB} KB\` ${sizeStatus}`, inline: true },
+        { name: t('commands/bgdesign:format'), value: `\`${format.toUpperCase()}\``, inline: true },
+        ...(save
+          ? [{ name: t('commands/bgdesign:saved'), value: `\`assets/backgrounds/${filename}\``, inline: false }]
+          : []),
       )
       .setImage(`attachment://${filename}`)
-      .setFooter({ text: save ? 'File saved to server' : 'Use save:true to write to disk' })
-      .setColor(style === 'default' ? 0x1b183a : (palette.accent as any));
+      .setFooter({ text: save ? t('commands/bgdesign:footer_save') : t('commands/bgdesign:footer_preview') })
+      .setColor(style === 'default' ? 0x1b183a : parseInt(palette.accent.replace('#', ''), 16));
 
     await interaction.editReply({ embeds: [embed], files: [file] });
   }
 
-  protected configure(builder: SlashCommandBuilder) {
+  protected configure(builder: any) {
     return builder
-      .setName(this.name)
-      .setDescription(this.description)
-      .addStringOption((opt) =>
+      .addStringOption((opt: any) =>
         opt
           .setName('style')
           .setDescription('Base style')
@@ -271,7 +295,7 @@ export class BgDesignCommand extends OwnerDevCommand {
             { name: 'Glow Orbs', value: 'glow_orbs' },
           ),
       )
-      .addStringOption((opt) =>
+      .addStringOption((opt: any) =>
         opt
           .setName('palette')
           .setDescription('Color theme')
@@ -280,7 +304,7 @@ export class BgDesignCommand extends OwnerDevCommand {
             ...Object.keys(PALETTES).map((k) => ({ name: k.charAt(0).toUpperCase() + k.slice(1), value: k })),
           ),
       )
-      .addStringOption((opt) =>
+      .addStringOption((opt: any) =>
         opt
           .setName('pattern')
           .setDescription('Overlay pattern')
@@ -292,18 +316,16 @@ export class BgDesignCommand extends OwnerDevCommand {
             { name: 'Noise', value: 'noise' },
           ),
       )
-      .addIntegerOption((opt) =>
+      .addIntegerOption((opt: any) =>
         opt.setName('intensity').setDescription('Pattern intensity 1-10').setMinValue(1).setMaxValue(10),
       )
-      .addStringOption((opt) => opt.setName('text').setDescription('Optional watermark text'))
-      .addStringOption((opt) =>
+      .addStringOption((opt: any) => opt.setName('text').setDescription('Optional watermark text'))
+      .addStringOption((opt: any) =>
         opt
           .setName('format')
           .setDescription('Export format')
           .addChoices({ name: 'PNG (lossless)', value: 'png' }, { name: 'JPG (small)', value: 'jpg' }),
       )
-      .addBooleanOption((opt) =>
-        opt.setName('save').setDescription('Save directly to assets/backgrounds (default false)'),
-      );
+      .addBooleanOption((opt: any) => opt.setName('save').setDescription('Save directly to assets/backgrounds'));
   }
 }

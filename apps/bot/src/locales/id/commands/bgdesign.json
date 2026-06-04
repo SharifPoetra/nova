@@ -1,0 +1,18 @@
+{
+  "usage": "/bgdesign style:<style> palette:<palette> [pattern] [intensity] [text] [format] [save]",
+  "extended_help": "Desainer background canggih untuk kartu profil. Buat background 600×600 dengan gradient, aurora, mesh, waves, glow orbs dan palet custom. Khusus Owner.",
+  "examples": "/bgdesign style:aurora palette:nebula pattern:dots intensity:7",
+  "default_title": "Background Default Nova",
+  "preview_title": "Preview: {{style}} / {{palette}}",
+  "default_desc": "Gradient asli #0f0c29 → #1b183a → #14142a",
+  "pattern_info": "**Pattern:** {{pattern}} | **Intensitas:** {{intensity}}/10",
+  "dimensions": "📐 Dimensi",
+  "filesize": "💾 Ukuran File",
+  "format": "🎨 Format",
+  "saved": "✅ Tersimpan",
+  "footer_save": "File tersimpan di server",
+  "footer_preview": "Gunakan save:true untuk simpan ke disk",
+  "size_large": "⚠️ Besar",
+  "size_medium": "⚡ Sedang",
+  "size_opt": "✅ Optimal"
+}
