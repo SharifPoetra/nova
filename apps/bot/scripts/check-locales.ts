@@ -8,7 +8,6 @@ const SRC = fs.existsSync(path.join(ROOT, 'apps/bot/src')) ? path.join(ROOT, 'ap
 const LOCALES_DIR = path.join(SRC, 'locales');
 const SUPPORTED = ['en-US', 'en-GB', 'id'] as const;
 
-// === WARNA ===
 const c = {
   reset: '\x1b[0m',
   bold: '\x1b[1m',
@@ -37,6 +36,20 @@ function getLineNumber(content: string, index: number): number {
   return content.substring(0, index).split('\n').length;
 }
 
+function findCommandNames(): string[] {
+  const cmdDir = path.join(SRC, 'commands');
+  if (!fs.existsSync(cmdDir)) return [];
+  const files = walk(cmdDir);
+  const names = new Set<string>();
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf8');
+    const re = /@ApplyOptions\(\s*\{[^}]*?name\s*:\s*['"`]([a-z0-9_-]+)['"`]/gi;
+    let m;
+    while ((m = re.exec(content))) names.add(m[1].toLowerCase());
+  }
+  return [...names];
+}
+
 function findKeys(): Map<string, { file: string; line: number }[]> {
   const files = walk(SRC);
   const keys = new Map<string, { file: string; line: number }[]>();
@@ -49,9 +62,9 @@ function findKeys(): Map<string, { file: string; line: number }[]> {
   ];
 
   const add = (key: string, file: string, content: string, idx: number) => {
-    if (key.includes('${') || key.includes('+') || !key.includes(':')) return;
+    if (!key || key.includes('${') || key.includes('+') || !key.includes(':')) return;
     const line = getLineNumber(content, idx);
-    const relFile = path.relative(SRC, file);
+    const relFile = path.relative(ROOT, file);
     if (!keys.has(key)) keys.set(key, []);
     keys.get(key)!.push({ file: relFile, line });
   };
@@ -60,12 +73,14 @@ function findKeys(): Map<string, { file: string; line: number }[]> {
     const content = fs.readFileSync(file, 'utf8');
     for (const regex of patterns) {
       let m;
-      while ((m = regex.exec(content))) {
-        add(m[1].trim(), file, content, m.index);
-      }
+      while ((m = regex.exec(content))) add(m[1].trim(), file, content, m.index);
     }
-    // dynamic helpers literal
+    const reApply = /applyLocalizedBuilder\s*\([^,]+,\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
     let m;
+    while ((m = reApply.exec(content))) {
+      add(m[1].trim(), file, content, m.index);
+      add(m[2].trim(), file, content, m.index);
+    }
     const re1 = /i18nMonster\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
     while ((m = re1.exec(content))) add(`${m[1]}/monsters:${m[2]}.name`, file, content, m.index);
     const re2 = /i18nItem\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
@@ -74,7 +89,17 @@ function findKeys(): Map<string, { file: string; line: number }[]> {
     while ((m = re3.exec(content))) add(`${m[1]}/items:${m[2]}.desc`, file, content, m.index);
   }
 
-  // === SCAN ITEM REGISTRY ===
+  const cmdNames = findCommandNames();
+  const dummyFile = 'dynamic:help.ts';
+  for (const name of cmdNames) {
+    if (!/^[a-z0-9_-]+$/.test(name)) continue;
+    add(`commands/${name}:usage`, dummyFile, '', 0);
+    add(`commands/${name}:extended_help`, dummyFile, '', 0);
+    add(`commands/${name}:examples`, dummyFile, '', 0);
+    add(`commands/names:${name}`, dummyFile, '', 0);
+    add(`commands/descriptions:${name}`, dummyFile, '', 0);
+  }
+
   const reg = path.join(SRC, 'lib/rpg/item-registry.ts');
   if (fs.existsSync(reg)) {
     const txt = fs.readFileSync(reg, 'utf8');
@@ -85,7 +110,6 @@ function findKeys(): Map<string, { file: string; line: number }[]> {
       add(`${m[2]}:${m[1]}.desc`, reg, txt, m.index);
     }
   }
-
   return keys;
 }
 
@@ -93,7 +117,6 @@ function loadLocale(locale: string) {
   const dir = path.join(LOCALES_DIR, locale);
   const data: Record<string, string> = {};
   if (!fs.existsSync(dir)) return data;
-
   const walkJson = (d: string) => {
     for (const e of fs.readdirSync(d, { withFileTypes: true })) {
       const p = path.join(d, e.name);
@@ -135,17 +158,33 @@ function main() {
       error = true;
       console.log(`${c.red}${c.bold}❌ ${key}${c.reset}`);
       console.log(` ${c.yellow}missing in:${c.reset} ${missing.map((m) => `${c.magenta}${m}${c.reset}`).join(', ')}`);
+
       const usages = keysMap.get(key)!;
-      const unique = [...new Map(usages.map((u) => [`${u.file}:${u.line}`, u])).values()]
-        .slice(0, 3)
-        .map((u) => `${c.reset}${u.file}:${u.line}${c.reset}`)
-        .join(', ');
-      console.log(` ${c.reset}used in:${c.reset} ${unique}`);
+      const unique = [...new Map(usages.map((u) => [`${u.file}:${u.line}`, u])).values()].slice(0, 3);
+      const isDynamic = unique.some((u) => u.file.startsWith('dynamic:'));
+
+      if (isDynamic) {
+        const cmd = key.match(/^commands\/([^:]+):/)?.[1];
+        console.log(` ${c.reset}used in: src/commands/*/${cmd}.ts (via help.ts)${c.reset}`);
+      } else {
+        console.log(` ${c.reset}used in: ${unique.map((u) => `${u.file}:${u.line}`).join(', ')}${c.reset}`);
+      }
     }
   }
 
+  const used = new Set(keysMap.keys());
+  const allLocaleKeys = new Set<string>();
+  locales.forEach((l) => Object.keys(l.data).forEach((k) => allLocaleKeys.add(k)));
+  const unused = [...allLocaleKeys].filter((k) => !used.has(k)).sort();
+
+  if (unused.length) {
+    console.log(`\n${c.yellow}${c.bold}⚠️ ${unused.length} unused keys${c.reset}`);
+    unused.slice(0, 30).forEach((k) => console.log(` ${k}`));
+    if (unused.length > 30) console.log(`...and ${unused.length - 30} more`);
+  }
+
   if (!error) {
-    console.log(`${c.green}${c.bold}✅ All keys present in en-US, en-GB, id${c.reset}`);
+    console.log(`\n${c.green}${c.bold}✅ All keys present in en-US, en-GB, id${c.reset}`);
   } else {
     process.exit(1);
   }
