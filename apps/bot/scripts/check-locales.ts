@@ -1,3 +1,5 @@
+// @ts-check
+/// <reference types="node" />
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -5,6 +7,17 @@ const ROOT = process.cwd();
 const SRC = path.join(ROOT, 'src');
 const LOCALES_DIR = path.join(SRC, 'locales');
 const SUPPORTED = ['en-US', 'en-GB', 'id'] as const;
+
+// === WARNA ===
+const c = {
+  reset: '\x1b[0m',
+  bold: '\x1b[1m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+};
 
 function walk(dir: string): string[] {
   const out: string[] = [];
@@ -35,23 +48,44 @@ function findKeys(): Map<string, { file: string; line: number }[]> {
     /resolveKey\s*\([^,]+,\s*['"`]([^'"`]+)['"`]/g,
   ];
 
+  const add = (key: string, file: string, content: string, idx: number) => {
+    if (key.includes('${') || key.includes('+') || !key.includes(':')) return;
+    const line = getLineNumber(content, idx);
+    const relFile = path.relative(SRC, file);
+    if (!keys.has(key)) keys.set(key, []);
+    keys.get(key)!.push({ file: relFile, line });
+  };
+
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf8');
     for (const regex of patterns) {
       let m;
       while ((m = regex.exec(content))) {
-        const key = m[1].trim();
-        if (key.includes('${') || key.includes('+')) continue;
-        if (!key.includes(':')) continue;
-
-        const line = getLineNumber(content, m.index);
-        const relFile = path.relative(SRC, file);
-
-        if (!keys.has(key)) keys.set(key, []);
-        keys.get(key)!.push({ file: relFile, line });
+        add(m[1].trim(), file, content, m.index);
       }
     }
+    // dynamic helpers literal
+    let m;
+    const re1 = /i18nMonster\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
+    while ((m = re1.exec(content))) add(`${m[1]}/monsters:${m[2]}.name`, file, content, m.index);
+    const re2 = /i18nItem\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
+    while ((m = re2.exec(content))) add(`${m[1]}/items:${m[2]}.name`, file, content, m.index);
+    const re3 = /i18nItemDesc\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
+    while ((m = re3.exec(content))) add(`${m[1]}/items:${m[2]}.desc`, file, content, m.index);
   }
+
+  // === SCAN ITEM REGISTRY ===
+  const reg = path.join(SRC, 'lib/rpg/item-registry.ts');
+  if (fs.existsSync(reg)) {
+    const txt = fs.readFileSync(reg, 'utf8');
+    const re = /^\s*([a-z0-9_]+):\s*\{\s*ns:\s*['"`]([^'"`]+)['"`]/gm;
+    let m;
+    while ((m = re.exec(txt))) {
+      add(`${m[2]}:${m[1]}.name`, reg, txt, m.index);
+      add(`${m[2]}:${m[1]}.desc`, reg, txt, m.index);
+    }
+  }
+
   return keys;
 }
 
@@ -90,7 +124,7 @@ function loadLocale(locale: string) {
 function main() {
   const keysMap = findKeys();
   const keys = [...keysMap.keys()].sort();
-  console.log(`🔍 Found ${keys.length} i18n keys\n`);
+  console.log(`${c.cyan}${c.bold}🔍 Found ${keys.length} i18n keys${c.reset}\n`);
 
   const locales = SUPPORTED.map((l) => ({ locale: l, data: loadLocale(l) }));
   let error = false;
@@ -99,19 +133,19 @@ function main() {
     const missing = locales.filter((l) => !(key in l.data)).map((l) => l.locale);
     if (missing.length) {
       error = true;
-      console.log(`❌ ${key}`);
-      console.log(`   missing in: ${missing.join(', ')}`);
+      console.log(`${c.red}${c.bold}❌ ${key}${c.reset}`);
+      console.log(` ${c.yellow}missing in:${c.reset} ${missing.map((m) => `${c.magenta}${m}${c.reset}`).join(', ')}`);
       const usages = keysMap.get(key)!;
       const unique = [...new Map(usages.map((u) => [`${u.file}:${u.line}`, u])).values()]
         .slice(0, 3)
-        .map((u) => `${u.file}:${u.line}`)
+        .map((u) => `${c.reset}${u.file}:${u.line}${c.reset}`)
         .join(', ');
-      console.log(`   used in: ${unique}`);
+      console.log(` ${c.reset}used in:${c.reset} ${unique}`);
     }
   }
 
   if (!error) {
-    console.log('✅ All keys present in en-US, en-GB, id');
+    console.log(`${c.green}${c.bold}✅ All keys present in en-US, en-GB, id${c.reset}`);
   } else {
     process.exit(1);
   }
