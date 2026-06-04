@@ -1,0 +1,19 @@
+{
+  "enemy_appeared": "{{emoji}} **{{name}}**{{tag}} appeared!",
+  "stamina_regen": "⚡ +{{gained}} Stamina ({{current}}/{{max}})",
+  "player_attack": "🗡️ You attack **{{damage}}**{{crit}}{{extra}}",
+  "crit": " 💥CRIT!",
+  "weak": " 💥 **WEAK!** {{emoji}}{{mult}}x",
+  "resist": " 🛡️ Resist {{mult}}x",
+  "exhausted": " 😮‍💨 Exhausted",
+  "skill_not_found": "❌ Skill not found",
+  "skill_cooldown": "⏳ {{name}}: {{reason}}",
+  "dodge": "💨 You dodged!",
+  "stunned": "💫 {{name}} is stunned!",
+  "mana_shield": "🔮 Mana Shield absorbed {{amount}}!",
+  "enemy_hit": "{{emoji}} {{name}} hits **{{damage}}**{{blocked}}{{crit}}",
+  "blocked": " (blocked {{amount}})",
+  "fled": "🏃 You fled!",
+  "tag_boss": " [BOSS]",
+  "tag_elite": " [ELITE]"
+}

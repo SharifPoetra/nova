@@ -60,6 +60,7 @@ export async function runInteractiveBattle(params: BattleParams) {
     },
     {
       onLog: (m) => battleLog.push(m),
+      t,
     },
   );
 

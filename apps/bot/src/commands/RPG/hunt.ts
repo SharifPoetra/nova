@@ -69,6 +69,7 @@ export class HuntCommand extends Command {
     };
     const engine = new BattleEngine(battleUser, enemy, {
       onLog: () => {},
+      t,
     });
     await engine.init();
     const playerClass = battleUser.class ?? 'warrior';

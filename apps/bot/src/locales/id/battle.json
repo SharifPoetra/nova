@@ -1,0 +1,19 @@
+{
+  "enemy_appeared": "{{emoji}} **{{name}}**{{tag}} muncul!",
+  "stamina_regen": "⚡ +{{gained}} Stamina ({{current}}/{{max}})",
+  "player_attack": "🗡️ Kamu menyerang **{{damage}}**{{crit}}{{extra}}",
+  "crit": " 💥CRIT!",
+  "weak": " 💥 **LEMAH!** {{emoji}}{{mult}}x",
+  "resist": " 🛡️ Resist {{mult}}x",
+  "exhausted": " 😮‍💨 Kelelahan",
+  "skill_not_found": "❌ Skill tidak ditemukan",
+  "skill_cooldown": "⏳ {{name}}: {{reason}}",
+  "dodge": "💨 Kamu menghindar!",
+  "stunned": "💫 {{name}} terkena stun!",
+  "mana_shield": "🔮 Mana Shield menyerap {{amount}}!",
+  "enemy_hit": "{{emoji}} {{name}} menyerang **{{damage}}**{{blocked}}{{crit}}",
+  "blocked": " (diblok {{amount}})",
+  "fled": "🏃 Kamu kabur!",
+  "tag_boss": " [BOSS]",
+  "tag_elite": " [ELITE]"
+}

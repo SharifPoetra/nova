@@ -39,12 +39,14 @@ export interface BattleResult {
 export interface BattleEngineOptions {
   allowFlee?: boolean;
   onLog?: (msg: string) => void;
+  t?: (key: string, opts?: any) => string;
 }
 
 export class BattleEngine {
   private user: IUser;
   private enemy: EnemyStats;
   private options: BattleEngineOptions;
+  private t: (key: string, opts?: any) => string;
 
   public playerStats: PlayerStats;
   public enemyHp: number;
@@ -60,12 +62,24 @@ export class BattleEngine {
     this.enemyHp = enemy.hp;
     this.options = options;
     this.playerStats = null as any;
+    this.t = options.t ?? ((k: string) => k);
   }
 
   async init() {
     this.playerStats = await getPlayerStats(this.user);
-    const tag = this.enemy.isBoss ? ' [BOSS]' : this.enemy.isElite ? ' [ELITE]' : '';
-    this.logPush(`${this.enemy.emoji} **${this.enemy.name}**${tag} appeared!`);
+    const tag = this.enemy.isBoss
+      ? this.t('battle:tag_boss', { defaultValue: ' [BOSS]' })
+      : this.enemy.isElite
+        ? this.t('battle:tag_elite', { defaultValue: ' [ELITE]' })
+        : '';
+    this.logPush(
+      this.t('battle:enemy_appeared', {
+        emoji: this.enemy.emoji,
+        name: this.enemy.name,
+        tag,
+        defaultValue: `${this.enemy.emoji} **${this.enemy.name}**${tag} appeared!`,
+      }),
+    );
   }
 
   public logPush(msg: string) {
@@ -79,13 +93,21 @@ export class BattleEngine {
 
   canUseSkill(skillId: string): { ok: boolean; reason?: string } {
     const skill = getSkill(skillId);
-    if (!skill) return { ok: false, reason: 'Skill not found' };
+    if (!skill) return { ok: false, reason: this.t('battle:skill_not_found', { defaultValue: 'Skill not found' }) };
 
     const cd = getSkillCooldown(this.user, skillId);
-    if (cd > 0) return { ok: false, reason: `Cooldown ${cd} turns` };
+    if (cd > 0)
+      return { ok: false, reason: this.t('battle:cooldown_turns', { cd, defaultValue: `Cooldown ${cd} turns` }) };
 
     if (this.user.stamina < skill.staminaCost) {
-      return { ok: false, reason: `Low stamina (${this.user.stamina}/${skill.staminaCost})` };
+      return {
+        ok: false,
+        reason: this.t('battle:low_stamina_skill', {
+          current: this.user.stamina,
+          need: skill.staminaCost,
+          defaultValue: `Low stamina (${this.user.stamina}/${skill.staminaCost})`,
+        }),
+      };
     }
 
     return { ok: true };
@@ -99,7 +121,14 @@ export class BattleEngine {
       this.user.stamina = Math.min(this.user.maxStamina, this.user.stamina + 2);
       const gained = this.user.stamina - before;
       if (gained > 0) {
-        this.logPush(`⚡ +${gained} Stamina (${this.user.stamina}/${this.user.maxStamina})`);
+        this.logPush(
+          this.t('battle:stamina_regen', {
+            gained,
+            current: this.user.stamina,
+            max: this.user.maxStamina,
+            defaultValue: `⚡ +${gained} Stamina (${this.user.stamina}/${this.user.maxStamina})`,
+          }),
+        );
       }
     }
 
@@ -118,23 +147,42 @@ export class BattleEngine {
       const mult = result.elementMult;
       const elemEmoji = ELEMENT_EMOJI[this.playerStats.element];
       let extra = '';
-      if (mult >= 1.5) extra = ` 💥 **WEAK!** ${elemEmoji}${mult.toFixed(1)}x`;
-      else if (mult <= 0.7) extra = ` 🛡️ Resist ${mult.toFixed(1)}x`;
-      if (isExhausted) extra += ` 😮‍💨 Exhausted`;
+      if (mult >= 1.5)
+        extra = this.t('battle:weak', {
+          emoji: elemEmoji,
+          mult: mult.toFixed(1),
+          defaultValue: ` 💥 **WEAK!** ${elemEmoji}${mult.toFixed(1)}x`,
+        });
+      else if (mult <= 0.7)
+        extra = this.t('battle:resist', { mult: mult.toFixed(1), defaultValue: ` 🛡️ Resist ${mult.toFixed(1)}x` });
+      if (isExhausted) extra += this.t('battle:exhausted', { defaultValue: ` 😮‍💨 Exhausted` });
 
-      this.logPush(`🗡️ You attack **${damage}**${isCrit ? ' 💥CRIT!' : ''}${extra}`);
+      this.logPush(
+        this.t('battle:player_attack', {
+          damage,
+          crit: isCrit ? this.t('battle:crit', { defaultValue: ' 💥CRIT!' }) : '',
+          extra,
+          defaultValue: `🗡️ You attack **${damage}**${isCrit ? ' 💥CRIT!' : ''}${extra}`,
+        }),
+      );
 
       this.user.stamina = Math.max(0, this.user.stamina - 3);
     } else {
       const skill = getSkill(skillId);
       if (!skill) {
-        this.logPush('❌ Skill not found');
+        this.logPush(this.t('battle:skill_not_found', { defaultValue: '❌ Skill not found' }));
         return { damage: 0, isCrit: false, healed: 0 };
       }
 
       const check = this.canUseSkill(skillId);
       if (!check.ok) {
-        this.logPush(`⏳ ${skill.name}: ${check.reason}`);
+        this.logPush(
+          this.t('battle:skill_cooldown', {
+            name: skill.name,
+            reason: check.reason,
+            defaultValue: `⏳ ${skill.name}: ${check.reason}`,
+          }),
+        );
         return { damage: 0, isCrit: false, healed: 0 };
       }
 
@@ -142,7 +190,7 @@ export class BattleEngine {
         user: this.user,
         stats: this.playerStats,
         enemy: { hp: this.enemyHp, def: this.enemy.def, element: this.enemy.element },
-        t: (k) => k,
+        t: this.t,
         addBuff: (type, value, duration) => {
           this.user.buffs.push({
             type: type as any,
@@ -177,13 +225,15 @@ export class BattleEngine {
   enemyAttack(): { damage: number; isCrit: boolean; blocked: number } {
     const dodgeChance = (this.playerStats as any).dodge ?? 0;
     if (Math.random() < dodgeChance) {
-      this.logPush(`💨 You dodged!`);
+      this.logPush(this.t('battle:dodge', { defaultValue: `💨 You dodged!` }));
       return { damage: 0, isCrit: false, blocked: 0 };
     }
 
     if (this.enemyStunned > 0) {
       this.enemyStunned--;
-      this.logPush(`💫 ${this.enemy.name} is stunned!`);
+      this.logPush(
+        this.t('battle:stunned', { name: this.enemy.name, defaultValue: `💫 ${this.enemy.name} is stunned!` }),
+      );
       return { damage: 0, isCrit: false, blocked: 0 };
     }
 
@@ -217,7 +267,13 @@ export class BattleEngine {
       const staminaCost = Math.min(absorb, this.user.stamina);
       damage -= staminaCost;
       this.user.stamina -= staminaCost;
-      if (staminaCost > 0) this.logPush(`🔮 Mana Shield absorbed ${staminaCost}!`);
+      if (staminaCost > 0)
+        this.logPush(
+          this.t('battle:mana_shield', {
+            amount: staminaCost,
+            defaultValue: `🔮 Mana Shield absorbed ${staminaCost}!`,
+          }),
+        );
     }
 
     damage = Math.max(1, damage);
@@ -225,7 +281,14 @@ export class BattleEngine {
     this.totalTaken += damage;
 
     this.logPush(
-      `${this.enemy.emoji} ${this.enemy.name} hits **${damage}**${blocked ? ` (blocked ${blocked})` : ''}${result.isCrit ? ' 💥' : ''}`,
+      this.t('battle:enemy_hit', {
+        emoji: this.enemy.emoji,
+        name: this.enemy.name,
+        damage,
+        blocked: blocked ? this.t('battle:blocked', { amount: blocked, defaultValue: ` (blocked ${blocked})` }) : '',
+        crit: result.isCrit ? ' 💥' : '',
+        defaultValue: `${this.enemy.emoji} ${this.enemy.name} hits **${damage}**${blocked ? ` (blocked ${blocked})` : ''}${result.isCrit ? ' 💥' : ''}`,
+      }),
     );
 
     return { damage, isCrit: result.isCrit, blocked };
@@ -277,7 +340,7 @@ export async function runBattle(
     const action = await actionProvider();
 
     if (action === 'flee' && options.allowFlee) {
-      engine.logPush('🏃 You fled!');
+      engine.logPush(engine['t']('battle:fled', { defaultValue: '🏃 You fled!' }));
       break;
     }
 

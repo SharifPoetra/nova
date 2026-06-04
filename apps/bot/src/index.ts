@@ -99,6 +99,7 @@ const client = new SapphireClient({
       supportedLngs: ['id', 'en-US', 'en-GB'],
       preload: ['id', 'en-US', 'en-GB'],
       ns: [
+        'battle',
         'common',
         'dungeon/items',
         'dungeon/monsters',
