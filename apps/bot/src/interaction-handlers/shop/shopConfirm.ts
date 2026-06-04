@@ -27,7 +27,7 @@ export class ShopConfirmHandler extends InteractionHandler {
     // User validation
     if (interaction.user.id !== userId) {
       return interaction.reply({
-        content: t('commands/shop:not_yours', { defaultValue: 'This is not your shop 😅' }),
+        content: t('common:error.not_yours'),
         ephemeral: true,
       });
     }

@@ -41,7 +41,7 @@ export class ShopPreviewHandler extends InteractionHandler {
     // User validation
     if (interaction.user.id !== userId) {
       return interaction.reply({
-        content: t('commands/shop:not_yours', { defaultValue: 'This is not your shop 😅' }),
+        content: t('common:error.not_yours'),
         ephemeral: true,
       });
     }
@@ -189,11 +189,11 @@ export class ShopPreviewHandler extends InteractionHandler {
       const buttons = [
         new ButtonBuilder()
           .setCustomId(`shop_confirm_${userId}_backgrounds_bg_${bgId}_${pageStr}`)
-          .setLabel(t('commands/shop:confirm_buy', { defaultValue: 'Confirm & Buy' }))
+          .setLabel(t('common:ui.confirm'))
           .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
           .setCustomId(`shop_cat_${userId}_backgrounds_${pageStr}`)
-          .setLabel(t('common:ui.cancel', { defaultValue: 'Cancel' }))
+          .setLabel(t('common:ui.cancel'))
           .setStyle(ButtonStyle.Secondary),
       ];
 
