@@ -1,7 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { RARITY_COLOR, RARITY_ORDER } from '../utils';
 import {
-  User,
   Item,
   type IItem,
   type IItemEffect,
@@ -202,12 +201,12 @@ export async function renderInventoryPage(
       new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId(`inv_prev_${page}_${user.discordId}`)
-          .setLabel('◀ Previous')
+          .setLabel(t('common:ui.prev'))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(page <= 0),
         new ButtonBuilder()
           .setCustomId(`inv_next_${page}_${user.discordId}`)
-          .setLabel('Next ▶')
+          .setLabel(t('common:ui.next'))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(page >= totalPages - 1),
       ),
@@ -217,12 +216,12 @@ export async function renderInventoryPage(
     new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`inv_equip_view_${user.discordId}_0`)
-        .setLabel('Equipments')
+        .setLabel(t('commands/inventory:equipment'))
         .setStyle(ButtonStyle.Primary)
         .setEmoji('⚔️'),
       new ButtonBuilder()
         .setCustomId(`inv_consumable_view_${user.discordId}_0`)
-        .setLabel('Consumables')
+        .setLabel(t('commands/inventory:consumable'))
         .setStyle(ButtonStyle.Primary)
         .setEmoji('🥤'),
     ),
@@ -297,7 +296,7 @@ export async function renderConsumablePage(container: any, user: RenderUser, pag
       new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
         new StringSelectMenuBuilder()
           .setCustomId(`inv_use_${user.discordId}_${page}`)
-          .setPlaceholder('Use consumable...')
+          .setPlaceholder(t('commands/inventory:use_placeholder'))
           .addOptions(options),
       ),
     );
