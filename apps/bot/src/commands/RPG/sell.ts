@@ -8,10 +8,12 @@ import {
   StringSelectMenuBuilder,
   ComponentType,
   ModalBuilder,
+  MessageFlags,
   TextInputBuilder,
   TextInputStyle,
+  LabelBuilder,
 } from 'discord.js';
-import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
+import { applyLocalizedBuilder, fetchT, TFunction } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { getItemDisplay } from '../../lib/rpg/item-registry';
 
@@ -142,7 +144,7 @@ export class SellCommand extends Command {
     user: any,
     items: any[],
     sellCart: Map<string, number>,
-    t: any,
+    t: TFunction,
   ) {
     const ITEMS_PER_PAGE = 10;
     let page = 0;
@@ -337,22 +339,28 @@ export class SellCommand extends Command {
           const itemId = i.values[0];
           const item = items.find((it) => it.itemId === itemId);
           if (!item) {
-            await i.reply({ content: t('commands/sell:not_found'), ephemeral: true });
+            await i.reply({ content: t('commands/sell:not_found'), flags: MessageFlags.Ephemeral });
             return;
           }
           const disp = displayMap.get(itemId);
-          const modal = new ModalBuilder()
-            .setCustomId(`sell_qty_${itemId}`)
-            .setTitle(t('commands/sell:set_title', { name: disp?.name ?? itemId }));
 
-          const input = new TextInputBuilder()
+          const textInput = new TextInputBuilder()
             .setCustomId('qty')
-            .setLabel(t('commands/sell:max_label', { max: item.qty }))
             .setStyle(TextInputStyle.Short)
             .setValue(String(sellCart.get(itemId) ?? item.qty))
-            .setRequired(true);
+            .setRequired(true)
+            .setMinLength(1)
+            .setMaxLength(6);
 
-          modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(input));
+          const label = new LabelBuilder()
+            .setLabel(t('commands/sell:max_label', { max: item.qty }).slice(0, 45))
+            .setTextInputComponent(textInput);
+
+          const modal = new ModalBuilder()
+            .setCustomId(`sell_qty_${itemId}`)
+            .setTitle(t('commands/sell:set_title', { name: disp?.name ?? itemId }))
+            .addComponents(label);
+
           await i.showModal(modal);
 
           const submitted = await i
