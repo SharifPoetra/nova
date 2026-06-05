@@ -1,6 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
-import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
+import { AttachmentBuilder, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import { createCanvas } from '@napi-rs/canvas';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -278,9 +278,9 @@ export class BgDesignCommand extends OwnerDevCommand {
     await interaction.editReply({ embeds: [embed], files: [file] });
   }
 
-  protected configure(builder: any) {
+  protected configure(builder: SlashCommandBuilder) {
     return builder
-      .addStringOption((opt: any) =>
+      .addStringOption((opt) =>
         opt
           .setName('style')
           .setDescription('Base style')
@@ -295,7 +295,7 @@ export class BgDesignCommand extends OwnerDevCommand {
             { name: 'Glow Orbs', value: 'glow_orbs' },
           ),
       )
-      .addStringOption((opt: any) =>
+      .addStringOption((opt) =>
         opt
           .setName('palette')
           .setDescription('Color theme')
@@ -304,7 +304,7 @@ export class BgDesignCommand extends OwnerDevCommand {
             ...Object.keys(PALETTES).map((k) => ({ name: k.charAt(0).toUpperCase() + k.slice(1), value: k })),
           ),
       )
-      .addStringOption((opt: any) =>
+      .addStringOption((opt) =>
         opt
           .setName('pattern')
           .setDescription('Overlay pattern')
@@ -316,16 +316,16 @@ export class BgDesignCommand extends OwnerDevCommand {
             { name: 'Noise', value: 'noise' },
           ),
       )
-      .addIntegerOption((opt: any) =>
+      .addIntegerOption((opt) =>
         opt.setName('intensity').setDescription('Pattern intensity 1-10').setMinValue(1).setMaxValue(10),
       )
-      .addStringOption((opt: any) => opt.setName('text').setDescription('Optional watermark text'))
-      .addStringOption((opt: any) =>
+      .addStringOption((opt) => opt.setName('text').setDescription('Optional watermark text'))
+      .addStringOption((opt) =>
         opt
           .setName('format')
           .setDescription('Export format')
           .addChoices({ name: 'PNG (lossless)', value: 'png' }, { name: 'JPG (small)', value: 'jpg' }),
       )
-      .addBooleanOption((opt: any) => opt.setName('save').setDescription('Save directly to assets/backgrounds'));
+      .addBooleanOption((opt) => opt.setName('save').setDescription('Save directly to assets/backgrounds'));
   }
 }
