@@ -62,7 +62,7 @@ export class ShopCategorySelectHandler extends InteractionHandler {
 
       if (interaction.customId.startsWith('shop_close_')) {
         return interaction.editReply({
-          content: t('commands/shop:shop_closed', { defaultValue: 'Shop closed.' }),
+          content: t('commands/shop:closed'}),
           embeds: [],
           components: [],
           files: [],

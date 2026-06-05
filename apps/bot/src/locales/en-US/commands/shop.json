@@ -49,7 +49,6 @@
   "select_placeholder": "Select a {{category}}",
   "set_active": "Set as Active",
   "set_active_success": "✅ Background Activated",
-  "shop_closed": "Shop closed.",
   "welcome": "Welcome to the Nova Shop! Select a category below to browse items.",
   "error": "❌ An error occurred."
 }
