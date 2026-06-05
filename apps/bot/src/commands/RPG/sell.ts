@@ -11,7 +11,7 @@ import {
   MessageFlags,
   TextInputBuilder,
   TextInputStyle,
-  LabelBuilder
+  LabelBuilder,
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT, TFunction } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
@@ -343,7 +343,7 @@ export class SellCommand extends Command {
             return;
           }
           const disp = displayMap.get(itemId);
-          
+
           const textInput = new TextInputBuilder()
             .setCustomId('qty')
             .setStyle(TextInputStyle.Short)
