@@ -1,13 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { RARITY_COLOR, RARITY_ORDER } from '../utils';
-import {
-  Item,
-  type IItem,
-  type IItemEffect,
-  type IEquipmentStat,
-  type EquipmentSlot,
-  type IUser,
-} from '@nova/db';
+import { Item, type IItem, type IItemEffect, type IEquipmentStat, type EquipmentSlot, type IUser } from '@nova/db';
 import type { TFunction } from 'i18next';
 import { getItemDisplay } from '../i18n/item-registry';
 import { getPlayerStats } from './combat';
