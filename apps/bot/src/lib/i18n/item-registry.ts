@@ -35,7 +35,7 @@ export const ITEM_I18N: Record<string, { ns: string; origin: string; dup?: boole
 
   // honey: { ns: 'explore/items', origin: 'explore', dup: true }, // juga di hunt
 
-  // ===== DUNGEON (32) - dungeon-data.ts =====
+  // ===== DUNGEON (35) - dungeon-data.ts =====
   absolute_shard: { ns: 'dungeon/items', origin: 'dungeon' },
   astral_fragment: { ns: 'dungeon/items', origin: 'dungeon' },
   charred_bone: { ns: 'dungeon/items', origin: 'dungeon' },
@@ -67,6 +67,9 @@ export const ITEM_I18N: Record<string, { ns: string; origin: string; dup?: boole
   stone_fragment: { ns: 'dungeon/items', origin: 'dungeon' },
   warden_cape: { ns: 'dungeon/items', origin: 'dungeon' },
   warden_chain: { ns: 'dungeon/items', origin: 'dungeon' },
+  arcane_page: { ns: 'dungeon/items', origin: 'dungeon' },
+  sky_feather: { ns: 'dungeon/items', origin: 'dungeon' },
+  star_fragment: { ns: 'dungeon/items', origin: 'dungeon' },
   star_blade: { ns: 'dungeon/items', origin: 'craft' },
   void_crown: { ns: 'dungeon/items', origin: 'craft' },
 
