@@ -24,12 +24,7 @@
   "bugs": {
     "url": "https://github.com/SharifPoetra/nova/issues"
   },
-  "keywords": [
-    "nova",
-    "mongodb",
-    "mongoose",
-    "discord-bot"
-  ],
+  "keywords": ["nova", "mongodb", "mongoose", "discord-bot"],
   "homepage": "https://github.com/SharifPoetra/nova#readme",
   "dependencies": {
     "mongoose": "^9.6.1"
