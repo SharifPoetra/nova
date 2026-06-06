@@ -8,7 +8,7 @@
   "lose_title": "💀 Dikalahkan oleh {{name}}",
   "lose_desc": "Tumbang melawan {{emoji}} **{{name}}**{{buff}}\n\n**📜 Pertarungan:**\n{{summary}}\n\n**📊** Serang {{dealt}} | Terima {{taken}}\n\n> +{{exp}} EXP",
   "win_title": "✅ Berhasil kalahkan {{name}}{{elite}}!",
-  "win_desc": "{{emoji}} **{{name}}** telah dikalahkan!{{buff}}{{levelup}}\n\n{{dropEmoji}} **{{dropName}}** ×1 {{rarityEmoji}} *{{rarity}}*\n\n**📜 Pertarungan Terakhir:**\n{{summary}}\n\n**📊 Statistik:** Serang **{{dealt}}** • Terima **{{taken}}**",
+  "win_desc": "{{emoji}} **{{name}}** telah dikalahkan!{{buff}}\n{{levelup}}\n\n{{dropEmoji}} **{{dropName}}** ×1 {{rarityEmoji}} *{{rarity}}*\n\n**📜 Pertarungan Terakhir:**\n{{summary}}\n\n**📊 Statistik:** Serang **{{dealt}}** • Terima **{{taken}}**",
   "field_coin": "💰 Koin",
   "field_exp": "✨ EXP",
   "field_hp": "❤️ HP",
