@@ -134,7 +134,7 @@ const client = new SapphireClient({
         'commands/reset',
         'commands/craft',
         'commands/bgdesign',
-        'commands/eval'
+        'commands/eval',
       ],
     },
   },
