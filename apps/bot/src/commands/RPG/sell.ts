@@ -1,7 +1,6 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import {
-  EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
@@ -12,6 +11,11 @@ import {
   TextInputBuilder,
   TextInputStyle,
   LabelBuilder,
+  ContainerBuilder,
+  TextDisplayBuilder,
+  SectionBuilder,
+  SeparatorBuilder,
+  SeparatorSpacingSize,
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT, TFunction } from '@sapphire/plugin-i18next';
 import { applyPassiveRegen } from '../../lib/rpg/buffs';
@@ -37,11 +41,7 @@ export class SellCommand extends Command {
           .setDescriptionLocalizations({ id: sellId.option_desc, 'en-US': sellEn.option_desc })
           .setRequired(false)
           .addChoices(
-            {
-              name: sellEn.choice_all,
-              value: 'all',
-              name_localizations: { id: sellId.choice_all },
-            },
+            { name: sellEn.choice_all, value: 'all', name_localizations: { id: sellId.choice_all } },
             { name: 'Common', value: 'Common', name_localizations: { id: 'Common' } },
             { name: 'Uncommon', value: 'Uncommon', name_localizations: { id: 'Uncommon' } },
             { name: 'Rare', value: 'Rare', name_localizations: { id: 'Rare' } },
@@ -57,13 +57,13 @@ export class SellCommand extends Command {
     await interaction.deferReply();
     const type = interaction.options.getString('type') ?? 'select';
     const user = await this.container.db.user.findOne({ discordId: interaction.user.id });
-    if (!user) return interaction.editReply(t('common:need_start'));
+    if (!user) return interaction.editReply({ content: t('common:need_start') });
 
     applyPassiveRegen(user);
 
     if (!user.items?.length) {
       await user.save();
-      return interaction.editReply(t('commands/sell:empty'));
+      return interaction.editReply({ content: t('commands/sell:empty') });
     }
 
     const itemIds = user.items.map((i) => i.itemId);
@@ -82,12 +82,11 @@ export class SellCommand extends Command {
 
     if (!items.length) {
       await user.save();
-      return interaction.editReply(t('commands/sell:none'));
+      return interaction.editReply({ content: t('commands/sell:none') });
     }
 
     if (type === 'select') {
       const displays = await Promise.all(items.slice(0, 25).map((i) => getItemDisplay(i.itemId, t)));
-
       const select = new StringSelectMenuBuilder()
         .setCustomId('sell_select')
         .setPlaceholder(t('commands/sell:placeholder_select'))
@@ -106,14 +105,18 @@ export class SellCommand extends Command {
           }),
         );
 
-      const embed = new EmbedBuilder()
-        .setColor(0x3498db)
-        .setTitle(t('commands/sell:title_select'))
-        .setDescription(t('commands/sell:desc_select'));
+      const container = new ContainerBuilder()
+        .setAccentColor(0x3498db)
+        .addTextDisplayComponents(
+          new TextDisplayBuilder().setContent(
+            `## ${t('commands/sell:title_select')}\n${t('commands/sell:desc_select')}`,
+          ),
+        )
+        .addActionRowComponents(new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select));
 
       await interaction.editReply({
-        embeds: [embed],
-        components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
+        components: [container],
+        flags: MessageFlags.IsComponentsV2,
       });
 
       const msg = await interaction.fetchReply();
@@ -154,14 +157,10 @@ export class SellCommand extends Command {
     const displays = await Promise.all(items.map((i) => getItemDisplay(i.itemId, t)));
     const displayMap = new Map(items.map((i, idx) => [i.itemId, displays[idx]]));
 
-    const calcTotal = () => {
-      return items.reduce((sum, it) => {
-        const qty = sellCart.get(it.itemId) ?? 0;
-        return sum + qty * Number(it.data!.sellPrice);
-      }, 0);
-    };
+    const calcTotal = () =>
+      items.reduce((sum, it) => sum + (sellCart.get(it.itemId) ?? 0) * Number(it.data!.sellPrice), 0);
 
-    const buildEmbed = (pageNum: number) => {
+    const buildContainer = (pageNum: number) => {
       const start = pageNum * ITEMS_PER_PAGE;
       const pageItems = items.slice(start, start + ITEMS_PER_PAGE);
       const total = calcTotal();
@@ -174,68 +173,73 @@ export class SellCommand extends Command {
         return `${it.data!.emoji} **${name}** x${qty} — ${value.toLocaleString(interaction.locale)} ${t('commands/sell:coins')}`;
       });
 
-      const embed = new EmbedBuilder()
-        .setColor(sold ? 0x2ecc71 : 0xe67e22)
-        .setTitle(sold ? t('commands/sell:title_sold') : t('commands/sell:title_confirm'))
-        .setDescription(lines.join('\n') || t('commands/sell:none'))
-        .addFields(
-          {
-            name: t('commands/sell:total'),
-            value: `+${total.toLocaleString(interaction.locale)} ${t('commands/sell:coins')}`,
-            inline: true,
-          },
-          {
-            name: t('commands/sell:items'),
-            value: `${items.length} ${t('commands/sell:types')}`,
-            inline: true,
-          },
-        );
+      const title = sold ? t('commands/sell:title_sold') : t('commands/sell:title_confirm');
+      const container = new ContainerBuilder().setAccentColor(sold ? 0x2ecc71 : 0xe67e22);
+
+      container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`## ${title}`));
+      container.addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(lines.join('\n') || t('commands/sell:none')),
+      );
+      container.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small));
+
+      // Total section with button inside
+      container.addSectionComponents(
+        new SectionBuilder()
+          .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
+              `**${t('commands/sell:total')}**\n+${total.toLocaleString(interaction.locale)} ${t('commands/sell:coins')}\n**${t('commands/sell:items')}**\n${items.length} ${t('commands/sell:types')}`,
+            ),
+          )
+          .setButtonAccessory(
+            new ButtonBuilder()
+              .setCustomId('sell_confirm')
+              .setLabel(t('commands/sell:confirm_yes'))
+              .setStyle(ButtonStyle.Success)
+              .setEmoji('💰')
+              .setDisabled(sold || total === 0),
+          ),
+      );
 
       if (totalPages > 1) {
-        embed.setFooter({
-          text: sold
-            ? t('commands/sell:page_sold', { page: pageNum + 1, total: totalPages })
-            : t('commands/sell:page', { page: pageNum + 1, total: totalPages }),
-        });
-      }
-
-      return embed;
-    };
-
-    const getComponents = (pageNum: number) => {
-      const rows: ActionRowBuilder<any>[] = [];
-
-      if (totalPages > 1) {
-        rows.push(
-          new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder()
-              .setCustomId('sell_prev')
-              .setLabel('◀')
-              .setStyle(ButtonStyle.Secondary)
-              .setDisabled(pageNum <= 0),
-            new ButtonBuilder()
-              .setCustomId('sell_next')
-              .setLabel('▶')
-              .setStyle(ButtonStyle.Secondary)
-              .setDisabled(pageNum >= totalPages - 1),
-            new ButtonBuilder()
-              .setCustomId('sell_info')
-              .setLabel(`${pageNum + 1}/${totalPages}`)
-              .setStyle(ButtonStyle.Secondary)
-              .setDisabled(true),
+        container.addTextDisplayComponents(
+          new TextDisplayBuilder().setContent(
+            `-# ${sold ? t('commands/sell:page_sold', { page: pageNum + 1, total: totalPages }) : t('commands/sell:page', { page: pageNum + 1, total: totalPages })}`,
           ),
         );
       }
 
-      if (!sold) {
-        const start = pageNum * ITEMS_PER_PAGE;
-        const pageItems = items.slice(start, start + ITEMS_PER_PAGE);
+      // Navigation + cancel + edit select
+      const navRow = new ActionRowBuilder<ButtonBuilder>();
+      if (totalPages > 1) {
+        navRow.addComponents(
+          new ButtonBuilder()
+            .setCustomId('sell_prev')
+            .setLabel('◀')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(pageNum <= 0),
+          new ButtonBuilder()
+            .setCustomId('sell_next')
+            .setLabel('▶')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(pageNum >= totalPages - 1),
+        );
+      }
+      navRow.addComponents(
+        new ButtonBuilder()
+          .setCustomId('sell_cancel')
+          .setLabel(t('commands/sell:confirm_no'))
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(sold),
+      );
+      container.addActionRowComponents(navRow);
 
+      if (!sold) {
+        const pageItemsForSelect = items.slice(start, start + ITEMS_PER_PAGE);
         const qtySelect = new StringSelectMenuBuilder()
           .setCustomId('sell_edit_select')
           .setPlaceholder(t('commands/sell:edit_placeholder', { page: pageNum + 1 }))
           .addOptions(
-            pageItems.map((it) => {
+            pageItemsForSelect.map((it) => {
               const disp = displayMap.get(it.itemId);
               const name = disp?.name ?? it.itemId;
               const current = sellCart.get(it.itemId) ?? 0;
@@ -247,30 +251,16 @@ export class SellCommand extends Command {
               };
             }),
           );
-        rows.push(new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(qtySelect));
+        container.addActionRowComponents(new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(qtySelect));
       }
 
-      rows.push(
-        new ActionRowBuilder<ButtonBuilder>().addComponents(
-          new ButtonBuilder()
-            .setCustomId('sell_confirm')
-            .setLabel(t('commands/sell:confirm_yes'))
-            .setStyle(ButtonStyle.Danger)
-            .setEmoji('💰')
-            .setDisabled(sold),
-          new ButtonBuilder()
-            .setCustomId('sell_cancel')
-            .setLabel(t('commands/sell:confirm_no'))
-            .setStyle(ButtonStyle.Secondary)
-            .setDisabled(sold),
-        ),
-      );
-
-      return rows;
+      return container;
     };
 
-    let embed = buildEmbed(page);
-    await interaction.editReply({ embeds: [embed], components: getComponents(page) });
+    await interaction.editReply({
+      components: [buildContainer(page)],
+      flags: MessageFlags.IsComponentsV2,
+    });
     const msg = await interaction.fetchReply();
 
     const collector = msg.createMessageComponentCollector({
@@ -284,34 +274,31 @@ export class SellCommand extends Command {
           if (i.customId === 'sell_prev') {
             await i.deferUpdate();
             page = Math.max(0, page - 1);
-            await interaction.editReply({
-              embeds: [buildEmbed(page)],
-              components: getComponents(page),
-            });
+            await interaction.editReply({ components: [buildContainer(page)], flags: MessageFlags.IsComponentsV2 });
             return;
           }
           if (i.customId === 'sell_next') {
             await i.deferUpdate();
             page = Math.min(totalPages - 1, page + 1);
-            await interaction.editReply({
-              embeds: [buildEmbed(page)],
-              components: getComponents(page),
-            });
+            await interaction.editReply({ components: [buildContainer(page)], flags: MessageFlags.IsComponentsV2 });
             return;
           }
           if (i.customId === 'sell_cancel') {
             await i.deferUpdate();
+
+            const cancelContainer = new ContainerBuilder()
+              .setAccentColor(0x95a5a6)
+              .addTextDisplayComponents(new TextDisplayBuilder().setContent(`### ${t('commands/sell:cancelled')}`));
+
             await interaction.editReply({
-              content: t('commands/sell:cancelled'),
-              embeds: [],
-              components: [],
+              components: [cancelContainer],
+              flags: MessageFlags.IsComponentsV2,
             });
             collector.stop();
             return;
           }
           if (i.customId === 'sell_confirm') {
             await i.deferUpdate();
-
             for (const it of items) {
               const qty = sellCart.get(it.itemId) ?? 0;
               if (qty <= 0) continue;
@@ -323,15 +310,8 @@ export class SellCommand extends Command {
             }
             user.balance = Number(user.balance) + calcTotal();
             await user.save();
-
             sold = true;
-            embed = buildEmbed(page);
-            embed.addFields({
-              name: t('commands/sell:balance'),
-              value: `${user.balance.toLocaleString(interaction.locale)} ${t('commands/sell:coins')}`,
-            });
-
-            await interaction.editReply({ embeds: [embed], components: getComponents(page) });
+            await interaction.editReply({ components: [buildContainer(page)], flags: MessageFlags.IsComponentsV2 });
           }
         }
 
@@ -343,7 +323,6 @@ export class SellCommand extends Command {
             return;
           }
           const disp = displayMap.get(itemId);
-
           const textInput = new TextInputBuilder()
             .setCustomId('qty')
             .setStyle(TextInputStyle.Short)
@@ -351,18 +330,15 @@ export class SellCommand extends Command {
             .setRequired(true)
             .setMinLength(1)
             .setMaxLength(6);
-
           const label = new LabelBuilder()
             .setLabel(t('commands/sell:max_label', { max: item.qty }).slice(0, 45))
             .setTextInputComponent(textInput);
-
           const modal = new ModalBuilder()
             .setCustomId(`sell_qty_${itemId}`)
-            .setTitle(t('commands/sell:set_title', { name: disp?.name ?? itemId }))
-            .addComponents(label);
+            .setTitle(t('commands/sell:set_title', { name: disp?.name ?? itemId }).slice(0, 45))
+            .addLabelComponents(label);
 
           await i.showModal(modal);
-
           const submitted = await i
             .awaitModalSubmit({
               time: 60000,
@@ -373,10 +349,7 @@ export class SellCommand extends Command {
             const qty = Math.max(0, Math.min(item.qty, parseInt(submitted.fields.getTextInputValue('qty')) || 0));
             sellCart.set(itemId, qty);
             await submitted.deferUpdate();
-            await interaction.editReply({
-              embeds: [buildEmbed(page)],
-              components: getComponents(page),
-            });
+            await interaction.editReply({ components: [buildContainer(page)], flags: MessageFlags.IsComponentsV2 });
           }
         }
       } catch (e) {
