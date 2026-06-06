@@ -57,6 +57,10 @@ export function getShopItems(category: ShopCategory): ShopItem[] {
   if (category === 'backgrounds') {
     return getAllBackgrounds()
       .filter((bg) => bg.price > 0) // default background is free
+      .sort((a, b) => {
+        const order = { Common: 0, Uncommon: 1, Rare: 2, Epic: 3, Legendary: 4, Mythic: 5 };
+        return order[a.rarity] - order[b.rarity] || a.price - b.price;
+      })
       .map((bg) => ({
         id: `bg_${bg.id}`,
         name: bg.name,
