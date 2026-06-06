@@ -9,7 +9,7 @@ import { SKILLS, getPassiveSkills } from '../lib/rpg/skills';
   interactionHandlerType: InteractionHandlerTypes.Button,
 })
 export class ClassSelectHandler extends InteractionHandler {
-  public override parse(i) {
+  public override parse(i: ButtonInteraction) {
     return i.isButton() && i.customId.startsWith('class_') ? this.some() : this.none();
   }
 
@@ -114,7 +114,7 @@ export class ClassSelectHandler extends InteractionHandler {
           inline: true,
         },
         { name: '✨ Skills', value: skillList, inline: false },
-        { name: '💰 Starting Capital', value: `**1,000** coins`, inline: true },
+        { name: t('commands/start:starting'), value: `**1,000** ${t('common:resource.coins')}`, inline: true },
         ...(passives.length
           ? [
               {
