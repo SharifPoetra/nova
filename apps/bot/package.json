@@ -4,7 +4,6 @@
   "description": "The main Discord bot core for Nova Activity RPG",
   "author": "SharifPoetra",
   "license": "MIT",
-  "private": true,
   "type": "commonjs",
   "main": "dist/index.js",
   "scripts": {
@@ -14,6 +13,15 @@
     "copy:locales": "node -e \"const fs=require('fs'); fs.cpSync('src/locales','dist/locales',{recursive:true,force:true}); console.log('✓ locales copied')\"",
     "check:locales": "tsx scripts/check-locales.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SharifPoetra/nova.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SharifPoetra/nova/issues"
+  },
+  "keywords": ["discord-bot", "sapphire-framework", "monorepo", "activity-rpg", "typescript", "mongoose"],
+  "homepage": "https://github.com/SharifPoetra/nova#readme",
   "dependencies": {
     "@napi-rs/canvas": "^1.0.0",
     "@nova/db": "file:../../packages/database",

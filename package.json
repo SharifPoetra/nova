@@ -4,12 +4,8 @@
   "description": "A high-performance Discord Bot & Activity RPG Monorepo built with Sapphire and Mongoose",
   "author": "SharifPoetra",
   "license": "MIT",
-  "private": true,
   "type": "module",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "bot:dev": "npm run dev -w apps/bot",
     "activity:dev": "npm run dev -w apps/activity",
@@ -17,6 +13,7 @@
     "start": "node apps/bot/dist/index.js",
     "start:bot": "node apps/bot/dist/index.js",
     "start:activity": "node apps/activity/dist/index.js",
+    "api:dev": "npm run dev -w apps/api",
     "dev": "npm run build && npm run start",
     "format": "prettier --write \"{apps,packages}/**/*.ts\"",
     "lint": "eslint \"{apps,packages}/**/*.ts\" --fix",
@@ -24,14 +21,15 @@
     "clean:dist": "rm -rf apps/*/dist packages/*/dist",
     "test": "vitest"
   },
-  "keywords": [
-    "discord-bot",
-    "sapphire-framework",
-    "monorepo",
-    "activity-rpg",
-    "typescript",
-    "mongoose"
-  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SharifPoetra/nova.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SharifPoetra/nova/issues"
+  },
+  "keywords": ["discord-bot", "sapphire-framework", "monorepo", "activity-rpg", "typescript", "mongoose"],
+  "homepage": "https://github.com/SharifPoetra/nova#readme",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.12.3",
@@ -44,7 +42,7 @@
     "vitest": "^4.1.6"
   },
   "engines": {
-    "node": ">=20",
+    "node": ">=22",
     "npm": ">=10"
   }
 }

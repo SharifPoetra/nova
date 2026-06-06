@@ -17,14 +17,21 @@
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SharifPoetra/nova.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SharifPoetra/nova/issues"
+  },
   "keywords": [
     "nova",
     "mongodb",
     "mongoose",
     "discord-bot"
   ],
+  "homepage": "https://github.com/SharifPoetra/nova#readme",
   "dependencies": {
-    "mongoose": "^9.6.1",
-    "ws": "^8.20.0"
+    "mongoose": "^9.6.1"
   }
 }
