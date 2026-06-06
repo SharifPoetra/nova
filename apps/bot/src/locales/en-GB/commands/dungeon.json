@@ -51,7 +51,6 @@
   "checkpoint": "Checkpoint",
   "in_run": "⚠️ Currently in a run!",
   "left": "Left tower. Run cancelled.",
-  "hp_zero": "❤️ HP 0",
   "defeated": "💀 Defeated by {{name}}!",
   "lost_title": "💀 Lost Floor {{floor}}",
   "victory": "✅ {{emoji}} defeated",

@@ -20,7 +20,7 @@
   "error": {
     "not_yours": "Ini bukan milikmu 😅",
     "low_stamina": "⚡ Stamina kurang ({{current}}/{{need}})",
-    "low_hp": "❤️ HP kurang ({{current}}/{{need}})",
+    "low_hp": "❤️ HP kurang ({{current}}/{{max}})",
     "cooldown": "⏳ Tunggu {{s}}s lagi",
     "no_perm": "❌ Kamu tidak punya izin",
 

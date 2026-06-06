@@ -124,7 +124,7 @@ ${dungeonData.inRun ? t('commands/dungeon:in_run') : ''}
       });
     if (stats.hp <= 0)
       return interaction.reply({
-        content: t('commands/dungeon:hp_zero'),
+        content: t('common:error.low_hp', { current: stats.hp, max: stats.maxHp }),
         flags: MessageFlags.Ephemeral,
       });
 

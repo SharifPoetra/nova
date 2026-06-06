@@ -2,7 +2,6 @@
   "usage": "/hunt",
   "examples": "/hunt",
   "extended_help": "Berburu monster sesuai level untuk EXP, koin, dan drop.\n\n**Mekanik:**\n• Cooldown: 45 detik\n• Biaya: {{cost}} stamina\n• Syarat: HP 20+ untuk mulai\n• 5% peluang monster Elite (HP 1.8x, ATK 1.5x, drop rate 5x)\n\n**Passive Class:**\n🛡️ Warrior — 20% peluang block 30% damage\n🏹 Rogue — 18% crit chance\n🪄 Mage — 15% lifesteal\n\n**Battle:**\n• Turn-based dengan skill (30 detik per turn)\n• Sistem elemen: 🔥 > 🌿 > 💧 > 🔥\n• Pakai /cook dulu untuk buff\n\nTip: Monster Elite drop loot lebih bagus!",
-  "low_hp": "❤️ HP rendah ({{hp}}). Pakai /cook dulu!",
   "author": "{{user}} sedang berburu",
   "found_title": "{{emoji}} {{name}}{{elite}}",
   "battle_start": "⚔️ Pertarungan dimulai...{{buff}}\n{{icon}} {{class}}",

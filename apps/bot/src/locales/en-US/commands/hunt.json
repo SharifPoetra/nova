@@ -2,7 +2,6 @@
   "usage": "/hunt",
   "examples": "/hunt",
   "extended_help": "Hunt scaled monsters for EXP, coins, and drops.\n\n**Mechanics:**\n• Cooldown: 45 seconds\n• Cost: {{cost}} stamina\n• Requires: 20+ HP to start\n• 5% chance for Elite monster (1.8x HP, 1.5x ATK, 5x drop rate)\n\n**Class Passives:**\n🛡️ Warrior — 20% chance to block 30% damage\n🏹 Rogue — 18% crit chance\n🪄 Mage — 15% lifesteal\n\n**Battle:**\n• Turn-based with skills (30s per turn)\n• Element system: 🔥 > 🌿 > 💧 > 🔥\n• Use /cook before hunting for buffs\n\nTip: Elite monsters drop better loot!",
-  "low_hp": "❤️ Low HP ({{hp}}). Use /cook first!",
   "author": "{{user}} is hunting",
   "found_title": "{{emoji}} {{name}}{{elite}}",
   "battle_start": "⚔️ Battle started...{{buff}}\n{{icon}} {{class}}",

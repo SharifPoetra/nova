@@ -51,7 +51,6 @@
   "checkpoint": "Checkpoint",
   "in_run": "⚠️ Sedang dalam run!",
   "left": "Keluar tower. Run dibatalkan.",
-  "hp_zero": "❤️ HP 0",
   "defeated": "💀 Dikalahkan {{name}}!",
   "lost_title": "💀 Kalah Lantai {{floor}}",
   "victory": "✅ {{emoji}} kalah",

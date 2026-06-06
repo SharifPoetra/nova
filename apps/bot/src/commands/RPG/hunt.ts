@@ -44,7 +44,7 @@ export class HuntCommand extends Command {
     const initialStats = await getPlayerStats(battleUser);
     if (initialStats.hp < 20) {
       await battleUser.save();
-      return interaction.editReply(t('commands/hunt:low_hp', { hp: initialStats.hp }));
+      return interaction.editReply(t('common:error.low_hp', { current: initialStats.hp, max: initialStats.maxHp }));
     }
     battleUser.stamina -= ACTION_COST.hunt;
     battleUser.lastHunt = new Date();
