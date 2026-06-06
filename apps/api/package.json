@@ -1,0 +1,32 @@
+{
+  "name": "@nova/api",
+  "version": "1.0.0",
+  "description": "Nova api routes",
+  "author": "SharifPoetra",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SharifPoetra/nova.git"
+  },
+  "keywords": ["api", "discordbot", "fastify", "rpg"],
+  "bugs": {
+    "url": "https://github.com/SharifPoetra/nova/issues"
+  },
+  "homepage": "https://github.com/SharifPoetra/nova#readme",
+  "dependencies": {
+    "@nova/db": "file:../../packages/database",
+    "@fastify/cors": "^11.2.0",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.8.5"
+  },
+  "devDependencies": {
+    "tsx": "^4.22.4"
+  }
+}
