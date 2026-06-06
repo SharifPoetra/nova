@@ -1,4 +1,5 @@
 {
+  "eval": "Eval owner (akses bebas, terfilter)",
   "bgdesign": "Desainer background canggih untuk kartu profil (Khusus Owner)",
   "reset": "Reset data RPG (owner only)",
   "daily": "Ambil koin harianmu (1000 koin)!",
@@ -19,7 +20,7 @@
   "hunt": "Berburu monster",
   "lang": "Ubah bahasa bot untuk kamu atau server",
   "giveall": "Berikan semua item yang tersedia (Khusus Owner)",
-  
+
   "help_option_command": "Lihat detail command",
   "profile_option_user": "User yang ingin dilihat"
 }

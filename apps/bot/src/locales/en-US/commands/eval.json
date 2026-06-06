@@ -1,0 +1,5 @@
+{
+  "usage": "/eval <code> [depth:0-5] [ephemeral:true/false]",
+  "examples": "/eval client.ws.ping\n/eval await db.user.countDocuments()\n/eval util.inspect(container.stores, {depth:0})\n/eval i.guild.members.cache.size",
+  "extended_help": "Owner-only eval with safety filter.\n\n**Options:**\n- code — JavaScript to run (supports await, returns last expression)\n- depth — inspect depth for objects (default 1)\n- ephemeral — hide output (default true)\n\n**Available context:**\n- client, container, interaction (i), t\n- guild, channel, user, member\n- db, util, require, process, console\n- sleep(ms)\n\n**Safety:**\n- Blocks tokens, MongoDB URIs, passwords, secrets, webhooks, fs write/unlink, child_process exec/spawn\n- Output auto-redacts tokens and Mongo URIs\n\nTip: Use return for expressions, or write multi-line statements. For big objects, increase depth."
+}
