@@ -71,6 +71,81 @@ function findKeys(): Map<string, { file: string; line: number }[]> {
 
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf8');
+
+    const importMap = new Map<string, string>();
+    const importRe = /import\s+(\w+)\s+from\s+['"][^'"]*locales\/[^/]+\/([^'"]+)\.json['"]/g;
+    let im;
+    while ((im = importRe.exec(content))) {
+      const varName = im[1];
+      const nsPath = im[2].replace(/\\/g, '/');
+      importMap.set(varName, nsPath);
+    }
+
+    for (const [varName, ns] of importMap) {
+      const useRe = new RegExp(`\\b${varName}\\.([a-zA-Z0-9_]+)`, 'g');
+      let um;
+      while ((um = useRe.exec(content))) {
+        add(`${ns}:${um[1]}`, file, content, um.index);
+      }
+    }
+
+    const templateRe = /t\(\s*`([^`]*\$\{[^}]+\}[^`]*)`\s*\)/g;
+    let tm;
+    while ((tm = templateRe.exec(content))) {
+      const tpl = tm[1];
+      const idx = tm.index;
+
+      if (tpl.startsWith('commands/start:class_')) {
+        ['archer', 'mage', 'warrior'].forEach((cls) => add(`commands/start:class_${cls}`, file, content, idx));
+      }
+
+      if (tpl.includes('cook/recipes:${')) {
+        const recipesFile = path.join(SRC, 'lib/rpg/cook/recipes.ts');
+        const scanTarget = fs.existsSync(recipesFile) ? fs.readFileSync(recipesFile, 'utf8') : content;
+        const idRe = /['"`]([a-z0-9_]+)['"`]\s*:\s*\{/g;
+        let rm;
+        while ((rm = idRe.exec(scanTarget))) {
+          add(`cook/recipes:${rm[1]}.name`, file, content, idx);
+          add(`cook/recipes:${rm[1]}.desc`, file, content, idx);
+        }
+        // fallback: ambil dari locale langsung
+        const localeSample = loadLocale('en-US');
+        Object.keys(localeSample)
+          .filter((k) => k.startsWith('cook/recipes:') && k.endsWith('.name'))
+          .forEach((k) => add(k, file, content, idx));
+      }
+
+      if (
+        tpl.includes('common:categories.${') ||
+        tpl.includes('common:resource.${') ||
+        tpl.includes('common:error.${') ||
+        tpl.includes('common:ui.${')
+      ) {
+        const base = tpl.split('${')[0];
+        const localeSample = loadLocale('en-US');
+        Object.keys(localeSample)
+          .filter((k) => k.startsWith(base))
+          .forEach((k) => add(k, file, content, idx));
+      }
+
+      if (tpl.includes('commands/sell:type_')) {
+        ['all', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'].forEach((t) =>
+          add(`commands/sell:type_${t}`, file, content, idx),
+        );
+      }
+
+      if (tpl.startsWith('battle:${')) {
+        const localeSample = loadLocale('en-US');
+        Object.keys(localeSample)
+          .filter((k) => k.startsWith('battle:'))
+          .forEach((k) => add(k, file, content, idx));
+      }
+
+      const escaped = tpl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\$\{[^}]+\}/g, '[^:]+');
+      const pattern = '^' + escaped + '$';
+      add(`__DYNAMIC__${pattern}`, file, content, idx);
+    }
+
     for (const regex of patterns) {
       let m;
       while ((m = regex.exec(content))) add(m[1].trim(), file, content, m.index);
@@ -158,7 +233,7 @@ function loadLocale(locale: string) {
 
 function main() {
   const keysMap = findKeys();
-  const keys = [...keysMap.keys()].sort();
+  const keys = [...keysMap.keys()].filter((k) => !k.startsWith('__DYNAMIC__')).sort();
   console.log(`${c.cyan}${c.bold}🔍 Found ${keys.length} i18n keys${c.reset}\n`);
 
   const locales = SUPPORTED.map((l) => ({ locale: l, data: loadLocale(l) }));
@@ -185,9 +260,40 @@ function main() {
   }
 
   const used = new Set(keysMap.keys());
+  const dynamicPatterns = [...used]
+    .filter((k) => k.startsWith('__DYNAMIC__'))
+    .map((k) => {
+      try {
+        return new RegExp(k.replace('__DYNAMIC__', ''));
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean) as RegExp[];
   const allLocaleKeys = new Set<string>();
   locales.forEach((l) => Object.keys(l.data).forEach((k) => allLocaleKeys.add(k)));
-  const unused = [...allLocaleKeys].filter((k) => !used.has(k)).sort();
+
+  // --- WHITELIST prefix yang 100% dinamis ---
+  const dynamicWhitelist = [
+    'common:categories',
+    'commands/start:class_',
+    'cook/recipes:',
+    'commands/sell:type_',
+    'battle:fled',
+    'dungeon/events',
+    'dungeon/lore',
+    'dungeon/monsters',
+    'explore/events',
+    'hunt/monsters',
+  ];
+
+  const unused = [...allLocaleKeys]
+    .filter((k) => {
+      if (used.has(k)) return false;
+      if (dynamicWhitelist.some((p) => k.startsWith(p))) return false;
+      return !dynamicPatterns.some((rx) => rx.test(k));
+    })
+    .sort();
 
   if (unused.length) {
     console.log(`\n${c.yellow}${c.bold}⚠️ ${unused.length} unused keys${c.reset}`);
