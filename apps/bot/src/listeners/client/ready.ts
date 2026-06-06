@@ -21,10 +21,9 @@ export class ReadyListener extends Listener {
     const activities = [
       { name: '/help • Nova RPG', type: ActivityType.Playing },
       { name: `${this.container.client.guilds.cache.size} servers`, type: ActivityType.Watching },
-      { name: 'since 2019', type: ActivityType.Competing },
+      { name: 'adventurers since 2019', type: ActivityType.Watching },
       { name: 'Economy 2.0', type: ActivityType.Playing },
       { name: '/dungeon /hunt /fish', type: ActivityType.Listening },
-      { name: 'github.com/SharifPoetra/nova', type: ActivityType.Watching },
     ];
 
     let index = 0;
@@ -36,7 +35,7 @@ export class ReadyListener extends Listener {
     };
 
     setActivity();
-    setInterval(setActivity, 15_000);
+    setInterval(setActivity, 30_000);
 
     this.container.logger.info(`🎮 Activity rotation started (${activities.length} statuses)`);
   }
