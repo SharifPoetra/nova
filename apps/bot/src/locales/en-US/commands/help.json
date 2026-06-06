@@ -7,5 +7,6 @@
   "back": "← Back",
   "timeout": "⏰ Timeout (2 minutes) — type /help again",
   "usage": "/help [command]",
+  "examples": "/help command:/dungeon",
   "extended_help": "Interactive Nova help center.\n\n**Usage:**\n- /help — list all commands\n- /help command:fish — show details\n\n**Features:**\n- Only shows commands you can use\n- Displays usage and examples\n- Grouped by category"
 }
