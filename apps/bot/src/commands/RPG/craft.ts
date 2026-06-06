@@ -14,7 +14,7 @@ import { applyPassiveRegen } from '../../lib/rpg/buffs';
 import { CRAFTING_RECIPES } from '../../lib/rpg/crafting-recipes';
 import { ACTION_COST } from '../../lib/rpg/actions';
 import { getPlayerStats } from '../../lib/rpg/combat';
-import { getItemDisplay } from '../../lib/rpg/item-registry';
+import { getItemDisplay } from '../../lib/i18n/item-registry';
 
 const CATEGORY_FILTERS: Record<string, (r: any) => boolean> = {
   tool: (r) => r.category === 'tool',

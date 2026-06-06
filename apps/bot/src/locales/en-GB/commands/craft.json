@@ -1,4 +1,7 @@
 {
+  "extended_help": "Open the Nova Forge to craft equipment from materials you've gathered.\n\n**Usage:**\n• `/craft` — Browse all craftable recipes\n• `/craft category:weapon` — Filter by category\n• `/craft recipe:iron_sword` — Craft instantly (autocomplete supported)\n\n**Requirements:**\n• Have enough materials in your inventory (from /explore or /hunt)\n• Meet the required level\n• Costs {{cost}} stamina per craft\n\nTip: Use the dropdown menu to see ingredient costs before crafting.",
+  "usage": "/craft [category] [recipe]",
+  "examples": "/craft\n/craft category:tool\n/craft recipe:wooden_rod",
   "choose": "Choose recipe — Page {{page}}/{{total}}",
   "none": "📦 No craftable items! Get materials from /explore or /hunt",
   "need_stamina": "⚡ Need {{cost}} stamina",

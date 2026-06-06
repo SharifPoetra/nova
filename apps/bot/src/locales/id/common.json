@@ -11,6 +11,7 @@
   "ui": {
     "prev": "◀ Sebelumnya",
     "next": "Selanjutnya ▶",
+    "back": "↩️ Kembali",
     "close": "❌ Tutup",
     "back": "◀ Kembali",
     "confirm": "✅ Konfirmasi",
@@ -19,13 +20,15 @@
   "error": {
     "not_yours": "Ini bukan milikmu 😅",
     "low_stamina": "⚡ Stamina kurang ({{current}}/{{need}})",
-    "low_hp": "❤️ HP kurang ({{current}}/{{need}})",
+    "low_hp": "❤️ HP kurang ({{current}}/{{max}})",
     "cooldown": "⏳ Tunggu {{s}}s lagi",
     "no_perm": "❌ Kamu tidak punya izin",
 
     "handler_failed_title": "❌ Terjadi Error",
     "handler_failed_desc": "Handler `{{handler}}` gagal dijalankan.\n\n**Error ID:** `{{id}}`",
-    "handler_failed_footer": "Laporkan ID ini ke developer"
+    "handler_failed_footer": "Laporkan ID ini ke developer",
+
+    "precondition_owner_only": "Hanya owner yang boleh menggunakan command ini."
   },
   "resource": {
     "coins": "Koin",
@@ -34,5 +37,7 @@
     "exp": "EXP",
     "gold": "Emas"
   },
-  "levelup": "🎉 **LEVEL UP → Lv.{{level}}**"
+  "status": {
+    "levelup": "🎉 **NAIK LEVEL → Lv.{{level}}**"
+  }
 }

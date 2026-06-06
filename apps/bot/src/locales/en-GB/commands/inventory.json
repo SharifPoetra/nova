@@ -6,16 +6,12 @@
   "header": "⚡ Stamina: {{stamina}}/{{maxStamina}}\n📦 {{count}} item types",
   "footer": "Total value: {{total}} coins | Page {{page}}/{{totalPages}}",
   "empty": "📦 Inventory empty. Try /fish or /explore!",
-  "prev": "◀ Previous",
-  "next": "Next ▶",
   "equipment": "Equipments",
-  "use_placeholder": "Use consumable...",
+  "consumable": "Consumables",
+  "use_placeholder": "Use consumables...",
   "expired": "⏰ Expired — type /inventory again",
   "not_yours": "Not your inventory!",
   "item_not_found": "Item not found",
   "used": "✅ Used {{emoji}} **{{name}}**",
-  "heal_gain": "❤️ +{{gain}} HP",
-  "stam_gain": "⚡ +{{gain}} Stamina",
-  "buff_gain": "⚔️ {{stat}} +{{value}}% ({{mins}}m)",
   "no_effect": "❌ {{emoji}} had no effect"
 }

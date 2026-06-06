@@ -1,0 +1,18 @@
+{
+  "usage": "/bgdesign style:<style> palette:<palette> [pattern] [intensity] [text] [format] [save]",
+  "extended_help": "Advanced background designer for profile cards. Generate 600×600 backgrounds with gradients, aurora, mesh, waves, glow orbs and custom palettes. Owner only.",
+  "examples": "/bgdesign style:gradient palette:midnight pattern:grid intensity:5",
+  "default_title": "Nova Default Background",
+  "preview_title": "Preview: {{style}} / {{palette}}",
+  "default_desc": "Original gradient #0f0c29 → #1b183a → #14142a",
+  "pattern_info": "**Pattern:** {{pattern}} | **Intensity:** {{intensity}}/10",
+  "dimensions": "📐 Dimensions",
+  "filesize": "💾 File Size",
+  "format": "🎨 Format",
+  "saved": "✅ Saved",
+  "footer_save": "File saved to server",
+  "footer_preview": "Use save:true to write to disk",
+  "size_large": "⚠️ Large",
+  "size_medium": "⚡ Medium",
+  "size_opt": "✅ Optimized"
+}

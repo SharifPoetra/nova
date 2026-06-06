@@ -6,7 +6,7 @@ import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { getPlayerStats } from '../lib/rpg/combat';
 import { renderInventoryPage, renderEquipmentPage } from '../lib/rpg/inventory';
 import type { EquipmentSlot, IUser, IItem } from '@nova/db';
-import { getItemDisplay } from '../lib/rpg/item-registry';
+import { getItemDisplay } from '../lib/i18n/item-registry';
 import { fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions<InteractionHandler.Options>({

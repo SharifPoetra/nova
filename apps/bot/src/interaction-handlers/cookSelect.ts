@@ -15,7 +15,7 @@ import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { ACTION_COST } from '../lib/rpg/actions';
 import { getPlayerStats } from '../lib/rpg/combat';
 import { addItemToInventory, removeItemFromInventory } from '../lib/rpg/inventory';
-import { getItemDisplay } from '../lib/rpg/item-registry';
+import { getItemDisplay } from '../lib/i18n/item-registry';
 
 const TIER_FILTERS: Record<string, (r: any) => boolean> = {
   basic: (r) =>

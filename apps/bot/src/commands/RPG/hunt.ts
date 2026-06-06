@@ -10,7 +10,7 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 import { getPlayerStats, resetSkillCooldowns } from '../../lib/rpg/combat';
 import { addItemToInventory } from '../../lib/rpg/inventory';
 import { i18nMonster } from '../../lib/i18n/display';
-import { getItemDisplay } from '../../lib/rpg/item-registry';
+import { getItemDisplay } from '../../lib/i18n/item-registry';
 import { BattleEngine, type EnemyStats } from '../../lib/rpg/battle-engine';
 import { elementTable, ELEMENT_EMOJI } from '../../lib/rpg/combat';
 
@@ -44,7 +44,7 @@ export class HuntCommand extends Command {
     const initialStats = await getPlayerStats(battleUser);
     if (initialStats.hp < 20) {
       await battleUser.save();
-      return interaction.editReply(t('commands/hunt:low_hp', { hp: initialStats.hp }));
+      return interaction.editReply(t('common:error.low_hp', { current: initialStats.hp, max: initialStats.maxHp }));
     }
     battleUser.stamina -= ACTION_COST.hunt;
     battleUser.lastHunt = new Date();
@@ -69,6 +69,7 @@ export class HuntCommand extends Command {
     };
     const engine = new BattleEngine(battleUser, enemy, {
       onLog: () => {},
+      t,
     });
     await engine.init();
     const playerClass = battleUser.class ?? 'warrior';
@@ -261,7 +262,7 @@ export class HuntCommand extends Command {
       const newStats = await getPlayerStats(user);
       user.hp = newStats.maxHp;
       user.stamina = user.maxStamina;
-      levelUpText = t('common:levelup', {
+      levelUpText = t('common:status.levelup', {
         level: user.level,
         defaultValue: `🎉 LEVEL UP → ${levelUp.level}!`,
       });

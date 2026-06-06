@@ -140,10 +140,7 @@ export const RECIPES: Recipe[] = [
   {
     id: 'ginseng_brew',
     emoji: '🌱',
-    ingredients: [
-      { id: 'root', qty: 2 },
-      { id: 'honey', qty: 1 },
-    ],
+    ingredients: [{ id: 'honey', qty: 3 }],
     resultItemId: 'ginseng_brew',
     exp: 14,
   },
@@ -348,7 +345,6 @@ export const RECIPES: Recipe[] = [
     emoji: '🌫️',
     ingredients: [
       { id: 'void_essence', qty: 2 },
-      { id: 'soul_wisp', qty: 1 },
       { id: 'ectoplasm', qty: 3 },
     ],
     resultItemId: 'void_soup',
@@ -359,7 +355,6 @@ export const RECIPES: Recipe[] = [
     emoji: '🐲',
     ingredients: [
       { id: 'drake_scale', qty: 4 },
-      { id: 'drake_claw', qty: 2 },
       { id: 'charred_bone', qty: 1 },
     ],
     resultItemId: 'drake_grill',

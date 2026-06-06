@@ -3,7 +3,7 @@ import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework
 import { StringSelectMenuInteraction, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { applyPassiveRegen } from '../lib/rpg/buffs';
 import { getPlayerStats } from '../lib/rpg/combat';
-import { getItemDisplay } from '../lib/rpg/item-registry';
+import { getItemDisplay } from '../lib/i18n/item-registry';
 import { renderConsumablePage } from '../lib/rpg/inventory';
 import { fetchT } from '@sapphire/plugin-i18next';
 

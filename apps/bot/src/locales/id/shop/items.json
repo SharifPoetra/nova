@@ -1,0 +1,10 @@
+{
+  "potion_stamina": {
+    "name": "Stamina Potion",
+    "desc": "Pulihkan 30 stamina"
+  },
+  "potion_hp": {
+    "name": "Health Potion",
+    "desc": "Pulihkan 50 HP"
+  }
+}

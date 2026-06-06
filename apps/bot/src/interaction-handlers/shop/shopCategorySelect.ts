@@ -43,7 +43,7 @@ export class ShopCategorySelectHandler extends InteractionHandler {
     // User validation
     if (interaction.user.id !== userId) {
       return interaction.reply({
-        content: t('commands/shop:not_yours', { defaultValue: 'This is not your shop 😅' }),
+        content: t('common:error.not_yours'),
         ephemeral: true,
       });
     }
@@ -62,7 +62,7 @@ export class ShopCategorySelectHandler extends InteractionHandler {
 
       if (interaction.customId.startsWith('shop_close_')) {
         return interaction.editReply({
-          content: t('commands/shop:shop_closed', { defaultValue: 'Shop closed.' }),
+          content: t('commands/shop:closed'),
           embeds: [],
           components: [],
           files: [],
@@ -176,8 +176,8 @@ export class ShopCategorySelectHandler extends InteractionHandler {
     });
 
     embed.addFields({
-      name: t('commands/shop:available', { defaultValue: 'Available Items' }),
-      value: itemLines.join('\n') || t('commands/shop:none', { defaultValue: 'None' }),
+      name: t('commands/shop:available_items', { defaultValue: 'Available Items' }),
+      value: itemLines.join('\n'),
     });
 
     // Footer dengan balance dan pagination

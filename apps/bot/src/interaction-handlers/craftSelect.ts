@@ -16,7 +16,7 @@ import { ACTION_COST } from '../lib/rpg/actions';
 import { getPlayerStats } from '../lib/rpg/combat';
 import { EQUIPMENTS } from '../lib/rpg/equipments';
 import { addItemToInventory, removeItemFromInventory } from '../lib/rpg/inventory';
-import { getItemDisplay } from '../lib/rpg/item-registry';
+import { getItemDisplay } from '../lib/i18n/item-registry';
 
 const CATEGORY_FILTERS: Record<string, (r: any) => boolean> = {
   tool: (r) => r.category === 'tool',

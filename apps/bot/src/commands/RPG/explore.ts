@@ -10,7 +10,7 @@ import { ACTION_COST } from '../../lib/rpg/actions';
 import { getPlayerStats } from '../../lib/rpg/combat';
 import { addItemToInventory } from '../../lib/rpg/inventory';
 import { i18nEvent } from '../../lib/i18n/display';
-import { getItemDisplay } from '../../lib/rpg/item-registry';
+import { getItemDisplay } from '../../lib/i18n/item-registry';
 
 @ApplyOptions<Command.Options>({
   name: 'explore',
@@ -79,7 +79,7 @@ export class ExploreCommand extends Command {
       const stats = await getPlayerStats(user);
       user.hp = stats.maxHp;
       user.stamina = user.maxStamina;
-      levelUpText = `\n\n${t('common:levelup', { level: user.level, defaultValue: `🎉 **LEVEL UP → Lv.${user.level}**` })}`;
+      levelUpText = `\n\n${t('common:status.levelup', { level: user.level, defaultValue: `🎉 **LEVEL UP → Lv.${user.level}**` })}`;
     }
 
     await user.save();

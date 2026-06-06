@@ -1,0 +1,7 @@
+{
+  "usage": "/giveall [target] [qty]",
+  "examples": "/giveall\n/giveall target:@user\n/giveall qty:1",
+  "extended_help": "Owner-only command to grant every available item in the game.\n\n**Usage:**\n• `/giveall` — Give yourself 99x of all items\n• `/giveall target:@user` — Give to another player\n• `/giveall qty:1` — Give 1x each (for testing)\n\n**Sources included:**\n• Hunt drops, Explore items, Fish\n• Dungeon & Boss drops\n• All equipments, Cooked foods, Craft results\n\nItems are upserted to the database and synced to the player's inventory. Ephemeral reply only.",
+  "success": "✅ {{username}} received {{count}} items x{{qty}} (all sources synced)",
+  "no_start": "❌ User hasn't used /start yet"
+}

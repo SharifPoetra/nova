@@ -24,7 +24,6 @@
   "reward": "Reward: +{{gold}} coins • +{{exp}} exp",
   "resting": "🏠 You rest at floor {{floor}}.",
   "rest_footer": "Highest: {{highest}} • Tower of Stars",
-  "skill_cd": "Skill cooldown: {{cd}} turn",
   "choose_action": "Choose your action!",
   "merchant_ruins": "🛒 Ruins Trader",
   "merchant_mines": "⛏️ Dwarf Trader",
@@ -44,7 +43,6 @@
   "btn_continue": "➡️ Continue F{{floor}}",
   "btn_stop": "🏠 Rest",
   "btn_bag": "🎒 Bag",
-  "battle_spawn": "**{{emoji}} {{name}}** appeared!{{elite}}",
   "elite_tag": " **ELITE!**",
   "battle_auto": "⏱️ Auto! 🗡️ **{{damage}}**",
   "title": "🗼 Tower of Stars",
@@ -53,7 +51,6 @@
   "checkpoint": "Checkpoint",
   "in_run": "⚠️ Currently in a run!",
   "left": "Left tower. Run cancelled.",
-  "hp_zero": "❤️ HP 0",
   "defeated": "💀 Defeated by {{name}}!",
   "lost_title": "💀 Lost Floor {{floor}}",
   "victory": "✅ {{emoji}} defeated",
@@ -68,7 +65,5 @@
   "skipped": "🛒 {{text}} (skipped)",
   "drop": "🎁 {{emoji}} {{name}}",
   "continue_q": "Continue?",
-  "close_bag": "🎒 Close Bag",
-  "player_hit": "🗡️ You hit {{damage}} {{crit}}",
-  "monster_hit": "💢 {{monsterName}} strikes {{monsterDamage}}"
+  "close_bag": "🎒 Close Bag"
 }
