@@ -1,5 +1,6 @@
 {
   "usage": "/profile [user]",
+  "examples": "/profile user:@Namauser",
   "extended_help": "Lihat semua statistik karakter kamu atau orang lain.\n\n**Yang ditampilkan:**\n- 💰 Ekonomi: dompet, bank, total item\n- 📊 RPG: level, EXP bar, HP, stamina, attack\n- ✨ Buff aktif dengan sisa waktu\n- 📅 Tanggal bergabung\n\nRegen pasif otomatis saat cek profil sendiri.",
   "not_registered_self": "❌ Kamu belum terdaftar di Nova Chronicles!\nGunakan `/start` untuk memulai petualangan.",
   "not_registered_other": "❌ **{{user}}** belum memulai petualangan.",

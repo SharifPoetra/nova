@@ -1,5 +1,6 @@
 {
   "usage": "/profile [user]",
+  "examples": "/profile user:@Username",
   "extended_help": "View your full Nova character stats or someone else's.\n\n**Shows:**\n- 💰 Economy: wallet, bank, items\n- 📊 RPG: level, EXP, HP, stamina, attack\n- ✨ Active buffs with timers\n- 📅 Join date\n\nPassive regen applies automatically when viewing your own profile.",
   "not_registered_self": "❌ You haven't registered in Nova Chronicles!\nUse `/start` to begin your adventure.",
   "not_registered_other": "❌ **{{user}}** hasn't started their adventure yet.",
