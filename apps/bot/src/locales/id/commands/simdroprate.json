@@ -1,0 +1,7 @@
+{
+  "no_drop": "Tidak Drop",
+  "sim_title": "🎲 Simulasi — {{type}} × {{sim}}",
+  "usage": "/simdroprate <type:fish|explore|hunt> <amount:100-10000>",
+  "examples": "/simdroprate type:fish amount:1000\n/simdroprate type:explore amount:5000\n/simdroprate type:hunt amount:1000",
+  "extended_help": "Simulasi Monte Carlo khusus owner untuk drop rate.\n\n**Opsi:**\n- type — fish, explore, atau hunt\n- amount — jumlah iterasi (100 sampai 10.000)\n\n**Cara kerja:**\n- fish: jalankan catchFish() sebanyak amount\n- explore: jalankan rollExplore() sebanyak amount\n- hunt: simulasi drop monster Lv.25 (pilih drop berdasarkan chance, tampil 'Tidak Drop' kalau miss)\n\nOutput menampilkan 25 hasil teratas diurutkan frekuensi dengan % rate. Reply ephemeral."
+}

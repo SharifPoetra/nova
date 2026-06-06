@@ -135,6 +135,7 @@ const client = new SapphireClient({
         'commands/craft',
         'commands/bgdesign',
         'commands/eval',
+        'commands/simdroprate',
       ],
     },
   },
