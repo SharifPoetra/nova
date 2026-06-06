@@ -42,7 +42,7 @@ export function buildShopMain(userId: string, balance: number, t: any) {
   const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(`shop_close_${userId}`)
-      .setLabel(t('commands/shop:close', { defaultValue: 'Close' }))
+      .setLabel(t('common:ui.close'))
       .setStyle(ButtonStyle.Secondary),
   );
 

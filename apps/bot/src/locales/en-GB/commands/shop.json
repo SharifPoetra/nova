@@ -5,7 +5,6 @@
   "title": "🏪 Nova Shop",
   "balance_footer": "Balance: {{balance}} coins",
   "balance_footer_page": "Your balance: {{balance}} coins | Page {{page}}/{{total}}",
-  "close": "Close",
   "closed": "🛒 Shop closed.",
   "confirm_title": "Purchase Confirmation",
   "buy": "Buy",

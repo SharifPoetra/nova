@@ -5,7 +5,6 @@
   "title": "🏪 Nova Shop",
   "balance_footer": "Saldo: {{balance}} koin",
   "balance_footer_page": "Saldo Anda: {{balance}} koin | Halaman {{page}}/{{total}}",
-  "close": "Tutup",
   "closed": "🛒 Shop ditutup.",
   "confirm_title": "Konfirmasi Pembelian",
   "buy": "Beli",
