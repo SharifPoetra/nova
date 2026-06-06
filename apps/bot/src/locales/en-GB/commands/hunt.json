@@ -8,7 +8,7 @@
   "lose_title": "💀 Defeated by {{name}}",
   "lose_desc": "Fell to {{emoji}} **{{name}}**{{buff}}\n\n**📜 Battle:**\n{{summary}}\n\n**📊** Dealt {{dealt}} | Taken {{taken}}\n\n> +{{exp}} EXP",
   "win_title": "✅ Defeated {{name}}{{elite}}!",
-  "win_desc": "{{emoji}} **{{name}}** has been slain!{{buff}}{{levelup}}\n\n{{dropEmoji}} **{{dropName}}** ×1 {{rarityEmoji}} *{{rarity}}*\n\n**📜 Last Fight:**\n{{summary}}\n\n**📊 Stats:** Dealt **{{dealt}}** • Taken **{{taken}}**",
+  "win_desc": "{{emoji}} **{{name}}** has been slain!{{buff}}\n{{levelup}}\n\n{{dropEmoji}} **{{dropName}}** ×1 {{rarityEmoji}} *{{rarity}}*\n\n**📜 Last Fight:**\n{{summary}}\n\n**📊 Stats:** Dealt **{{dealt}}** • Taken **{{taken}}**",
   "field_coin": "💰 Coins",
   "field_exp": "✨ EXP",
   "field_hp": "❤️ HP",
