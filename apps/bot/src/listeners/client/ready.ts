@@ -7,7 +7,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 })
 export class ReadyListener extends Listener {
   public async run() {
-    // await this.container.client.application?.commands.set([]);
+    await this.container.client.application?.commands.set([]);
     const { tag, id } = this.container.client.user!;
 
     this.container.logger.info('--- NOVA SAPPHIRE LOG ---');

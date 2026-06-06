@@ -62,7 +62,7 @@ export class SimDroprateCommand extends OwnerDevCommand {
         let cum = 0;
         const d = m.drops.find((x) => (cum += x.chance) >= roll);
 
-        key = d ? i18nMonster('hunt', d.id, t) : t('commands/droprate:no_drop');
+        key = d ? i18nMonster('hunt', d.id, t) : t('commands/simdroprate:no_drop');
         emoji = d?.emoji ?? '❌';
       }
       if (!counts[key]) counts[key] = { c: 0, emoji };
@@ -80,7 +80,7 @@ export class SimDroprateCommand extends OwnerDevCommand {
       embeds: [
         new EmbedBuilder()
           .setColor(RARITY_COLOR.Epic)
-          .setTitle(t('commands/droprate:sim_title', { sim: amount.toLocaleString(), type }))
+          .setTitle(t('commands/simdroprate:sim_title', { sim: amount.toLocaleString(), type }))
           .setDescription(desc)
           .setFooter({ text: 'Owner-only simulation' }),
       ],

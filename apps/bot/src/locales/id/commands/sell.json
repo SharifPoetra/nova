@@ -1,6 +1,7 @@
 {
   "usage": "/sell type:[rarity]",
   "examples": "/sell type:all",
+  "extended_help": "Jual item dari inventory jadi coins.\n\n**Pilihan type:**\n- all — jual semua kecuali Legendary (aman)\n- Common / Uncommon — langsung kejual\n- Rare / Epic / Legendary — butuh konfirmasi tombol\n\n**Catatan:**\n- Item dari /fish, /hunt, /explore bisa dijual\n- Legendary dikecualikan dari 'all' biar gak salah jual\n- Cek total harga dulu pake /inventory\n\nTip: simpan Rare+ buat /cook, jual Common/Uncommon buat farming cepat.",
   "title_select": "🛒 Pilih Item Dijual",
   "desc_select": "Pilih maksimal 25 item. Atur jumlah di halaman berikutnya.",
   "title_confirm": "💰 Konfirmasi Jual",

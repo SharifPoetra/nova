@@ -10,7 +10,7 @@ import { getPlayerStats } from '../../lib/rpg/combat';
 import { SKILLS } from '../../lib/rpg/skills';
 import { localized } from '../../lib/i18n/localize';
 import { i18nMonster } from '../../lib/i18n/display';
-import { getItemDisplay } from '../../lib/rpg/item-registry';
+import { getItemDisplay } from '../../lib/i18n/item-registry';
 import { renderProfileCard } from '../../lib/canvas/profile-card';
 
 @ApplyOptions<Command.Options>({

@@ -1,4 +1,7 @@
 {
+  "usage": "/lang <language:id|en-US> [guild:true/false]",
+  "examples": "/lang language:id\n/lang language:en-US\n/lang language:en-US guild:true",
+  "extended_help": "Ubah bahasa bot untuk kamu atau server.\n\n**Opsi:**\n- language — pilih 'id' (Bahasa Indonesia) atau 'en-US' (English)\n- guild — jika true, ubah default server (butuh izin Kelola Server). Jika false atau kosong, hanya ubah bahasa pribadi.\n\nPengaturan pribadi akan mengalahkan default server. Pakai guild:true untuk set ke semua member.",
   "option_name": "language",
   "option_desc": "Pilih bahasa",
   "guild_name": "guild",

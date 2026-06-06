@@ -6,17 +6,12 @@
   "header": "⚡ Stamina: {{stamina}}/{{maxStamina}}\n📦 {{count}} jenis item",
   "footer": "Total nilai: {{total}} koin | Halaman {{page}}/{{totalPages}}",
   "empty": "📦 Inventory kosong. Coba /fish atau /explore!",
-  "prev": "◀ Sebelumnya",
-  "next": "Berikutnya ▶",
   "equipment": "Peralatan",
+  "consumable": "Consumable",
   "use_placeholder": "Gunakan consumable...",
   "expired": "⏰ Kadaluarsa — ketik /inventory lagi",
   "not_yours": "Bukan inventory kamu!",
   "item_not_found": "Item tidak ditemukan",
   "used": "✅ Menggunakan {{emoji}} **{{name}}**",
-  "heal_gain": "❤️ +{{gain}} HP",
-  "stam_gain": "⚡ +{{gain}} Stamina",
-  "buff_gain": "⚔️ {{stat}} +{{value}}% ({{mins}}m)",
   "no_effect": "❌ {{emoji}} tidak berefek"
 }
-

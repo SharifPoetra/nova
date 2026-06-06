@@ -11,7 +11,7 @@ import { getPlayerStats } from '../../lib/rpg/combat';
 import { addItemToInventory } from '../../lib/rpg/inventory';
 import { Item } from '@nova/db';
 import { i18nFish } from '../../lib/i18n/display';
-import { getItemDisplay } from '../../lib/rpg/item-registry';
+import { getItemDisplay } from '../../lib/i18n/item-registry';
 
 @ApplyOptions({
   name: 'fish',
@@ -94,7 +94,7 @@ export class FishCommand extends Command {
       const stats = await getPlayerStats(user);
       user.hp = stats.maxHp;
       user.stamina = user.maxStamina;
-      levelUpText = `${t('common:levelup', { level: user.level })}`;
+      levelUpText = `${t('common:status.levelup', { level: user.level })}`;
     }
 
     await user.save();

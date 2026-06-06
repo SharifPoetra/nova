@@ -1,0 +1,7 @@
+{
+  "usage": "/giveall [target] [qty]",
+  "examples": "/giveall\n/giveall target:@user\n/giveall qty:1",
+  "extended_help": "Command khusus Owner untuk memberikan semua item yang ada di game.\n\n**Cara pakai:**\n• `/giveall` — Kasih diri sendiri 99x semua item\n• `/giveall target:@user` — Kasih ke player lain\n• `/giveall qty:1` — Kasih 1x tiap item (untuk testing)\n\n**Sumber item:**\n• Drop Hunt, item Explore, Ikan\n• Drop Dungeon & Boss\n• Semua equipment, makanan, hasil craft\n\nItem akan di-upsert ke database dan disinkron ke inventory. Reply hanya terlihat oleh kamu.",
+  "success": "✅ {{username}} dapat {{count}} item x{{qty}} (semua source sinkron)",
+  "no_start": "❌ User belum /start"
+}

@@ -1,0 +1,10 @@
+{
+  "potion_stamina": {
+    "name": "Stamina Potion",
+    "desc": "Restore 30 stamina"
+  },
+  "potion_hp": {
+    "name": "Health Potion",
+    "desc": "Restore 50 HP"
+  }
+}

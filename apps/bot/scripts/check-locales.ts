@@ -1,10 +1,22 @@
+// @ts-check
+/// <reference types="node" />
 import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = process.cwd();
-const SRC = path.join(ROOT, 'src');
+const SRC = fs.existsSync(path.join(ROOT, 'apps/bot/src')) ? path.join(ROOT, 'apps/bot/src') : path.join(ROOT, 'src');
 const LOCALES_DIR = path.join(SRC, 'locales');
 const SUPPORTED = ['en-US', 'en-GB', 'id'] as const;
+
+const c = {
+  reset: '\x1b[0m',
+  bold: '\x1b[1m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+};
 
 function walk(dir: string): string[] {
   const out: string[] = [];
@@ -24,6 +36,20 @@ function getLineNumber(content: string, index: number): number {
   return content.substring(0, index).split('\n').length;
 }
 
+function findCommandNames(): string[] {
+  const cmdDir = path.join(SRC, 'commands');
+  if (!fs.existsSync(cmdDir)) return [];
+  const files = walk(cmdDir);
+  const names = new Set<string>();
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf8');
+    const re = /@ApplyOptions(?:<[^>]+>)?\(\s*\{[\s\S]*?name\s*:\s*['"`]([a-z0-9_-]+)['"`]/gi;
+    let m;
+    while ((m = re.exec(content))) names.add(m[1].toLowerCase());
+  }
+  return [...names];
+}
+
 function findKeys(): Map<string, { file: string; line: number }[]> {
   const files = walk(SRC);
   const keys = new Map<string, { file: string; line: number }[]>();
@@ -35,21 +61,140 @@ function findKeys(): Map<string, { file: string; line: number }[]> {
     /resolveKey\s*\([^,]+,\s*['"`]([^'"`]+)['"`]/g,
   ];
 
+  const add = (key: string, file: string, content: string, idx: number) => {
+    if (!key || key.includes('${') || key.includes('+') || !key.includes(':')) return;
+    const line = getLineNumber(content, idx);
+    const relFile = path.relative(ROOT, file);
+    if (!keys.has(key)) keys.set(key, []);
+    keys.get(key)!.push({ file: relFile, line });
+  };
+
   for (const file of files) {
     const content = fs.readFileSync(file, 'utf8');
+
+    const importMap = new Map<string, string>();
+    const importRe = /import\s+(\w+)\s+from\s+['"][^'"]*locales\/[^/]+\/([^'"]+)\.json['"]/g;
+    let im;
+    while ((im = importRe.exec(content))) {
+      const varName = im[1];
+      const nsPath = im[2].replace(/\\/g, '/');
+      importMap.set(varName, nsPath);
+    }
+
+    for (const [varName, ns] of importMap) {
+      const useRe = new RegExp(`\\b${varName}\\.([a-zA-Z0-9_]+)`, 'g');
+      let um;
+      while ((um = useRe.exec(content))) {
+        add(`${ns}:${um[1]}`, file, content, um.index);
+      }
+    }
+
+    const templateRe = /t\(\s*`([^`]*\$\{[^}]+\}[^`]*)`\s*\)/g;
+    let tm;
+    while ((tm = templateRe.exec(content))) {
+      const tpl = tm[1];
+      const idx = tm.index;
+
+      if (tpl.startsWith('commands/start:class_')) {
+        ['archer', 'mage', 'warrior'].forEach((cls) => add(`commands/start:class_${cls}`, file, content, idx));
+      }
+
+      if (tpl.includes('cook/recipes:${')) {
+        const recipesFile = path.join(SRC, 'lib/rpg/cook/recipes.ts');
+        const scanTarget = fs.existsSync(recipesFile) ? fs.readFileSync(recipesFile, 'utf8') : content;
+        const idRe = /['"`]([a-z0-9_]+)['"`]\s*:\s*\{/g;
+        let rm;
+        while ((rm = idRe.exec(scanTarget))) {
+          add(`cook/recipes:${rm[1]}.name`, file, content, idx);
+          add(`cook/recipes:${rm[1]}.desc`, file, content, idx);
+        }
+        // fallback: ambil dari locale langsung
+        const localeSample = loadLocale('en-US');
+        Object.keys(localeSample)
+          .filter((k) => k.startsWith('cook/recipes:') && k.endsWith('.name'))
+          .forEach((k) => add(k, file, content, idx));
+      }
+
+      if (
+        tpl.includes('common:categories.${') ||
+        tpl.includes('common:resource.${') ||
+        tpl.includes('common:error.${') ||
+        tpl.includes('common:ui.${')
+      ) {
+        const base = tpl.split('${')[0];
+        const localeSample = loadLocale('en-US');
+        Object.keys(localeSample)
+          .filter((k) => k.startsWith(base))
+          .forEach((k) => add(k, file, content, idx));
+      }
+
+      if (tpl.includes('commands/sell:type_')) {
+        ['all', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'].forEach((t) =>
+          add(`commands/sell:type_${t}`, file, content, idx),
+        );
+      }
+
+      if (tpl.startsWith('battle:${')) {
+        const localeSample = loadLocale('en-US');
+        Object.keys(localeSample)
+          .filter((k) => k.startsWith('battle:'))
+          .forEach((k) => add(k, file, content, idx));
+      }
+
+      const escaped = tpl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\$\{[^}]+\}/g, '[^:]+');
+      const pattern = '^' + escaped + '$';
+      add(`__DYNAMIC__${pattern}`, file, content, idx);
+    }
+
     for (const regex of patterns) {
       let m;
-      while ((m = regex.exec(content))) {
-        const key = m[1].trim();
-        if (key.includes('${') || key.includes('+')) continue;
-        if (!key.includes(':')) continue;
+      while ((m = regex.exec(content))) add(m[1].trim(), file, content, m.index);
+    }
+    const reApply = /applyLocalizedBuilder\s*\([^,]+,\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
+    let m;
+    while ((m = reApply.exec(content))) {
+      add(m[1].trim(), file, content, m.index);
+      add(m[2].trim(), file, content, m.index);
+    }
+    const re1 = /i18nMonster\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
+    while ((m = re1.exec(content))) add(`${m[1]}/monsters:${m[2]}.name`, file, content, m.index);
+    const re2 = /i18nItem\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
+    while ((m = re2.exec(content))) add(`${m[1]}/items:${m[2]}.name`, file, content, m.index);
+    const re3 = /i18nItemDesc\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
+    while ((m = re3.exec(content))) add(`${m[1]}/items:${m[2]}.desc`, file, content, m.index);
+    const re4 = /i18nFish(?:Desc)?\s*\(\s*['"`]([^'"`]+)['"`]/g;
+    while ((m = re4.exec(content))) {
+      add(`fish/species:${m[1]}.name`, file, content, m.index);
+      add(`fish/species:${m[1]}.desc`, file, content, m.index);
+    }
+    const re5 = /i18nEvent\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*['"`]([^'"`]+)['"`]/g;
+    while ((m = re5.exec(content))) add(`${m[1]}/events:${m[2]}.text`, file, content, m.index);
 
-        const line = getLineNumber(content, m.index);
-        const relFile = path.relative(SRC, file);
+    const reLiteral = /['"`]([a-z]+\/[a-z]+:[a-z0-9_.]+)['"`]/g;
+    while ((m = reLiteral.exec(content))) {
+      add(m[1], file, content, m.index);
+    }
+  }
 
-        if (!keys.has(key)) keys.set(key, []);
-        keys.get(key)!.push({ file: relFile, line });
-      }
+  const cmdNames = findCommandNames();
+  const dummyFile = 'dynamic:help.ts';
+  for (const name of cmdNames) {
+    if (!/^[a-z0-9_-]+$/.test(name)) continue;
+    add(`commands/${name}:usage`, dummyFile, '', 0);
+    add(`commands/${name}:extended_help`, dummyFile, '', 0);
+    add(`commands/${name}:examples`, dummyFile, '', 0);
+    add(`commands/names:${name}`, dummyFile, '', 0);
+    add(`commands/descriptions:${name}`, dummyFile, '', 0);
+  }
+
+  const reg = path.join(SRC, 'lib/i18n/item-registry.ts');
+  if (fs.existsSync(reg)) {
+    const txt = fs.readFileSync(reg, 'utf8');
+    const re = /([a-z0-9_]+)\s*:\s*\{\s*ns\s*:\s*['"`]([^'"`]+)['"`]/g;
+    let m;
+    while ((m = re.exec(txt))) {
+      add(`${m[2]}:${m[1]}.name`, reg, txt, m.index);
+      add(`${m[2]}:${m[1]}.desc`, reg, txt, m.index);
     }
   }
   return keys;
@@ -59,7 +204,6 @@ function loadLocale(locale: string) {
   const dir = path.join(LOCALES_DIR, locale);
   const data: Record<string, string> = {};
   if (!fs.existsSync(dir)) return data;
-
   const walkJson = (d: string) => {
     for (const e of fs.readdirSync(d, { withFileTypes: true })) {
       const p = path.join(d, e.name);
@@ -77,8 +221,8 @@ function loadLocale(locale: string) {
             }
           };
           flatten(json);
-        } catch {
-          /* ignore */
+        } catch (e: any) {
+          console.error(`${c.red}✗ Failed to parse ${path.relative(ROOT, p)}: ${e.message}${c.reset}`);
         }
       }
     }
@@ -89,8 +233,8 @@ function loadLocale(locale: string) {
 
 function main() {
   const keysMap = findKeys();
-  const keys = [...keysMap.keys()].sort();
-  console.log(`🔍 Found ${keys.length} i18n keys\n`);
+  const keys = [...keysMap.keys()].filter((k) => !k.startsWith('__DYNAMIC__')).sort();
+  console.log(`${c.cyan}${c.bold}🔍 Found ${keys.length} i18n keys${c.reset}\n`);
 
   const locales = SUPPORTED.map((l) => ({ locale: l, data: loadLocale(l) }));
   let error = false;
@@ -99,19 +243,66 @@ function main() {
     const missing = locales.filter((l) => !(key in l.data)).map((l) => l.locale);
     if (missing.length) {
       error = true;
-      console.log(`❌ ${key}`);
-      console.log(`   missing in: ${missing.join(', ')}`);
+      console.log(`${c.red}${c.bold}❌ ${key}${c.reset}`);
+      console.log(` ${c.yellow}missing in:${c.reset} ${missing.map((m) => `${c.magenta}${m}${c.reset}`).join(', ')}`);
+
       const usages = keysMap.get(key)!;
-      const unique = [...new Map(usages.map((u) => [`${u.file}:${u.line}`, u])).values()]
-        .slice(0, 3)
-        .map((u) => `${u.file}:${u.line}`)
-        .join(', ');
-      console.log(`   used in: ${unique}`);
+      const unique = [...new Map(usages.map((u) => [`${u.file}:${u.line}`, u])).values()].slice(0, 3);
+      const isDynamic = unique.some((u) => u.file.startsWith('dynamic:'));
+
+      if (isDynamic) {
+        const cmd = key.match(/^commands\/([^:]+):/)?.[1];
+        console.log(` ${c.reset}used in: src/commands/*/${cmd}.ts (via help.ts)${c.reset}`);
+      } else {
+        console.log(` ${c.reset}used in: ${unique.map((u) => `${u.file}:${u.line}`).join(', ')}${c.reset}`);
+      }
     }
   }
 
+  const used = new Set(keysMap.keys());
+  const dynamicPatterns = [...used]
+    .filter((k) => k.startsWith('__DYNAMIC__'))
+    .map((k) => {
+      try {
+        return new RegExp(k.replace('__DYNAMIC__', ''));
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean) as RegExp[];
+  const allLocaleKeys = new Set<string>();
+  locales.forEach((l) => Object.keys(l.data).forEach((k) => allLocaleKeys.add(k)));
+
+  // --- WHITELIST prefix yang 100% dinamis ---
+  const dynamicWhitelist = [
+    'common:categories',
+    'commands/start:class_',
+    'cook/recipes:',
+    'commands/sell:type_',
+    'battle:fled',
+    'dungeon/events',
+    'dungeon/lore',
+    'dungeon/monsters',
+    'explore/events',
+    'hunt/monsters',
+  ];
+
+  const unused = [...allLocaleKeys]
+    .filter((k) => {
+      if (used.has(k)) return false;
+      if (dynamicWhitelist.some((p) => k.startsWith(p))) return false;
+      return !dynamicPatterns.some((rx) => rx.test(k));
+    })
+    .sort();
+
+  if (unused.length) {
+    console.log(`\n${c.yellow}${c.bold}⚠️ ${unused.length} unused keys${c.reset}`);
+    unused.slice(0, 30).forEach((k) => console.log(` ${k}`));
+    if (unused.length > 30) console.log(`...and ${unused.length - 30} more`);
+  }
+
   if (!error) {
-    console.log('✅ All keys present in en-US, en-GB, id');
+    console.log(`\n${c.green}${c.bold}✅ All keys present in en-US, en-GB, id${c.reset}`);
   } else {
     process.exit(1);
   }

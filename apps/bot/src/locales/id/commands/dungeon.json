@@ -24,7 +24,6 @@
   "reward": "Reward: +{{gold}} koin • +{{exp}} exp",
   "resting": "🏠 Kamu istirahat di lantai {{floor}}.",
   "rest_footer": "Tertinggi: {{highest}} • Tower of Stars",
-  "skill_cd": "Cooldown skill: {{cd}} turn",
   "choose_action": "Pilih aksimu!",
   "merchant_ruins": "🛒 Pedagang Reruntuhan",
   "merchant_mines": "⛏️ Pedagang Kurcaci",
@@ -44,7 +43,6 @@
   "btn_continue": "➡️ Lanjut L{{floor}}",
   "btn_stop": "🏠 Istirahat",
   "btn_bag": "🎒 Tas",
-  "battle_spawn": "**{{emoji}} {{name}}** muncul!{{elite}}",
   "elite_tag": " **ELITE!**",
   "battle_auto": "⏱️ Auto! 🗡️ **{{damage}}**",
   "title": "🗼 Tower of Stars",
@@ -53,7 +51,6 @@
   "checkpoint": "Checkpoint",
   "in_run": "⚠️ Sedang dalam run!",
   "left": "Keluar tower. Run dibatalkan.",
-  "hp_zero": "❤️ HP 0",
   "defeated": "💀 Dikalahkan {{name}}!",
   "lost_title": "💀 Kalah Lantai {{floor}}",
   "victory": "✅ {{emoji}} kalah",
@@ -68,7 +65,5 @@
   "skipped": "🛒 {{text}} (dilewati)",
   "drop": "🎁 {{emoji}} {{name}}",
   "continue_q": "Mau lanjut?",
-  "close_bag": "🎒 Tutup Tas",
-  "player_hit": "🗡️ Kamu serang {{damage}} {{crit}}",
-  "monster_hit": "💢 {{monsterName}} balas {{monsterDamage}}"
+  "close_bag": "🎒 Tutup Tas"
 }

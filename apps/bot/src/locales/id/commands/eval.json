@@ -1,0 +1,5 @@
+{
+  "usage": "/eval <code> [depth:0-5] [ephemeral:true/false]",
+  "examples": "/eval client.ws.ping\n/eval await db.user.countDocuments()\n/eval util.inspect(container.stores, {depth:0})\n/eval i.guild.members.cache.size",
+  "extended_help": "Eval khusus owner dengan filter keamanan.\n\n**Opsi:**\n- code — JavaScript yang dijalankan (support await, return ekspresi terakhir)\n- depth — kedalaman inspect object (default 1)\n- ephemeral — sembunyikan output (default true)\n\n**Context yang tersedia:**\n- client, container, interaction (i), t\n- guild, channel, user, member\n- db, util, require, process, console\n- sleep(ms)\n\n**Keamanan:**\n- Blokir token, URI MongoDB, password, secret, webhook, fs write/unlink, child_process exec/spawn\n- Output otomatis sensor token dan URI Mongo\n\nTip: Pakai return untuk ekspresi, atau tulis multi-baris. Untuk object besar, naikkan depth."
+}

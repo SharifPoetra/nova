@@ -1,17 +1,15 @@
 {
-  "usage": "/droprate ",
-  "extended_help": "**Fitur:**\n• Menampilkan chance, harga jual, XP, dan rarity\n• Menghitung expected\n\n**Tipe:** fish, explore, hunt",
-  "sim_no_perm": "❌ Simulasi hanya untuk Admin.",
-  "sim_title": "🎲 Simulasi {{sim}}x — {{type}}",
-  "no_drop": "Tidak Dapat",
-  "chance": "Chance",
+  "usage": "/droprate <type:fish|explore|hunt>",
+  "examples": "/droprate type:fish\n/droprate type:explore\n/droprate type:hunt",
+  "extended_help": "Lihat tabel drop lengkap dengan peluang, hadiah, dan EV.\n\n**Tipe:**\n- fish — tampilkan peluang tiap ikan %, harga jual, XP, dan ringkasan rarity\n- explore — tampilkan peluang event %, coins, XP, dan item drop\n- hunt — daftar monster per halaman dengan HP, DMG, XP, dan peluang drop\n\n**Catatan:**\n- EV (Expected Value) fish dihitung dari harga jual × peluang\n- Ringkasan rarity menjumlah peluang per tier\n- Halaman hunt pakai tombol ◀ ▶ (timeout 60 detik)",
+  "chance": "Peluang",
   "sell": "Jual",
   "drop": "Drop",
-  "rarity": "📊 Rarity",
-  "fish_title": "🎣 Drop Rate Detail — Fish",
-  "fish_footer": "EV: ~{{ev}}💰 per catch • Total: {{total}}%",
-  "explore_title": "🗺️ Drop Rate Detail — Explore",
+  "rarity": "📊 Kelangkaan",
   "average": "💡 Rata-rata",
   "per_explore": "per explore",
-  "hunt_title": "⚔️ Drop Rate Detail — Hunt"
+  "fish_title": "🎣 Detail Drop Rate — Fish",
+  "fish_footer": "EV: ~{{ev}}💰 per tangkapan • Total: {{total}}%",
+  "explore_title": "🗺️ Detail Drop Rate — Explore",
+  "hunt_title": "⚔️ Detail Drop Rate — Hunt"
 }

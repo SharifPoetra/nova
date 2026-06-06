@@ -1,5 +1,6 @@
 {
   "usage": "/start",
+  "examples": "/start",
   "extended_help": "Choose 1 of 3 classes (**cannot be changed**):\n\n⚔️ **Warrior**\n> HP 120 | ATK 15\n> Passive: +10% DEF\n\n🔮 **Mage**\n> HP 80 | ATK 22\n> Passive: +15% Mana Regen\n\n🏹 **Archer**\n> HP 100 | ATK 18\n> Passive: +10% Crit\n\nType `/start` then click a class button.",
   "already_title": "😅 You Already Have a Class",
   "already_desc": "You are already registered as **{{class}}**.\nClass cannot be changed, continue your adventure!",
@@ -16,9 +17,6 @@
   "chosen_author": "{{username}} chose {{class}}",
   "awakened": "{{emoji}} {{class}} Awakened!",
   "awakened_desc": "*{{desc}}*\n\nWelcome to Nova Chronicles. Your journey begins.",
-  "hp": "❤️ HP",
-  "atk": "🗡️ ATK",
-  "stamina": "⚡ Stamina",
   "starting": "💰 Starting Capital",
   "tip": "Tip: /profile for status • /hunt to hunt"
 }

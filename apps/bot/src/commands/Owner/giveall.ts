@@ -9,6 +9,7 @@ import { DUNGEON_DROPS, BOSS_DROPS } from '../../lib/rpg/dungeon/dungeon-data';
 import { EQUIPMENTS } from '../../lib/rpg/equipments';
 import { COOKED_ITEMS } from '../../lib/rpg/cooking-recipes';
 import { CRAFTING_RECIPES } from '../../lib/rpg/crafting-recipes';
+import { fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions({
   name: 'giveall',
@@ -28,6 +29,7 @@ export class GiveAllCommand extends OwnerDevCommand {
 
   public async chatInputRun(i: Command.ChatInputCommandInteraction) {
     await i.deferReply({ flags: MessageFlags.Ephemeral });
+    const t = await fetchT(i);
     const target = i.options.getUser('target') ?? i.user;
     const qty = i.options.getInteger('qty') ?? 99;
     const map = new Map<string, any>();
@@ -75,11 +77,10 @@ export class GiveAllCommand extends OwnerDevCommand {
     }
 
     const user = await this.container.db.user.findOne({ discordId: target.id });
-    if (!user) return i.editReply('❌ User belum /start');
+    if (!user) return i.editReply(t('commands/giveall:no_start'));
 
     user.items = ALL.map((x) => ({ itemId: x.itemId, qty }));
     await user.save();
-
-    return i.editReply(`✅ ${target.username} dapat ${ALL.length} item x${qty} (semua source sinkron)`);
+    return i.editReply(t('commands/giveall:success', { username: target.username, count: ALL.length, qty }));
   }
 }
