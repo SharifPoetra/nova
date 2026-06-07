@@ -11,8 +11,7 @@ async function main() {
 
   await app.register(cors, { origin: true });
 
-  await createDatabase(process.env.MONGODB_URI!);
-  app.log.info('✅ MongoDB connected');
+  await createDatabase(process.env.MONGODB_URI);
 
   app.get('/', async () => ({
     name: 'Nova API',
@@ -37,8 +36,8 @@ async function main() {
   const port = Number(process.env.API_PORT || 3001);
 
   try {
-    await app.listen({ port, host: '127.0.0.1' });
-    app.log.info(`🚀 Nova API listening on http://localhost:${port}`);
+    const address = await app.listen({ port, host: '127.0.0.1' });
+    app.log.info(`🚀 Nova API listening on ${address}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);
