@@ -201,7 +201,7 @@ async function main() {
       item: Item,
       dungeon: Dungeon,
       guild: Guild,
-      connection: mongo.connection,
+      connection: mongo,
     };
 
     await client.login(process.env.DISCORD_TOKEN);

@@ -6,68 +6,62 @@ export * from './models/Dungeon.js';
 export * from './models/Guild.js';
 export * from './models/UserBackground.js';
 
-let isConnected = false;
 let listenersAttached = false;
 
 export const createDatabase = async (connectionString?: string) => {
-  try {
-    if (!connectionString) throw new Error('MONGODB_URI is required');
+  if (!connectionString) throw new Error('MONGODB_URI is required');
 
-    if (isConnected) {
-      console.log('🔄 MongoDB is already connected, reusing');
-      return mongoose.connection;
+  if (mongoose.connection.readyState === 1) {
+    console.log('🔄 MongoDB already connected');
+    return mongoose.connection;
+  }
+
+  while (true) {
+    try {
+      await mongoose.connect(connectionString, {
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 15000,
+        connectTimeoutMS: 10000,
+        maxPoolSize: 5,
+        minPoolSize: 1,
+        retryWrites: true,
+        retryReads: true,
+        heartbeatFrequencyMS: 5000,
+        family: 4,
+      });
+
+      console.log('✅ MongoDB Connected');
+      break;
+    } catch (err: any) {
+      console.error('❌ MongoDB connect failed:', err.message);
+      console.log('⏳ Retrying in 5s...');
+      await new Promise((r) => setTimeout(r, 5000));
     }
+  }
 
-    // Setting buat mobile / koneksi tidak stabil
-    await mongoose.connect(connectionString, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 15000,
-      connectTimeoutMS: 10000,
-      maxPoolSize: 5,
-      minPoolSize: 1,
-      retryWrites: true,
-      retryReads: true,
-      heartbeatFrequencyMS: 5000,
-      family: 4,
+  if (!listenersAttached) {
+    const db = mongoose.connection;
+
+    db.on('disconnected', () => {
+      console.log('⚠️ MongoDB disconnected');
+    });
+    db.on('reconnected', () => {
+      console.log('🔄 MongoDB reconnected');
+    });
+    db.on('error', (err) => {
+      console.error('❌ MongoDB error:', err.message);
     });
 
-    isConnected = true;
-    console.log('✅ MongoDB Connected');
+    const shutdown = async (signal: string) => {
+      await db.close();
+      console.log(`MongoDB closed via ${signal}`);
+      process.exit(0);
+    };
+    process.once('SIGINT', () => shutdown('SIGINT'));
+    process.once('SIGTERM', () => shutdown('SIGTERM'));
 
-    if (!listenersAttached) {
-      const db = mongoose.connection;
-
-      db.on('disconnected', () => {
-        isConnected = false;
-        console.log('⚠️ MongoDB disconnected - will try to reconnect automatically...');
-      });
-
-      db.on('reconnected', () => {
-        isConnected = true;
-        console.log('🔄 MongoDB reconnected!');
-      });
-
-      db.on('error', (err) => {
-        console.error('❌ MongoDB error:', err.message);
-        // jangan process.exit - biar coba reconnect
-      });
-
-      // Handle app close
-      process.once('SIGINT', async () => {
-        await db.close();
-        console.log('MongoDB disconnected through app termination');
-        process.exit(0);
-      });
-
-      listenersAttached = true;
-    }
-
-    return mongoose.connection;
-  } catch (error) {
-    console.error('❌ MongoDB Initial Connection Error:', error);
-    // jangan process.exit - coba lagi 5 detik
-    console.log('⏳ Retrying in 5 seconds...');
-    await new Promise((res) => setTimeout(res, 5000));
-    return createDatabase(connectionString); // recursive retry
+    listenersAttached = true;
   }
+
+  return mongoose.connection;
 };

@@ -67,7 +67,6 @@ export class EvalCommand extends OwnerDevCommand {
         // utils
         util,
         // node (hati-hati, tapi owner only)
-        require,
         process,
         console,
         // helpers
