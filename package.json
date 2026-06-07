@@ -5,7 +5,10 @@
   "author": "SharifPoetra",
   "license": "MIT",
   "type": "module",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "bot:dev": "npm run dev -w apps/bot",
     "activity:dev": "npm run dev -w apps/activity",
@@ -28,7 +31,14 @@
   "bugs": {
     "url": "https://github.com/SharifPoetra/nova/issues"
   },
-  "keywords": ["discord-bot", "sapphire-framework", "monorepo", "activity-rpg", "typescript", "mongoose"],
+  "keywords": [
+    "discord-bot",
+    "sapphire-framework",
+    "monorepo",
+    "activity-rpg",
+    "typescript",
+    "mongoose"
+  ],
   "homepage": "https://github.com/SharifPoetra/nova#readme",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -37,6 +47,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "prettier": "^3.8.3",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.2",
     "vitest": "^4.1.6"

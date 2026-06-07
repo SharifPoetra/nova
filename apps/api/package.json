@@ -15,18 +15,20 @@
     "type": "git",
     "url": "git+https://github.com/SharifPoetra/nova.git"
   },
-  "keywords": ["api", "discordbot", "fastify", "rpg"],
+  "keywords": [
+    "api",
+    "discordbot",
+    "fastify",
+    "rpg"
+  ],
   "bugs": {
     "url": "https://github.com/SharifPoetra/nova/issues"
   },
   "homepage": "https://github.com/SharifPoetra/nova#readme",
   "dependencies": {
-    "@nova/db": "file:../../packages/database",
     "@fastify/cors": "^11.2.0",
+    "@nova/db": "file:../../packages/database",
     "dotenv": "^17.4.2",
     "fastify": "^5.8.5"
-  },
-  "devDependencies": {
-    "tsx": "^4.22.4"
   }
 }
