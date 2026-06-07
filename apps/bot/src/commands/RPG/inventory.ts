@@ -2,8 +2,8 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { ActionRowBuilder, ButtonBuilder, StringSelectMenuBuilder, type AnyComponentBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { renderInventoryPage, renderConsumablePage, renderEquipmentPage } from '../../lib/rpg/inventory';
+import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
+import { renderInventoryPage, renderConsumablePage, renderEquipmentPage } from '../../lib/rpg/inventory.ts';
 
 @ApplyOptions<Command.Options>({
   name: 'inventory',

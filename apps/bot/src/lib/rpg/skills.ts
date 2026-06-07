@@ -1,5 +1,5 @@
 import type { IUser, Element } from '@nova/db';
-import { calculateDamage, PlayerStats } from './combat';
+import { calculateDamage, type PlayerStats } from './combat.ts';
 
 export type SkillTarget = 'self' | 'enemy' | 'all_enemies' | 'ally';
 export type SkillEffectType = 'damage' | 'heal' | 'buff' | 'debuff';

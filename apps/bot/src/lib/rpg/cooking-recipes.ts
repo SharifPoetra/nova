@@ -1,5 +1,5 @@
-import { IItemEffect, EquipmentSlot, IEquipmentStat } from '@nova/db';
-import type { Rarity } from '../utils';
+import type { IItemEffect, EquipmentSlot, IEquipmentStat } from '@nova/db';
+import type { Rarity } from '../utils.ts';
 
 export interface Ingredient {
   id: string;

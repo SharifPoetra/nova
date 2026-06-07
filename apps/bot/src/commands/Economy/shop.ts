@@ -1,8 +1,8 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { buildShopMain } from '../../lib/shop/ui';
+import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
+import { buildShopMain } from '../../lib/shop/ui.ts';
 
 @ApplyOptions({
   name: 'shop',

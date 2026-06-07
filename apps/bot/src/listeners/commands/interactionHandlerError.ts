@@ -1,5 +1,5 @@
 import { ApplyOptions } from '@sapphire/decorators';
-import { Listener, Events, InteractionHandlerError } from '@sapphire/framework';
+import { Listener, Events, type InteractionHandlerError } from '@sapphire/framework';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
 

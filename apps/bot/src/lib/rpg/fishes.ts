@@ -1,4 +1,4 @@
-import type { Rarity } from '../utils';
+import type { Rarity } from '../utils.ts';
 
 export interface Fish {
   id: string;

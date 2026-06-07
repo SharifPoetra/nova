@@ -1,4 +1,4 @@
-import { getMonster } from './dungeon-data';
+import { getMonster } from './dungeon-data.ts';
 
 export interface RunState {
   rooms: number;

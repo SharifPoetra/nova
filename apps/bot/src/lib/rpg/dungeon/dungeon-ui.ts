@@ -1,8 +1,8 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { colorBar, ratioBar } from '../../utils';
-import { RunState } from './dungeon-state';
+import { colorBar, ratioBar } from '../../utils.ts';
+import type { RunState } from './dungeon-state.ts';
 import type { TFunction } from 'i18next';
-import { elementTable, ELEMENT_EMOJI } from '../combat';
+import { elementTable, ELEMENT_EMOJI } from '../combat.ts';
 import type { Element } from '@nova/db';
 
 export function renderMapIcons(state: RunState, isBoss: boolean): string {

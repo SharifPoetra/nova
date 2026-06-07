@@ -1,10 +1,10 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import { StringSelectMenuInteraction, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { applyPassiveRegen } from '../lib/rpg/buffs';
-import { getPlayerStats } from '../lib/rpg/combat';
-import { getItemDisplay } from '../lib/i18n/item-registry';
-import { renderConsumablePage } from '../lib/rpg/inventory';
+import { applyPassiveRegen } from '../lib/rpg/buffs.ts';
+import { getPlayerStats } from '../lib/rpg/combat.ts';
+import { getItemDisplay } from '../lib/i18n/item-registry.ts';
+import { renderConsumablePage } from '../lib/rpg/inventory.ts';
 import { fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions<InteractionHandler.Options>({

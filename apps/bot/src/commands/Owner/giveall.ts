@@ -1,14 +1,14 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand';
-import { BASE_MONSTERS } from '../../lib/rpg/monsters';
-import { EXPLORES } from '../../lib/rpg/explorations';
-import { FISHES } from '../../lib/rpg/fishes';
-import { DUNGEON_DROPS, BOSS_DROPS } from '../../lib/rpg/dungeon/dungeon-data';
-import { EQUIPMENTS } from '../../lib/rpg/equipments';
-import { COOKED_ITEMS } from '../../lib/rpg/cooking-recipes';
-import { CRAFTING_RECIPES } from '../../lib/rpg/crafting-recipes';
+import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand.ts';
+import { BASE_MONSTERS } from '../../lib/rpg/monsters.ts';
+import { EXPLORES } from '../../lib/rpg/explorations.ts';
+import { FISHES } from '../../lib/rpg/fishes.ts';
+import { DUNGEON_DROPS, BOSS_DROPS } from '../../lib/rpg/dungeon/dungeon-data.ts';
+import { EQUIPMENTS } from '../../lib/rpg/equipments.ts';
+import { COOKED_ITEMS } from '../../lib/rpg/cooking-recipes.ts';
+import { CRAFTING_RECIPES } from '../../lib/rpg/crafting-recipes.ts';
 import { fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions({

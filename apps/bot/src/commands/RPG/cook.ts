@@ -10,11 +10,11 @@ import {
   ChatInputCommandInteraction,
 } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { getItemDisplay } from '../../lib/i18n/item-registry';
-import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { RECIPES, COOKED_ITEMS } from '../../lib/rpg/cooking-recipes';
-import { ACTION_COST } from '../../lib/rpg/actions';
-import { getPlayerStats } from '../../lib/rpg/combat';
+import { getItemDisplay } from '../../lib/i18n/item-registry.ts';
+import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
+import { RECIPES, COOKED_ITEMS } from '../../lib/rpg/cooking-recipes.ts';
+import { ACTION_COST } from '../../lib/rpg/actions.ts';
+import { getPlayerStats } from '../../lib/rpg/combat.ts';
 
 const TIER_FILTERS: Record<string, (r: any) => boolean> = {
   basic: (r) =>

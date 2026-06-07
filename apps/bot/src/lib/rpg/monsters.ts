@@ -1,6 +1,6 @@
-import type { Rarity } from '../utils';
+import type { Rarity } from '../utils.ts';
 import type { EquipmentSlot, IEquipmentStat, IItemEffect, Element } from '@nova/db';
-import { EQUIPMENTS } from './equipments';
+import { EQUIPMENTS } from './equipments.ts';
 
 export interface Drop {
   id: string;

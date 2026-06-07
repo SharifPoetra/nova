@@ -2,8 +2,8 @@ import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework
 import { ApplyOptions } from '@sapphire/decorators';
 import { ButtonInteraction, EmbedBuilder, MessageFlags } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { getClass } from '../lib/rpg/classes';
-import { SKILLS, getPassiveSkills } from '../lib/rpg/skills';
+import { getClass } from '../lib/rpg/classes.ts';
+import { SKILLS, getPassiveSkills } from '../lib/rpg/skills.ts';
 
 @ApplyOptions<InteractionHandler.Options>({
   interactionHandlerType: InteractionHandlerTypes.Button,

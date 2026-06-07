@@ -17,12 +17,12 @@ import {
   SeparatorBuilder,
   SeparatorSpacingSize,
 } from 'discord.js';
-import { applyLocalizedBuilder, fetchT, TFunction } from '@sapphire/plugin-i18next';
-import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { getItemDisplay } from '../../lib/i18n/item-registry';
+import { applyLocalizedBuilder, fetchT, type TFunction } from '@sapphire/plugin-i18next';
+import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
+import { getItemDisplay } from '../../lib/i18n/item-registry.ts';
 
-import sellEn from '../../locales/en-US/commands/sell.json';
-import sellId from '../../locales/id/commands/sell.json';
+import sellEn from '../../locales/en-US/commands/sell.json' with { type: 'json' };
+import sellId from '../../locales/id/commands/sell.json' with { type: 'json' };
 
 const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0];
 

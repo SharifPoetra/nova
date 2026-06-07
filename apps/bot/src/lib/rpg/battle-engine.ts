@@ -7,8 +7,8 @@ import {
   setSkillCooldown,
   type PlayerStats,
   ELEMENT_EMOJI,
-} from './combat';
-import { getSkill, type SkillData, type SkillContext } from './skills';
+} from './combat.ts';
+import { getSkill, type SkillData, type SkillContext } from './skills.ts';
 import type { IUser, Element } from '@nova/db';
 
 export interface EnemyStats {

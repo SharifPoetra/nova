@@ -2,16 +2,16 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { AttachmentBuilder } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs';
-import { getClass } from '../../lib/rpg/classes';
-import { BASE_MONSTERS } from '../../lib/rpg/monsters';
-import { getExpNeeded } from '../../lib/rpg/leveling';
-import { getPlayerStats } from '../../lib/rpg/combat';
-import { SKILLS } from '../../lib/rpg/skills';
-import { localized } from '../../lib/i18n/localize';
-import { i18nMonster } from '../../lib/i18n/display';
-import { getItemDisplay } from '../../lib/i18n/item-registry';
-import { renderProfileCard } from '../../lib/canvas/profile-card';
+import { applyPassiveRegen, getAtkBuff } from '../../lib/rpg/buffs.ts';
+import { getClass } from '../../lib/rpg/classes.ts';
+import { BASE_MONSTERS } from '../../lib/rpg/monsters.ts';
+import { getExpNeeded } from '../../lib/rpg/leveling.ts';
+import { getPlayerStats } from '../../lib/rpg/combat.ts';
+import { SKILLS } from '../../lib/rpg/skills.ts';
+import { localized } from '../../lib/i18n/localize.ts';
+import { i18nMonster } from '../../lib/i18n/display.ts';
+import { getItemDisplay } from '../../lib/i18n/item-registry.ts';
+import { renderProfileCard } from '../../lib/canvas/profile-card.ts';
 
 @ApplyOptions<Command.Options>({
   name: 'profile',

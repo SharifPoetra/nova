@@ -1,5 +1,5 @@
-import { getClass } from './classes';
-import { getPassiveSkills, type SkillData } from './skills';
+import { getClass } from './classes.ts';
+import { getPassiveSkills, type SkillData } from './skills.ts';
 import { Item, type Element, type IUser, type IItem, type IEquipmentStat } from '@nova/db';
 
 export const elementTable: Record<Element, Partial<Record<Element, number>>> = {

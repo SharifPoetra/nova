@@ -1,4 +1,4 @@
-import type { Rarity } from '../utils';
+import type { Rarity } from '../utils.ts';
 import type { IItemEffect } from '@nova/db';
 
 export interface ExploreItem {

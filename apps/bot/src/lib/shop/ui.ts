@@ -1,6 +1,6 @@
 import { ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { SHOP_CATEGORIES } from './categories';
-import { formatNumber } from '../utils';
+import { SHOP_CATEGORIES } from './categories.ts';
+import { formatNumber } from '../utils.ts';
 
 export function buildShopMain(userId: string, balance: number, t: any) {
   const embed = new EmbedBuilder()

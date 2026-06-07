@@ -2,7 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { MessageFlags, PermissionFlagsBits } from 'discord.js';
-import { invalidateLangCache } from '../../index';
+import { invalidateLangCache } from '../../index.ts';
 
 @ApplyOptions<Command.Options>({
   name: 'lang',

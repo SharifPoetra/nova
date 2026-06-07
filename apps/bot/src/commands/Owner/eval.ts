@@ -1,7 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { codeBlock, EmbedBuilder, MessageFlags, SlashCommandBuilder } from 'discord.js';
-import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand';
+import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand.ts';
 import { fetchT } from '@sapphire/plugin-i18next';
 import util from 'node:util';
 

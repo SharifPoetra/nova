@@ -2,10 +2,10 @@ import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework
 import { ApplyOptions } from '@sapphire/decorators';
 import { ButtonInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { getItemById, type ShopCategory } from '../../lib/shop/categories';
-import { COLORS, formatNumber } from '../../lib/utils';
-import { addItemToInventory } from '../../lib/rpg/inventory';
-import { applyPassiveRegen } from '../../lib/rpg/buffs';
+import { getItemById, type ShopCategory } from '../../lib/shop/categories.ts';
+import { COLORS, formatNumber } from '../../lib/utils.ts';
+import { addItemToInventory } from '../../lib/rpg/inventory.ts';
+import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
 
 @ApplyOptions({
   name: 'shopConfirm',

@@ -1,13 +1,13 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand';
+import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand.ts';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { catchFish } from '../../lib/rpg/fishes';
-import { rollExplore } from '../../lib/rpg/explorations';
-import { getScaledMonster } from '../../lib/rpg/monsters';
-import { RARITY_COLOR } from '../../lib/utils';
-import { i18nFish, i18nMonster, i18nEvent } from '../../lib/i18n/display';
+import { catchFish } from '../../lib/rpg/fishes.ts';
+import { rollExplore } from '../../lib/rpg/explorations.ts';
+import { getScaledMonster } from '../../lib/rpg/monsters.ts';
+import { RARITY_COLOR } from '../../lib/utils.ts';
+import { i18nFish, i18nMonster, i18nEvent } from '../../lib/i18n/display.ts';
 
 @ApplyOptions<Command.Options>({
   name: 'simdroprate',

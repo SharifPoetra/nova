@@ -1,4 +1,4 @@
-import { i18nItem, i18nItemDesc, i18nFish, i18nFishDesc } from '../i18n/display';
+import { i18nItem, i18nItemDesc, i18nFish, i18nFishDesc } from '../i18n/display.ts';
 import type { TFunction } from 'i18next';
 
 export const ITEM_I18N: Record<string, { ns: string; origin: string; dup?: boolean }> = {

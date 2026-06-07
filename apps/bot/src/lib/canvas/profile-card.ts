@@ -1,7 +1,10 @@
-import { createCanvas, loadImage, SKRSContext2D, GlobalFonts } from '@napi-rs/canvas';
+import { type SKRSContext2D, createCanvas, loadImage, GlobalFonts } from '@napi-rs/canvas';
 import { join } from 'path';
 import { existsSync } from 'fs';
-import { getBackgroundInfo } from './backgrounds';
+import { getBackgroundInfo } from './backgrounds.ts';
+import { fileURLToPath } from 'url';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 const fontDir = join(__dirname, '../../../assets/fonts');
 const bgDir = join(__dirname, '../../../assets/backgrounds');

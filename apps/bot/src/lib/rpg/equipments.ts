@@ -1,5 +1,5 @@
 import type { EquipmentSlot, IEquipmentStat } from '@nova/db';
-import type { Rarity } from '../utils';
+import type { Rarity } from '../utils.ts';
 
 export interface EquipmentData {
   id: string;

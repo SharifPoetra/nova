@@ -10,10 +10,10 @@ import {
   ButtonStyle,
 } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { SHOP_CATEGORIES, getShopItems, type ShopCategory } from '../../lib/shop/categories';
-import { RARITY_COLOR, COLORS, formatNumber } from '../../lib/utils';
-import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { buildShopMain } from '../../lib/shop/ui';
+import { SHOP_CATEGORIES, getShopItems, type ShopCategory } from '../../lib/shop/categories.ts';
+import { RARITY_COLOR, COLORS, formatNumber } from '../../lib/utils.ts';
+import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
+import { buildShopMain } from '../../lib/shop/ui.ts';
 
 const ITEMS_PER_PAGE = 10;
 

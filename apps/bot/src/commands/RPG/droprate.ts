@@ -2,11 +2,11 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { FISHES } from '../../lib/rpg/fishes';
-import { EXPLORES } from '../../lib/rpg/explorations';
-import { BASE_MONSTERS } from '../../lib/rpg/monsters';
-import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
-import { i18nFish, i18nItem, i18nMonster, i18nEvent } from '../../lib/i18n/display';
+import { FISHES } from '../../lib/rpg/fishes.ts';
+import { EXPLORES } from '../../lib/rpg/explorations.ts';
+import { BASE_MONSTERS } from '../../lib/rpg/monsters.ts';
+import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils.ts';
+import { i18nFish, i18nItem, i18nMonster, i18nEvent } from '../../lib/i18n/display.ts';
 
 const groupByRarity = <T extends { rarity: string }>(arr: T[]) => {
   return arr.reduce(

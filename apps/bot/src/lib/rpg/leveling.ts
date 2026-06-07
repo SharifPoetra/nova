@@ -1,4 +1,4 @@
-import { IUser } from '@nova/db';
+import type { IUser } from '@nova/db';
 
 export const getExpNeeded = (level: number) => Math.floor(50 * level + 50 * Math.pow(level, 1.6));
 

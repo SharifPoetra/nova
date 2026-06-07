@@ -1,13 +1,16 @@
 import '@sapphire/plugin-i18next/register';
-import dotenv from 'dotenv';
+import { config } from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+config({ path: path.resolve(__dirname, '../../../.env') });
+
 import { createWriteStream, existsSync, mkdirSync, WriteStream } from 'fs';
 import { setGlobalDispatcher, Agent } from 'undici';
 import { GatewayIntentBits } from 'discord.js';
 import { SapphireClient, container, ApplicationCommandRegistries, LogLevel } from '@sapphire/framework';
 import { createDatabase, User, UserBackground, Item, Dungeon, Guild } from '@nova/db';
-
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 // undici keepalive
 setGlobalDispatcher(

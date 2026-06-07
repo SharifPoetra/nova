@@ -2,10 +2,10 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, MessageFlags } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { sleep, ratioBar, colorBar } from '../../lib/utils';
-import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
-import { ACTION_COST } from '../../lib/rpg/actions';
+import { sleep, ratioBar, colorBar } from '../../lib/utils.ts';
+import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
+import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling.ts';
+import { ACTION_COST } from '../../lib/rpg/actions.ts';
 import {
   getMonster,
   getFloorLore,
@@ -13,9 +13,9 @@ import {
   DUNGEON_DROPS,
   DUNGEON_MONSTERS,
   BOSSES,
-} from '../../lib/rpg/dungeon/dungeon-data';
-import { rollEvent, getZone, type DungeonEvent, EVENT_ITEM_DEFS } from '../../lib/rpg/dungeon/dungeon-events';
-import { createRunState, getCheckpoint, RunState } from '../../lib/rpg/dungeon/dungeon-state';
+} from '../../lib/rpg/dungeon/dungeon-data.ts';
+import { rollEvent, getZone, type DungeonEvent, EVENT_ITEM_DEFS } from '../../lib/rpg/dungeon/dungeon-events.ts';
+import { createRunState, getCheckpoint, type RunState } from '../../lib/rpg/dungeon/dungeon-state.ts';
 import {
   buildMainEmbed,
   buildMapEmbed,
@@ -25,11 +25,11 @@ import {
   getMainButtons,
   getContinueButtons,
   getMerchantButtons,
-} from '../../lib/rpg/dungeon/dungeon-ui';
-import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle';
-import { getPlayerStats } from '../../lib/rpg/combat';
-import { addItemToInventory, renderConsumablePage } from '../../lib/rpg/inventory';
-import { i18nMonster, i18nItem, i18nEvent } from '../../lib/i18n/display';
+} from '../../lib/rpg/dungeon/dungeon-ui.ts';
+import { runInteractiveBattle } from '../../lib/rpg/dungeon/dungeon-battle.ts';
+import { getPlayerStats } from '../../lib/rpg/combat.ts';
+import { addItemToInventory, renderConsumablePage } from '../../lib/rpg/inventory.ts';
+import { i18nMonster, i18nItem, i18nEvent } from '../../lib/i18n/display.ts';
 
 @ApplyOptions({
   name: 'dungeon',

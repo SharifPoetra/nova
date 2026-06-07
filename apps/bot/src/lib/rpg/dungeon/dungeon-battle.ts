@@ -1,12 +1,12 @@
 import { Message, ComponentType } from 'discord.js';
-import { IUser } from '@nova/db';
-import { sleep } from '../../utils';
-import { RunState } from './dungeon-state';
-import { buildBattleEmbed, getBattleButtons } from './dungeon-ui';
-import { getSkillCooldown } from '../combat';
-import { BattleEngine } from '../battle-engine';
+import type { IUser } from '@nova/db';
+import { sleep } from '../../utils.ts';
+import type { RunState } from './dungeon-state.ts';
+import { buildBattleEmbed, getBattleButtons } from './dungeon-ui.ts';
+import { getSkillCooldown } from '../combat.ts';
+import { BattleEngine } from '../battle-engine.ts';
 import type { TFunction } from 'i18next';
-import { i18nMonster } from '../../i18n/display';
+import { i18nMonster } from '../../i18n/display.ts';
 
 interface BattleParams {
   player: IUser;

@@ -9,8 +9,8 @@ import {
   type Interaction,
 } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { localized } from '../../lib/i18n/localize';
-import { ACTION_COST } from '../../lib/rpg/actions';
+import { localized } from '../../lib/i18n/localize.ts';
+import { ACTION_COST } from '../../lib/rpg/actions.ts';
 
 @ApplyOptions<Command.Options>({
   name: 'help',
