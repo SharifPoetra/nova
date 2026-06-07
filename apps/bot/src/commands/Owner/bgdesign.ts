@@ -30,21 +30,6 @@ const PALETTES: Record<string, Palette> = {
   description: 'Advanced background designer for profile cards (Owner only)',
 })
 export class BgDesignCommand extends OwnerDevCommand {
-  public override registerApplicationCommands(registry: Command.Registry) {
-    const name = localized('commands/names:bgdesign');
-    const description = localized('commands/descriptions:bgdesign');
-
-    registry.registerChatInputCommand((builder) =>
-      this.configure(
-        builder
-          .setName(name.default)
-          .setNameLocalizations(name.localizations)
-          .setDescription(description.default)
-          .setDescriptionLocalizations(description.localizations),
-      ),
-    );
-  }
-
   public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     const t = await fetchT(interaction);
     const style = interaction.options.getString('style', true);
@@ -279,7 +264,14 @@ export class BgDesignCommand extends OwnerDevCommand {
   }
 
   protected configure(builder: SlashCommandBuilder) {
+    const name = localized('commands/names:bgdesign');
+    const description = localized('commands/descriptions:bgdesign');
+
     return builder
+      .setName(name.default)
+      .setNameLocalizations(name.localizations)
+      .setDescription(description.default)
+      .setDescriptionLocalizations(description.localizations)
       .addStringOption((opt) =>
         opt
           .setName('style')
