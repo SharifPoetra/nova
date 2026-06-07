@@ -4,10 +4,11 @@
   "description": "Nova api routes",
   "author": "SharifPoetra",
   "license": "MIT",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
