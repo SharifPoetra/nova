@@ -9,7 +9,7 @@ export * from './models/UserBackground.js';
 let isConnected = false;
 let listenersAttached = false;
 
-export const createDatabase = async (connectionString: string) => {
+export const createDatabase = async (connectionString?: string) => {
   try {
     if (!connectionString) throw new Error('MONGODB_URI is required');
 
