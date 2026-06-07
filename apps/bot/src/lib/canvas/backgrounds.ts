@@ -1,4 +1,4 @@
-import { Rarity } from '../utils';
+import type { Rarity } from '../utils.ts';
 
 export interface BackgroundInfo {
   id: string;

@@ -2,7 +2,7 @@ import { Command, InteractionHandler, InteractionHandlerTypes } from '@sapphire/
 import { ApplyOptions } from '@sapphire/decorators';
 import { ButtonInteraction, ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import type { HelpCommand } from '../commands/General/help';
+import type { HelpCommand } from '../commands/General/help.ts';
 
 @ApplyOptions<InteractionHandler.Options>({
   interactionHandlerType: InteractionHandlerTypes.Button,

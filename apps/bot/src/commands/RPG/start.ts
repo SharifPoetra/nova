@@ -2,8 +2,8 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { CLASSES, getClass } from '../../lib/rpg/classes';
-import { SKILLS, getPassiveSkills } from '../../lib/rpg/skills';
+import { CLASSES, getClass } from '../../lib/rpg/classes.ts';
+import { SKILLS, getPassiveSkills } from '../../lib/rpg/skills.ts';
 
 @ApplyOptions<Command.Options>({
   name: 'start',

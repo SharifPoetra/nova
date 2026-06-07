@@ -2,9 +2,9 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { PermissionFlagsBits, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand';
-import resetEn from '../../locales/en-US/commands/reset.json';
-import resetId from '../../locales/id/commands/reset.json';
+import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand.ts';
+import resetEn from '../../locales/en-US/commands/reset.json' with { type: 'json' };
+import resetId from '../../locales/id/commands/reset.json' with { type: 'json' };
 
 @ApplyOptions<Command.Options>({
   name: 'reset',

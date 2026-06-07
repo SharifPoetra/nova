@@ -2,11 +2,11 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import { MessageFlags } from 'discord.js';
 import type { ButtonInteraction, StringSelectMenuInteraction } from 'discord.js';
-import { applyPassiveRegen } from '../lib/rpg/buffs';
-import { getPlayerStats } from '../lib/rpg/combat';
-import { renderInventoryPage, renderEquipmentPage } from '../lib/rpg/inventory';
+import { applyPassiveRegen } from '../lib/rpg/buffs.ts';
+import { getPlayerStats } from '../lib/rpg/combat.ts';
+import { renderInventoryPage, renderEquipmentPage } from '../lib/rpg/inventory.ts';
 import type { EquipmentSlot, IUser, IItem } from '@nova/db';
-import { getItemDisplay } from '../lib/i18n/item-registry';
+import { getItemDisplay } from '../lib/i18n/item-registry.ts';
 import { fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions<InteractionHandler.Options>({

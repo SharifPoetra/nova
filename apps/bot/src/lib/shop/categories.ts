@@ -1,5 +1,5 @@
-import { getAllBackgrounds } from '../canvas/backgrounds';
-import { RARITY_COLOR, type Rarity } from '../utils';
+import { getAllBackgrounds } from '../canvas/backgrounds.ts';
+import { RARITY_COLOR, type Rarity } from '../utils.ts';
 
 export const SHOP_CATEGORIES = {
   potions: {

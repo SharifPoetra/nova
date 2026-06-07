@@ -1,13 +1,16 @@
 import '@sapphire/plugin-i18next/register';
-import dotenv from 'dotenv';
+import { config } from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+config({ path: path.resolve(__dirname, '../../../.env') });
+
 import { createWriteStream, existsSync, mkdirSync, WriteStream } from 'fs';
 import { setGlobalDispatcher, Agent } from 'undici';
 import { GatewayIntentBits } from 'discord.js';
 import { SapphireClient, container, ApplicationCommandRegistries, LogLevel } from '@sapphire/framework';
 import { createDatabase, User, UserBackground, Item, Dungeon, Guild } from '@nova/db';
-
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 // undici keepalive
 setGlobalDispatcher(
@@ -191,17 +194,14 @@ client.logger.write = (level: LogLevel, ...values: readonly unknown[]) => {
 async function main() {
   try {
     console.log('--- STARTING NOVA ---');
-    const mongoUri = process.env.MONGODB_URI;
-    if (!mongoUri) throw new Error('MONGODB_URI missing di .env');
-
-    const conn = await createDatabase(mongoUri);
+    const mongo = await createDatabase(process.env.MONGODB_URI);
     container.db = {
       user: User,
       userBackground: UserBackground,
       item: Item,
       dungeon: Dungeon,
       guild: Guild,
-      connection: conn.connection,
+      connection: mongo.connection,
     };
 
     await client.login(process.env.DISCORD_TOKEN);

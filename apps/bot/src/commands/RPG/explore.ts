@@ -2,15 +2,15 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
-import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
-import { rollExplore } from '../../lib/rpg/explorations';
-import { ACTION_COST } from '../../lib/rpg/actions';
-import { getPlayerStats } from '../../lib/rpg/combat';
-import { addItemToInventory } from '../../lib/rpg/inventory';
-import { i18nEvent } from '../../lib/i18n/display';
-import { getItemDisplay } from '../../lib/i18n/item-registry';
+import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling.ts';
+import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
+import { RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils.ts';
+import { rollExplore } from '../../lib/rpg/explorations.ts';
+import { ACTION_COST } from '../../lib/rpg/actions.ts';
+import { getPlayerStats } from '../../lib/rpg/combat.ts';
+import { addItemToInventory } from '../../lib/rpg/inventory.ts';
+import { i18nEvent } from '../../lib/i18n/display.ts';
+import { getItemDisplay } from '../../lib/i18n/item-registry.ts';
 
 @ApplyOptions<Command.Options>({
   name: 'explore',

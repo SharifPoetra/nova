@@ -1,9 +1,9 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
-import { RARITY_COLOR, RARITY_ORDER } from '../utils';
+import { RARITY_COLOR, RARITY_ORDER } from '../utils.ts';
 import { Item, type IItem, type IItemEffect, type IEquipmentStat, type EquipmentSlot, type IUser } from '@nova/db';
 import type { TFunction } from 'i18next';
-import { getItemDisplay } from '../i18n/item-registry';
-import { getPlayerStats } from './combat';
+import { getItemDisplay } from '../i18n/item-registry.ts';
+import { getPlayerStats } from './combat.ts';
 
 const ITEMS_PER_PAGE = 10;
 const ITEMS_PER_PAGE_CONSUMABLE = 25;

@@ -1,32 +1,35 @@
 {
-  "name": "@nova/db",
+  "name": "@nova/api",
   "version": "1.0.0",
-  "description": "Database models and core connection logic for Nova Bot using Mongoose",
+  "description": "Nova api routes",
   "author": "SharifPoetra",
   "license": "MIT",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
+  "main": "dist/index.js",
   "scripts": {
+    "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SharifPoetra/nova.git"
   },
+  "keywords": [
+    "api",
+    "discordbot",
+    "fastify",
+    "rpg"
+  ],
   "bugs": {
     "url": "https://github.com/SharifPoetra/nova/issues"
   },
-  "keywords": ["nova", "mongodb", "mongoose", "discord-bot"],
   "homepage": "https://github.com/SharifPoetra/nova#readme",
   "dependencies": {
-    "mongoose": "^9.6.1"
+    "@fastify/cors": "^11.2.0",
+    "@nova/db": "file:../../packages/database",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.8.5"
   }
 }

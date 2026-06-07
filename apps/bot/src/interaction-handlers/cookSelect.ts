@@ -10,12 +10,12 @@ import {
   ButtonStyle,
 } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { getRecipe, RECIPES, COOKED_ITEMS } from '../lib/rpg/cooking-recipes';
-import { applyPassiveRegen } from '../lib/rpg/buffs';
-import { ACTION_COST } from '../lib/rpg/actions';
-import { getPlayerStats } from '../lib/rpg/combat';
-import { addItemToInventory, removeItemFromInventory } from '../lib/rpg/inventory';
-import { getItemDisplay } from '../lib/i18n/item-registry';
+import { getRecipe, RECIPES, COOKED_ITEMS } from '../lib/rpg/cooking-recipes.ts';
+import { applyPassiveRegen } from '../lib/rpg/buffs.ts';
+import { ACTION_COST } from '../lib/rpg/actions.ts';
+import { getPlayerStats } from '../lib/rpg/combat.ts';
+import { addItemToInventory, removeItemFromInventory } from '../lib/rpg/inventory.ts';
+import { getItemDisplay } from '../lib/i18n/item-registry.ts';
 
 const TIER_FILTERS: Record<string, (r: any) => boolean> = {
   basic: (r) =>

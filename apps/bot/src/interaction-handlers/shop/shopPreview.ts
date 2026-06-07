@@ -9,18 +9,18 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { renderProfileCard } from '../../lib/canvas/profile-card';
-import { getPlayerStats } from '../../lib/rpg/combat';
-import { getClass } from '../../lib/rpg/classes';
-import { BASE_MONSTERS } from '../../lib/rpg/monsters';
-import { getExpNeeded } from '../../lib/rpg/leveling';
-import { SKILLS } from '../../lib/rpg/skills';
-import { i18nMonster } from '../../lib/i18n/display';
-import { getItemDisplay } from '../../lib/i18n/item-registry';
-import { getBackgroundInfo } from '../../lib/canvas/backgrounds';
-import { COLORS, formatNumber } from '../../lib/utils';
-import { getItemById } from '../../lib/shop/categories';
-import { applyPassiveRegen } from '../../lib/rpg/buffs';
+import { renderProfileCard } from '../../lib/canvas/profile-card.ts';
+import { getPlayerStats } from '../../lib/rpg/combat.ts';
+import { getClass } from '../../lib/rpg/classes.ts';
+import { BASE_MONSTERS } from '../../lib/rpg/monsters.ts';
+import { getExpNeeded } from '../../lib/rpg/leveling.ts';
+import { SKILLS } from '../../lib/rpg/skills.ts';
+import { i18nMonster } from '../../lib/i18n/display.ts';
+import { getItemDisplay } from '../../lib/i18n/item-registry.ts';
+import { getBackgroundInfo } from '../../lib/canvas/backgrounds.ts';
+import { COLORS, formatNumber } from '../../lib/utils.ts';
+import { getItemById } from '../../lib/shop/categories.ts';
+import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
 
 @ApplyOptions({
   name: 'shopPreview',

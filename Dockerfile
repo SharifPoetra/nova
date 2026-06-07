@@ -5,6 +5,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 COPY packages/database/package*.json ./packages/database/
 COPY apps/bot/package*.json ./apps/bot/
+COPY apps/api/package*.json ./apps/api/
 
 RUN npm ci --workspaces
 

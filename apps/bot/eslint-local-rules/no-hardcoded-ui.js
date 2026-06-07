@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   meta: {
     type: 'suggestion',
     docs: {
@@ -10,18 +10,15 @@ module.exports = {
     schema: [],
   },
   create(context) {
-    const UI_METHODS = [
-      'setTitle','setDescription','setFooter',
-      'setLabel','setPlaceholder',
-    ];
-    const UI_PROPS = ['content','title'];
+    const UI_METHODS = ['setTitle', 'setDescription', 'setFooter', 'setLabel', 'setPlaceholder'];
+    const UI_PROPS = ['content', 'title'];
 
     const sourceCode = context.sourceCode; // <-- ESLint 10
 
     function checkString(node, str, where) {
       if (!str || str.length < 4) return;
       if (str.includes('{{') || /^\p{Emoji}+$/u.test(str)) return;
-      
+
       const text = sourceCode.getText(node);
       if (text.includes('t(')) return; // already using i18n
 
@@ -43,7 +40,7 @@ module.exports = {
           checkString(arg, arg.value, method);
         }
         if (arg?.type === 'ObjectExpression') {
-          arg.properties.forEach(p => {
+          arg.properties.forEach((p) => {
             if (p.value?.type === 'Literal' && typeof p.value.value === 'string') {
               checkString(p.value, p.value.value, p.key.name);
             }

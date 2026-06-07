@@ -2,17 +2,17 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Command } from '@sapphire/framework';
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
-import { sleep, ratioBar, RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils';
-import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling';
-import { applyPassiveRegen } from '../../lib/rpg/buffs';
-import { getScaledMonster } from '../../lib/rpg/monsters';
-import { ACTION_COST } from '../../lib/rpg/actions';
-import { getPlayerStats, resetSkillCooldowns } from '../../lib/rpg/combat';
-import { addItemToInventory } from '../../lib/rpg/inventory';
-import { i18nMonster } from '../../lib/i18n/display';
-import { getItemDisplay } from '../../lib/i18n/item-registry';
-import { BattleEngine, type EnemyStats } from '../../lib/rpg/battle-engine';
-import { elementTable, ELEMENT_EMOJI } from '../../lib/rpg/combat';
+import { sleep, ratioBar, RARITY_COLOR, RARITY_EMOJI } from '../../lib/utils.ts';
+import { checkLevelUp, getScaledExp } from '../../lib/rpg/leveling.ts';
+import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
+import { getScaledMonster } from '../../lib/rpg/monsters.ts';
+import { ACTION_COST } from '../../lib/rpg/actions.ts';
+import { getPlayerStats, resetSkillCooldowns } from '../../lib/rpg/combat.ts';
+import { addItemToInventory } from '../../lib/rpg/inventory.ts';
+import { i18nMonster } from '../../lib/i18n/display.ts';
+import { getItemDisplay } from '../../lib/i18n/item-registry.ts';
+import { BattleEngine, type EnemyStats } from '../../lib/rpg/battle-engine.ts';
+import { elementTable, ELEMENT_EMOJI } from '../../lib/rpg/combat.ts';
 
 @ApplyOptions({ name: 'hunt', description: 'Hunt monsters', fullCategory: ['RPG'] })
 export class HuntCommand extends Command {

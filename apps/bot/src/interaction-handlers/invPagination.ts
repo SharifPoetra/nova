@@ -1,8 +1,8 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import { ButtonInteraction, MessageFlags } from 'discord.js';
-import { applyPassiveRegen } from '../lib/rpg/buffs';
-import { renderInventoryPage } from '../lib/rpg/inventory';
+import { applyPassiveRegen } from '../lib/rpg/buffs.ts';
+import { renderInventoryPage } from '../lib/rpg/inventory.ts';
 import { fetchT } from '@sapphire/plugin-i18next';
 
 @ApplyOptions<InteractionHandler.Options>({

@@ -10,9 +10,9 @@ import {
   ButtonStyle,
 } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { getAllBackgrounds } from '../../lib/canvas/backgrounds';
-import { getRarityEmoji } from '../../lib/shop/categories';
-import { COLORS } from '../../lib/utils';
+import { getAllBackgrounds } from '../../lib/canvas/backgrounds.ts';
+import { getRarityEmoji } from '../../lib/shop/categories.ts';
+import { COLORS } from '../../lib/utils.ts';
 
 const ITEMS_PER_PAGE = 25;
 

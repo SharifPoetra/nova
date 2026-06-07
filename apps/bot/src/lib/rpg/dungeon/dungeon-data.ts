@@ -1,8 +1,8 @@
 import type { IEquipmentStat, EquipmentSlot, Element } from '@nova/db';
 import type { TFunction } from 'i18next';
-import type { Rarity } from '../../utils';
-import { EQUIPMENTS } from '../equipments';
-import { i18nLore } from '../../i18n/display';
+import type { Rarity } from '../../utils.ts';
+import { EQUIPMENTS } from '../equipments.ts';
+import { i18nLore } from '../../i18n/display.ts';
 
 export type DropItem = {
   id: string;

@@ -10,13 +10,13 @@ import {
   ButtonStyle,
 } from 'discord.js';
 import { fetchT } from '@sapphire/plugin-i18next';
-import { getCraftingRecipe, CRAFTING_RECIPES } from '../lib/rpg/crafting-recipes';
-import { applyPassiveRegen } from '../lib/rpg/buffs';
-import { ACTION_COST } from '../lib/rpg/actions';
-import { getPlayerStats } from '../lib/rpg/combat';
-import { EQUIPMENTS } from '../lib/rpg/equipments';
-import { addItemToInventory, removeItemFromInventory } from '../lib/rpg/inventory';
-import { getItemDisplay } from '../lib/i18n/item-registry';
+import { getCraftingRecipe, CRAFTING_RECIPES } from '../lib/rpg/crafting-recipes.ts';
+import { applyPassiveRegen } from '../lib/rpg/buffs.ts';
+import { ACTION_COST } from '../lib/rpg/actions.ts';
+import { getPlayerStats } from '../lib/rpg/combat.ts';
+import { EQUIPMENTS } from '../lib/rpg/equipments.ts';
+import { addItemToInventory, removeItemFromInventory } from '../lib/rpg/inventory.ts';
+import { getItemDisplay } from '../lib/i18n/item-registry.ts';
 
 const CATEGORY_FILTERS: Record<string, (r: any) => boolean> = {
   tool: (r) => r.category === 'tool',

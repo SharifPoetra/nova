@@ -4,8 +4,8 @@ import { AttachmentBuilder, EmbedBuilder, SlashCommandBuilder } from 'discord.js
 import { createCanvas } from '@napi-rs/canvas';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
-import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand';
-import { localized } from '../../lib/i18n/localize';
+import { OwnerDevCommand } from '../../lib/bases/OwnerDevCommand.ts';
+import { localized } from '../../lib/i18n/localize.ts';
 import { fetchT } from '@sapphire/plugin-i18next';
 
 type Palette = { c1: string; c2: string; accent: string };
