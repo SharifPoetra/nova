@@ -191,17 +191,14 @@ client.logger.write = (level: LogLevel, ...values: readonly unknown[]) => {
 async function main() {
   try {
     console.log('--- STARTING NOVA ---');
-    const mongoUri = process.env.MONGODB_URI;
-    if (!mongoUri) throw new Error('MONGODB_URI missing di .env');
-
-    const conn = await createDatabase(mongoUri);
+    const mongo = await createDatabase(process.env.MONGODB_URI);
     container.db = {
       user: User,
       userBackground: UserBackground,
       item: Item,
       dungeon: Dungeon,
       guild: Guild,
-      connection: conn.connection,
+      connection: mongo.connection,
     };
 
     await client.login(process.env.DISCORD_TOKEN);
