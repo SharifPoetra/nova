@@ -54,7 +54,7 @@ export class ProfileCommand extends Command {
 
       if (!userData) {
         return interaction.editReply(
-          target.id === interaction.user.id
+          isSelf
             ? t('commands/profile:not_registered_self', {
                 defaultValue: '❌ You are not registered! Use `/start`.',
               })
