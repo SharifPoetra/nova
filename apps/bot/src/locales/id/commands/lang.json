@@ -6,6 +6,5 @@
   "option_desc": "Pilih bahasa",
   "guild_name": "guild",
   "guild_desc": "Atur untuk server (hanya admin)",
-  "lang_changed": "Bahasa diubah ke {{lang}} ✅",
-  "no_perm": "Kamu butuh izin Kelola Server"
+  "lang_changed": "Bahasa diubah ke {{lang}} ✅"
 }

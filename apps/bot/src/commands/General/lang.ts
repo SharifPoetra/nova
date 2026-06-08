@@ -3,6 +3,7 @@ import { Command } from '@sapphire/framework';
 import { applyLocalizedBuilder, fetchT } from '@sapphire/plugin-i18next';
 import { MessageFlags, PermissionFlagsBits } from 'discord.js';
 import { invalidateLangCache } from '../../index.ts';
+import { getPermName } from '../../lib/utils.ts';
 
 @ApplyOptions<Command.Options>({
   name: 'lang',
@@ -31,8 +32,9 @@ export class LangCommand extends Command {
     const isGuild = interaction.options.getBoolean('guild') ?? false;
 
     if (isGuild && interaction.guildId) {
-      if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-        return interaction.editReply(t('commands/lang:no_perm'));
+      const permNeeded = PermissionFlagsBits.ManageGuild;
+      if (!interaction.memberPermissions?.has(permNeeded)) {
+        return interaction.editReply(t('common:error.no_perm', { perm: getPermName(permNeeded) }));
       }
       await this.container.db.guild.updateOne({ guildId: interaction.guildId }, { $set: { lang } }, { upsert: true });
       invalidateLangCache(undefined, interaction.guildId);

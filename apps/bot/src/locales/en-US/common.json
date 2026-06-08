@@ -13,7 +13,6 @@
     "next": "Next ▶",
     "back": "↩️ Back",
     "close": "❌ Close",
-    "back": "◀ Back",
     "confirm": "✅ Confirm",
     "cancel": "❌ Cancel"
   },
@@ -22,20 +21,14 @@
     "low_stamina": "⚡ Not enough stamina ({{current}}/{{need}})",
     "low_hp": "❤️ Not enough HP ({{current}}/{{max}})",
     "cooldown": "⏳ Wait {{s}}s",
-    "no_perm": "❌ You don't have permission",
-
+    "no_perm": "❌ You don't have **{{perm}}** permission",
     "handler_failed_title": "❌ Error Occurred",
     "handler_failed_desc": "Handler `{{handler}}` failed to execute.\n\n**Error ID:** `{{id}}`",
     "handler_failed_footer": "Report this ID to the developer",
-
     "precondition_owner_only": "Only the owner can use this command."
   },
   "resource": {
-    "coins": "Coins",
-    "stamina": "Stamina",
-    "hp": "HP",
-    "exp": "EXP",
-    "gold": "Gold"
+    "coins": "Coins"
   },
   "status": {
     "levelup": "🎉 **LEVEL UP → Lv.{{level}}**"

@@ -1,3 +1,10 @@
+import { PermissionFlagsBits } from 'discord.js';
+
+export function getPermName(bit: bigint) {
+  const name = Object.entries(PermissionFlagsBits).find(([, v]) => v === bit)?.[0];
+  return name?.replace(/([A-Z])/g, ' $1').trim() ?? 'Unknown';
+}
+
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const uniBar = (current: number, max: number, size = 10) => {
