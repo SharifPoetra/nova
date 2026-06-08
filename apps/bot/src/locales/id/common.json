@@ -22,7 +22,7 @@
     "low_stamina": "⚡ Stamina kurang ({{current}}/{{need}})",
     "low_hp": "❤️ HP kurang ({{current}}/{{max}})",
     "cooldown": "⏳ Tunggu {{s}}s lagi",
-    "no_perm": "❌ Kamu tidak punya izin",
+    "no_perm": "❌ Kamu tidak punya izin **{{perm}}**",
 
     "handler_failed_title": "❌ Terjadi Error",
     "handler_failed_desc": "Handler `{{handler}}` gagal dijalankan.\n\n**Error ID:** `{{id}}`",
