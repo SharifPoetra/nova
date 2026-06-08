@@ -99,7 +99,7 @@ export class SellCommand extends Command {
             return {
               label: `${name} x${it.qty}`.slice(0, 100),
               value: it.itemId,
-              description: `${it.data!.rarity} • ${it.data!.sellPrice} ${t('commands/sell:coins')}`.slice(0, 100),
+              description: `${it.data!.rarity} • ${it.data!.sellPrice} ${t('common:resource.coins')}`.slice(0, 100),
               emoji: sanitizeEmoji(it.data!.emoji),
             };
           }),
@@ -170,7 +170,7 @@ export class SellCommand extends Command {
         const name = disp?.name ?? it.itemId;
         const qty = sellCart.get(it.itemId) ?? 0;
         const value = qty * Number(it.data!.sellPrice);
-        return `${it.data!.emoji} **${name}** x${qty} — ${value.toLocaleString(interaction.locale)} ${t('commands/sell:coins')}`;
+        return `${it.data!.emoji} **${name}** x${qty} — ${value.toLocaleString(interaction.locale)} ${t('common:resource.coins')}`;
       });
 
       const title = sold ? t('commands/sell:title_sold') : t('commands/sell:title_confirm');
@@ -187,7 +187,7 @@ export class SellCommand extends Command {
         new SectionBuilder()
           .addTextDisplayComponents(
             new TextDisplayBuilder().setContent(
-              `**${t('commands/sell:total')}**\n+${total.toLocaleString(interaction.locale)} ${t('commands/sell:coins')}\n**${t('commands/sell:items')}**\n${items.length} ${t('commands/sell:types')}`,
+              `**${t('commands/sell:total')}**\n+${total.toLocaleString(interaction.locale)} ${t('common:resource.coins')}\n**${t('commands/sell:items')}**\n${items.length} ${t('commands/sell:types')}`,
             ),
           )
           .setButtonAccessory(
