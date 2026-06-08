@@ -35,10 +35,11 @@ app.get('/health', async () => ({
 // routes - coming soon...
 // await app.register(userRoutes, { prefix: '/api' });
 
+const host = process.env.API_ADDR || '127.0.0.1';
 const port = Number(process.env.API_PORT || 3001);
 
 try {
-  const address = await app.listen({ port, host: '127.0.0.1' });
+  const address = await app.listen({ port, host });
   app.log.info(`🚀 Nova API listening on ${address}`);
 } catch (err) {
   app.log.error(err);
