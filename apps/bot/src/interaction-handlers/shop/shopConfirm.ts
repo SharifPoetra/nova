@@ -12,7 +12,7 @@ import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
 export class ShopConfirmHandler extends InteractionHandler {
-  public override parse(interaction) {
+  public override parse(interaction: ButtonInteraction) {
     return interaction.isButton() && interaction.customId.startsWith('shop_confirm_') ? this.some() : this.none();
   }
 
