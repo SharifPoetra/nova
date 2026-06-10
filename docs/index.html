@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Nova Core — Discord RPG Bot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        font-family: Inter, system-ui;
+        background: #070a0f;
+        color: #e6eef7;
+        overflow-x: hidden;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .nav {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 50;
+        background: rgba(11, 18, 32, 0.8);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .nav-inner {
+        max-width: 1100px;
+        margin: auto;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+      }
+      .btn {
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: 0.2s;
+      }
+      .btn-primary {
+        background: linear-gradient(90deg, #7aa2ff, #a78bfa);
+        color: #000;
+      }
+      .btn-ghost {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 120px 20px 80px;
+        position: relative;
+      }
+      .bg {
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        background: radial-gradient(800px 400px at 70% -10%, #1a2333 0, transparent 60%), #070a0f;
+      }
+      canvas {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        opacity: 0.6;
+      }
+      h1 {
+        font-size: clamp(48px, 9vw, 84px);
+        font-weight: 900;
+        line-height: 0.9;
+        background: linear-gradient(90deg, #fff, #c7d2fe);
+        -webkit-background-clip: text;
+        color: transparent;
+        margin: 16px 0;
+      }
+      .badge {
+        display: inline-flex;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 12px;
+        color: #a3b3c7;
+        margin-bottom: 18px;
+      }
+      .card {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 24px;
+        backdrop-filter: blur(12px);
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+      .features {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 60px 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+      }
+      h2 {
+        font-size: 32px;
+        margin-bottom: 12px;
+        text-align: center;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        max-width: 500px;
+        margin: 40px auto 0;
+      }
+      .stat {
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .stat b {
+        font-size: 24px;
+        display: block;
+      }
+      .commands {
+        max-width: 900px;
+        margin: 60px auto;
+        padding: 0 20px;
+      }
+      .cmd {
+        display: inline-block;
+        margin: 4px;
+        padding: 6px 10px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 30px 20px;
+        text-align: center;
+        color: #7a8aa3;
+        font-size: 14px;
+        margin-top: 80px;
+      }
+      @media (max-width: 700px) {
+        .nav-inner {
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg"></div>
+    <canvas id="s"></canvas>
+
+    <nav class="nav">
+      <div class="nav-inner">
+        <div class="logo">🌌 Nova Core</div>
+        <div style="display: flex; gap: 12px">
+          <a href="#features" class="btn btn-ghost">Features</a>
+          <a href="https://github.com/SharifPoetra/nova" class="btn btn-ghost">GitHub</a>
+          <a href="https://discord.com/oauth2/authorize?client_id=631349627110817792" class="btn btn-primary">Invite</a>
+        </div>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <div class="badge">Built with Sapphire v5 • Mongoose • Monorepo</div>
+        <h1>Nova Core</h1>
+        <p style="font-size: 20px; color: #a3b3c7; margin-bottom: 12px">Discord RPG Bot — Battle Engine v2</p>
+        <p style="max-width: 600px; margin: 0 auto 28px; color: #8fa0b8">
+          Nova is a turn-based Discord RPG bot. Focused on grinding, a 100-floor dungeon, class system, and scalable
+          economy.
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap">
+          <a href="https://discord.com/oauth2/authorize?client_id=631349627110817792" class="btn btn-primary"
+            >Invite Nova</a
+          >
+          <a href="https://discord.gg/ZEFrfj5" class="btn btn-ghost">Support Server</a>
+        </div>
+        <div class="stats">
+          <div class="stat"><b>100</b>Dungeon Floors</div>
+          <div class="stat"><b>3</b>Classes</div>
+          <div class="stat"><b>v2</b>Engine</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features">
+      <div class="card">
+        <h3>⚔️ RPG Core</h3>
+        <p style="color: #9fb0c7; margin-top: 8px">EXP, levels, 3 classes: Warrior / Mage / Rogue</p>
+      </div>
+      <div class="card">
+        <h3>🎮 Battle Engine v2</h3>
+        <p style="color: #9fb0c7; margin-top: 8px">Turn-based, skills, cooldowns, buffs/debuffs</p>
+      </div>
+      <div class="card">
+        <h3>✨ Class Passives</h3>
+        <p style="color: #9fb0c7; margin-top: 8px">
+          Warrior 20% block • Rogue 10% dodge +15% crit • Mage 20% shield +25% crit dmg
+        </p>
+      </div>
+      <div class="card">
+        <h3>🏰 100-Floor Dungeon</h3>
+        <p style="color: #9fb0c7; margin-top: 8px">Boss every 10 floors</p>
+      </div>
+      <div class="card">
+        <h3>🗺️ Hunt & Explore</h3>
+        <p style="color: #9fb0c7; margin-top: 8px">/hunt /explore /fish</p>
+      </div>
+      <div class="card">
+        <h3>💰 Economy</h3>
+        <p style="color: #9fb0c7; margin-top: 8px">/daily /shop /sell + stamina</p>
+      </div>
+    </section>
+
+    <section class="commands">
+      <h2>Commands</h2>
+      <div class="card" style="margin-top: 20px">
+        <p>
+          <b>General:</b> <span class="cmd">/ping</span> <span class="cmd">/help</span>
+          <span class="cmd">/profile</span> <span class="cmd">/lang</span>
+        </p>
+        <p style="margin-top: 12px">
+          <b>Economy:</b> <span class="cmd">/daily</span> <span class="cmd">/shop</span> <span class="cmd">/sell</span>
+        </p>
+        <p style="margin-top: 12px">
+          <b>RPG:</b> <span class="cmd">/start</span> <span class="cmd">/hunt</span> <span class="cmd">/explore</span>
+          <span class="cmd">/fish</span> <span class="cmd">/cook</span> <span class="cmd">/craft</span>
+          <span class="cmd">/dungeon</span> <span class="cmd">/inventory</span> <span class="cmd">/droprate</span>
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      Made by <a href="https://github.com/SharifPoetra" style="color: #c7d2fe">SharifPoetra</a> •
+      <a href="privacy.html">Privacy</a> • <a href="terms.html">Terms</a><br />Not affiliated with Discord
+    </footer>
+
+    <script>
+      // starfield
+      const c = document.getElementById('s'),
+        x = c.getContext('2d');
+      let w,
+        h,
+        p = [];
+      function r() {
+        w = c.width = innerWidth;
+        h = c.height = innerHeight;
+        p = Array(120)
+          .fill()
+          .map(() => ({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: Math.random() * 1.2 + 0.3,
+            s: Math.random() * 0.03 + 0.01,
+          }));
+      }
+      addEventListener('resize', r);
+      r();
+      (function a() {
+        x.clearRect(0, 0, w, h);
+        p.forEach((i) => {
+          i.y += i.s;
+          if (i.y > h) {
+            i.y = 0;
+            i.x = Math.random() * w;
+          }
+          x.beginPath();
+          x.arc(i.x, i.y, i.r, 0, 7);
+          x.fillStyle = 'rgba(180,200,255,.5)';
+          x.fill();
+        });
+        requestAnimationFrame(a);
+      })();
+      // copy
+      document
+        .querySelectorAll('.cmd')
+        .forEach((b) => (b.onclick = () => navigator.clipboard.writeText(b.textContent)));
+    </script>
+  </body>
+</html>
