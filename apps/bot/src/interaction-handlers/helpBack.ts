@@ -8,7 +8,7 @@ import type { HelpCommand } from '../commands/General/help.ts';
   interactionHandlerType: InteractionHandlerTypes.Button,
 })
 export class HelpBackHandler extends InteractionHandler {
-  public override parse(interaction) {
+  public override parse(interaction: ButtonInteraction) {
     return interaction.isButton() && interaction.customId.startsWith('help_back_') ? this.some() : this.none();
   }
 

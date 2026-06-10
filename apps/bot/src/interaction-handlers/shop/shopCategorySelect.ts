@@ -22,7 +22,7 @@ const ITEMS_PER_PAGE = 10;
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
 export class ShopCategorySelectHandler extends InteractionHandler {
-  public override parse(interaction) {
+  public override parse(interaction: StringSelectMenuInteraction | ButtonInteraction) {
     const isShopCategory =
       (interaction.isStringSelectMenu() || interaction.isButton()) && interaction.customId.startsWith('shop_cat_');
     const isShopBack = interaction.isButton() && interaction.customId.startsWith('shop_back_');

@@ -8,7 +8,7 @@ import type { HelpCommand } from '../commands/General/help.ts';
   interactionHandlerType: InteractionHandlerTypes.SelectMenu,
 })
 export class HelpSelectHandler extends InteractionHandler {
-  public override parse(interaction) {
+  public override parse(interaction: StringSelectMenuInteraction) {
     return interaction.isStringSelectMenu() && interaction.customId.startsWith('help_select_')
       ? this.some()
       : this.none();

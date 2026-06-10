@@ -10,7 +10,7 @@ import { fetchT } from '@sapphire/plugin-i18next';
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
 export class InvPaginationHandler extends InteractionHandler {
-  public override parse(i) {
+  public override parse(i: ButtonInteraction) {
     return i.customId?.startsWith('inv_prev_') || i.customId?.startsWith('inv_next_') ? this.some() : this.none();
   }
 

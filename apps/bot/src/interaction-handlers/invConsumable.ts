@@ -10,7 +10,7 @@ import { fetchT } from '@sapphire/plugin-i18next';
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
 export class InvConsumableHandler extends InteractionHandler {
-  public override parse(i) {
+  public override parse(i: ButtonInteraction) {
     return i.customId?.startsWith('inv_consumable_view_') ? this.some() : this.none();
   }
 

@@ -17,7 +17,6 @@ import { getExpNeeded } from '../../lib/rpg/leveling.ts';
 import { SKILLS } from '../../lib/rpg/skills.ts';
 import { i18nMonster } from '../../lib/i18n/display.ts';
 import { getItemDisplay } from '../../lib/i18n/item-registry.ts';
-import { getBackgroundInfo } from '../../lib/canvas/backgrounds.ts';
 import { COLORS, formatNumber } from '../../lib/utils.ts';
 import { getItemById } from '../../lib/shop/categories.ts';
 import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
@@ -27,7 +26,7 @@ import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
 export class ShopPreviewHandler extends InteractionHandler {
-  public override parse(interaction) {
+  public override parse(interaction: ButtonInteraction) {
     return interaction.isButton() && interaction.customId.startsWith('shop_preview_') ? this.some() : this.none();
   }
 
@@ -58,8 +57,7 @@ export class ShopPreviewHandler extends InteractionHandler {
 
       applyPassiveRegen(user);
 
-      // Get background info
-      const backgroundInfo = getBackgroundInfo(bgId);
+      // Get background
       const item = getItemById('backgrounds', `bg_${bgId}`);
 
       if (!item) {
@@ -125,10 +123,8 @@ export class ShopPreviewHandler extends InteractionHandler {
         return { emoji: s?.emoji ?? '✨', name: s?.name ?? id };
       });
 
-      const now = Date.now();
       const activeBuffs = (user.buffs || []).filter((b) => new Date(b.expires ?? 0) > new Date());
       const buffs = activeBuffs.slice(0, 4).map((b) => {
-        const mins = Math.max(0, Math.ceil((new Date(b.expires ?? 0).getTime() - now) / 60000));
         const label = t(`commands/profile:buff_${b.type}`, { defaultValue: b.type });
         const value = ['atk', 'def', 'hp'].includes(b.type) ? `${Math.round(b.value * 100)}%` : `+${b.value}`;
         return `${label} ${value}`;

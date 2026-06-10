@@ -33,7 +33,7 @@ const sanitizeEmoji = (e?: string) => e?.match(/\p{Extended_Pictographic}/u)?.[0
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
 export class CraftSelectHandler extends InteractionHandler {
-  public override parse(interaction) {
+  public override parse(interaction: StringSelectMenuInteraction | ButtonInteraction) {
     const isSelect = interaction.isStringSelectMenu() && interaction.customId.startsWith('craft_');
     const isBtn = interaction.isButton() && interaction.customId.startsWith('craft');
     return isSelect || isBtn ? this.some() : this.none();
