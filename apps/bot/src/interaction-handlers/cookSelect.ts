@@ -68,7 +68,7 @@ const TIER_FILTERS: Record<string, (r: any) => boolean> = {
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
 export class CookSelectHandler extends InteractionHandler {
-  public override parse(interaction) {
+  public override parse(interaction: StringSelectMenuInteraction | ButtonInteraction) {
     const isCookSelect = interaction.isStringSelectMenu() && interaction.customId.startsWith('cook_');
     const isCookButton = interaction.isButton() && interaction.customId.startsWith('cook');
     return isCookSelect || isCookButton ? this.some() : this.none();

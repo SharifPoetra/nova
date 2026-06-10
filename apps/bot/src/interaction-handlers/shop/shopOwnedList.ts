@@ -21,7 +21,7 @@ const ITEMS_PER_PAGE = 25;
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
 export class ShopOwnedListHandler extends InteractionHandler {
-  public override parse(interaction) {
+  public override parse(interaction: StringSelectMenuInteraction | ButtonInteraction) {
     const isOwnedButton = interaction.isButton() && interaction.customId.startsWith('shop_owned_');
     const isSetActive = interaction.isButton() && interaction.customId.startsWith('shop_set_active_');
     const isOwnedSelect = interaction.isStringSelectMenu() && interaction.customId.startsWith('shop_owned_select_');

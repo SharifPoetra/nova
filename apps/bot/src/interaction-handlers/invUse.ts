@@ -12,7 +12,7 @@ import { fetchT } from '@sapphire/plugin-i18next';
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
 export class InvUseHandler extends InteractionHandler {
-  public override parse(i) {
+  public override parse(i: StringSelectMenuInteraction) {
     return i.customId?.startsWith('inv_use_') ? this.some() : this.none();
   }
 

@@ -11,7 +11,7 @@ import { applyPassiveRegen } from '../../lib/rpg/buffs.ts';
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
 export class ShopItemSelectHandler extends InteractionHandler {
-  public override parse(interaction) {
+  public override parse(interaction: StringSelectMenuInteraction) {
     return interaction.isStringSelectMenu() && interaction.customId.startsWith('shop_item_')
       ? this.some()
       : this.none();

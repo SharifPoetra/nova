@@ -14,7 +14,7 @@ import { fetchT } from '@sapphire/plugin-i18next';
   interactionHandlerType: InteractionHandlerTypes.MessageComponent,
 })
 export class InvEquipmentHandler extends InteractionHandler {
-  public override parse(i) {
+  public override parse(i: StringSelectMenuInteraction | ButtonInteraction) {
     return i.customId?.startsWith('inv_equip_') ||
       i.customId?.startsWith('inv_unequip_') ||
       i.customId?.startsWith('inv_back_')
