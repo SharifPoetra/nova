@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Privacy Policy — Nova Core</title>
+    <style>
+      :root {
+        --bg: #0b0f14;
+        --card: #121a24;
+        --text: #e6eef7;
+        --muted: #a3b3c7;
+        --accent: #7aa2ff;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          16px/1.7 Inter,
+          system-ui,
+          -apple-system,
+          Segoe UI;
+      }
+      .wrap {
+        max-width: 960px;
+        margin: auto;
+        padding: 56px 20px;
+      }
+      .card {
+        background: #121a24;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 40px;
+      }
+      h1 {
+        font-size: 2.3rem;
+        margin: 0 0 8px;
+      }
+      h2 {
+        color: var(--accent);
+        margin: 32px 0 12px;
+        font-size: 1.25rem;
+      }
+      .badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 999px;
+        background: rgba(122, 162, 255, 0.12);
+        border: 1px solid rgba(122, 162, 255, 0.25);
+        color: #cfe0ff;
+        font-size: 0.85rem;
+        margin-bottom: 14px;
+      }
+      p,
+      li {
+        color: var(--muted);
+      }
+      ul {
+        padding-left: 20px;
+      }
+      code {
+        background: #0f1722;
+        padding: 2px 6px;
+        border-radius: 6px;
+        color: #d7e6ff;
+      }
+      a {
+        color: #a78bfa;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      footer {
+        margin-top: 36px;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <span class="badge">Effective: June 10, 2026 • Nova Core</span>
+        <h1>Privacy Policy</h1>
+        <p>
+          Nova Core ("Nova") is a Discord RPG bot developed by <strong>Mohd Syarif Nasir</strong> (@SharifPoetra). Nova
+          is built with Sapphire Framework v5 and MongoDB/Mongoose, focusing on a scalable turn-based RPG experience.
+        </p>
+
+        <h2>1. Data We Collect</h2>
+        <ul>
+          <li><strong>Discord identifiers:</strong> User ID, username, server ID</li>
+          <li><strong>RPG profile:</strong> class (Warrior/Mage/Rogue), level, EXP, HP, stamina</li>
+          <li>
+            <strong>Game progress:</strong> dungeon floor (1–100, boss every 10 floors), hunt/explore/fish results,
+            inventory, crafting materials
+          </li>
+          <li><strong>Economy:</strong> coins, daily streak, shop transactions</li>
+          <li>
+            <strong>Technical logs:</strong> command usage (/start, /profile, /hunt, /explore, /fish, /cook, /craft,
+            /dungeon, /daily, /shop, /sell), timestamps, error traces — we do not store message content
+          </li>
+        </ul>
+
+        <h2>2. Purpose</h2>
+        <p>
+          Data is used to save character progression, run Battle Engine v2 (turn-based skills, cooldowns,
+          buffs/debuffs), manage class passives, and maintain game balance.
+        </p>
+
+        <h2>3. Storage & Security</h2>
+        <p>
+          Data is stored in MongoDB. Access is restricted to the developer. We implement standard security practices for
+          Node.js/TypeScript applications.
+        </p>
+
+        <h2>4. Data Sharing</h2>
+        <p>
+          We do not sell or share personal data. Processing is limited to Discord API (to operate the bot) and our
+          database provider.
+        </p>
+
+        <h2>5. Your Rights — Deletion</h2>
+        <p>
+          <strong>Nova does not have an automated /delete-data command.</strong> To request deletion of your RPG data,
+          contact the developer directly:
+        </p>
+        <p>
+          → Discord: <strong>mohd.syarif</strong> via support server
+          <a href="https://discord.gg/ZEFrfj5">discord.gg/ZEFrfj5</a><br />
+          Provide your Discord User ID. Requests are processed within 7 days and confirmed via Discord DM.
+        </p>
+
+        <h2>6. Retention</h2>
+        <p>Data is retained while you use Nova. Inactive profiles (>12 months) may be archived.</p>
+
+        <h2>7. Children's Privacy</h2>
+        <p>Nova complies with Discord's 13+ age requirement.</p>
+
+        <h2>8. Changes</h2>
+        <p>
+          Updates to this policy will be posted at
+          <a href="https://github.com/SharifPoetra/nova">github.com/SharifPoetra/nova</a>
+        </p>
+
+        <h2>9. Contact</h2>
+        <p>
+          Developer: Mohd Syarif Nasir (SharifPoetra)<br />
+          GitHub: <a href="https://github.com/SharifPoetra/nova">github.com/SharifPoetra/nova</a><br />
+          Discord Support:
+          <a href="https://discord.gg/ZEFrfj5">discord.gg/ZEFrfj5</a>
+        </p>
+
+        <footer>© 2026 Nova Core. Independent project, not affiliated with Discord Inc.</footer>
+      </div>
+    </div>
+  </body>
+</html>
