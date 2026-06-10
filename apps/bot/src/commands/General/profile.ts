@@ -30,7 +30,7 @@ export class ProfileCommand extends Command {
         .setNameLocalizations(name.localizations)
         .setDescription(description.default)
         .setDescriptionLocalizations(description.localizations)
-        .addStringOption((option) =>
+        .addUserOption((option) =>
           option
             .setName('user')
             .setDescription(optDesc.default)
