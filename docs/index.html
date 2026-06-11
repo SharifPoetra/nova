@@ -6,6 +6,9 @@
     <title>Nova Core — Discord RPG Bot</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
     <style>
+      html {
+        scroll-behavior: smooth;
+      }
       * {
         box-sizing: border-box;
         margin: 0;
@@ -37,6 +40,16 @@
         align-items: center;
         justify-content: space-between;
       }
+      @media (max-width: 700px) {
+        .nav {
+          backdrop-filter: none;
+          background: rgba(11, 18, 32, 0.95);
+        }
+        .nav-inner {
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+      }
       .logo {
         display: flex;
         align-items: center;
@@ -65,6 +78,7 @@
         text-align: center;
         padding: 120px 20px 80px;
         position: relative;
+        will-change: transform;
       }
       .bg {
         position: fixed;
@@ -169,6 +183,55 @@
           gap: 10px;
         }
       }
+      /* === ANIMASI SCROLL === */
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+      }
+      .reveal.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .card {
+        transition:
+          transform 0.25s ease,
+          box-shadow 0.25s ease;
+      }
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(122, 162, 255, 0.15);
+      }
+      .btn-primary {
+        box-shadow: 0 0 0 rgba(122, 162, 255, 0);
+        animation: pulse 3s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 rgba(122, 162, 255, 0);
+        }
+        50% {
+          box-shadow: 0 0 24px rgba(122, 162, 255, 0.35);
+        }
+      }
+      .card.reveal:nth-child(2) {
+        transition-delay: 0.05s;
+      }
+      .card.reveal:nth-child(3) {
+        transition-delay: 0.1s;
+      }
+      .card.reveal:nth-child(4) {
+        transition-delay: 0.15s;
+      }
+      .card.reveal:nth-child(5) {
+        transition-delay: 0.2s;
+      }
+      .card.reveal:nth-child(6) {
+        transition-delay: 0.25s;
+      }
     </style>
   </head>
   <body>
@@ -210,35 +273,35 @@
     </section>
 
     <section id="features" class="features">
-      <div class="card">
+      <div class="card reveal">
         <h3>⚔️ RPG Core</h3>
         <p style="color: #9fb0c7; margin-top: 8px">EXP, levels, 3 classes: Warrior / Mage / Rogue</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>🎮 Battle Engine v2</h3>
         <p style="color: #9fb0c7; margin-top: 8px">Turn-based, skills, cooldowns, buffs/debuffs</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>✨ Class Passives</h3>
         <p style="color: #9fb0c7; margin-top: 8px">
           Warrior 20% block • Rogue 10% dodge +15% crit • Mage 20% shield +25% crit dmg
         </p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>🏰 100-Floor Dungeon</h3>
         <p style="color: #9fb0c7; margin-top: 8px">Boss every 10 floors</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>🗺️ Hunt & Explore</h3>
         <p style="color: #9fb0c7; margin-top: 8px">/hunt /explore /fish</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>💰 Economy</h3>
         <p style="color: #9fb0c7; margin-top: 8px">/daily /shop /sell + stamina</p>
       </div>
     </section>
 
-    <section class="commands">
+    <section class="commands reveal">
       <h2>Commands</h2>
       <div class="card" style="margin-top: 20px">
         <p>
@@ -271,7 +334,8 @@
       function r() {
         w = c.width = innerWidth;
         h = c.height = innerHeight;
-        p = Array(120)
+        const count = innerWidth < 700 ? 70 : 120;
+        p = Array(count)
           .fill()
           .map(() => ({
             x: Math.random() * w,
@@ -301,6 +365,41 @@
       document
         .querySelectorAll('.cmd')
         .forEach((b) => (b.onclick = () => navigator.clipboard.writeText(b.textContent)));
+
+      // scroll reveal
+      const io = new IntersectionObserver(
+        (es) => {
+          es.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add('show');
+              io.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.15 },
+      );
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+      // parallax hero
+      const hero = document.querySelector('.hero');
+      const isMobile = window.matchMedia('(max-width:700px)').matches;
+      if (!isMobile && hero) {
+        let ticking = false;
+        addEventListener(
+          'scroll',
+          () => {
+            if (!ticking) {
+              requestAnimationFrame(() => {
+                const y = Math.min(scrollY * 0.15, 80);
+                hero.style.transform = `translate3d(0,${y}px,0)`;
+                ticking = false;
+              });
+              ticking = true;
+            }
+          },
+          { passive: true },
+        );
+      }
     </script>
   </body>
 </html>
