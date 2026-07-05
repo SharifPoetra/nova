@@ -29,6 +29,8 @@ RUN npm ci --omit=dev --workspaces --ignore-scripts && npm cache clean --force
 # copy build output
 COPY --from=build /usr/src/app/packages/database/dist ./packages/database/dist
 COPY --from=build /usr/src/app/apps/bot/dist ./apps/bot/dist
+# copy assets
+COPY --from=build /usr/src/app/apps/bot/assets ./apps/bot/assets
 
 RUN mkdir -p /usr/src/app/logs && chown -R node:node /usr/src/app
 
